@@ -1,0 +1,110 @@
+
+% Qs:
+%   how to test code
+%   type stability
+
+load_package assist;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% returns {1..n}
+procedure iota (n);
+  begin scalar range;
+    range := {};
+    for i := 1:n do
+      range := append( range, {i} );
+    return range;
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% returns arr[i:j], including i and j
+procedure slice (arr, i, j);
+  begin;
+    return for k := i:j collect part(arr, k);
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% merge arr1 and arr2 in a sorted order
+% assuming arguments are sorted
+procedure merge_sorted (arr1, arr2);
+  begin scalar ans, i, j;
+    ans := {};
+    i := 1;
+    j := 1;
+    while i <= length(arr1) and j <= length(arr2) do
+      begin;
+        if part(arr1, i) < part(arr2, j)
+          then <<ans := append(ans, {part(arr1, i)}); i := i + 1>>
+          else <<ans := append(ans, {part(arr2, j)}); j := j + 1>>
+      end;
+    if i <= length(arr1) then ans := append(ans, slice(arr1, i, length(arr1)));
+    if j <= length(arr2) then ans := append(ans, slice(arr2, j, length(arr2)));
+    return ans;
+  end;
+
+% sort arr
+procedure merge_sort (arr);
+  begin scalar n, mid;
+    n := length(arr);
+    if n = 1 then return slice(arr, 1, 1);
+
+    mid   := round(n / 2);
+    left  := slice(arr, 1, mid);
+    right := slice(arr, mid+1, n);
+
+    write(n, " ", left, right);
+
+    left_sorted  := merge_sort(left);
+    right_sorted := merge_sort(right);
+
+    write(left_sorted, right_sorted);
+
+    return merge_sorted(left_sorted, right_sorted);
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% returns submatrix arr[(x1, y1):(x2, y2)]
+procedure matrix_slice (arr, x1, y1, x2, y2);
+  begin scalar subm, subn;
+    subm := x2 - x1 + 1;
+    subn := y2 - y1 + 1;
+    matrix submatrix(subm, subn);
+    for i := x1:x2 do
+      for j := y1:y2 do
+        submatrix(i-x1+1, j-y1+1) := arr(i, j);
+    return submatrix
+  end;
+
+% returns trace of arr
+procedure matrix_trace (arr);
+  begin scalar mn, m, n, ans;
+    mn := length(arr);
+    m  := part(mn, 1);
+    n  := part(mn, 2);
+    if not (m = n) then return "Beda!";
+
+    return for i := 1:m sum arr(i, i);
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% reverse list
+procedure reverse_list (arr);
+  begin
+  return if length(arr) <= 1 then arr
+    else append(reverse_list(rest(arr)), {first(arr)});
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+symbolic operator sym_bubble_sort;
+
+symbolic procedure sym_bubble_sort arr;
+  begin;
+    return arr;
+  end;
+
+;END;
