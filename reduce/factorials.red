@@ -1,4 +1,3 @@
-
 symbolic operator identity;
 
 symbolic procedure identity x;
@@ -16,21 +15,21 @@ symbolic procedure addone n;
 symbolic operator factorial_one;
 
 symbolic procedure factorial_one n;
-  if n = 0 then 1 else
-  *( n, factorial_one -(n, 1) );
+  <<if n = 0 then 1 else
+  *( n, factorial_one -(n, 1) );>>; % bad
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 symbolic operator factorial_two;
 
-symbolic procedure factorial_two n;
+symbolic procedure factorial_two n;  % CamelCase for functions
   begin integer c := 1;
   while n > 1 do
     <<c := c * n; n := n - 1>>;
   return c;
   end;
 
-;END;
+end;  % 
 
 % I suppose this file should be used
 % in reduce console the following way:
