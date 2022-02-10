@@ -1,4 +1,6 @@
-lex: hm
+
+module ht;
+
 off1 'allfac;
 
 put('initialize, 'psopfn, 'ht_initialize);
