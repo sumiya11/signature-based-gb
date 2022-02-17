@@ -1,9 +1,11 @@
-
 module bb;
 
 off1 'allfac;
 
 load!-package 'dp;
+
+inline procedure bb_leadingExponent(x);
+   dip_evlmon(x);
 
 put('buchberger, 'psopfn, 'bb_buchberger);
 
