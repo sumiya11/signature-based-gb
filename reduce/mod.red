@@ -1,4 +1,3 @@
-
 module mod;
 
 %  The Module provides module over polynomial ring element interface --
@@ -70,7 +69,7 @@ procedure mod_potCompareSignatures(s1, s2);
       ev1  := cadr s1;
       ev2  := cadr s2;
       return if idx1 equal idx2 then ev_comp(ev1, ev2)
-         else (idx1 < idx2)
+         else (idx1 > idx2)
    end;
 
 % minimal signature based on pot comparison strategy
@@ -108,47 +107,52 @@ procedure mod_extractDpExponents(f);
 procedure mod_tryRegularReduce1(f, g);
    begin scalar fexps, fexp, fcoef, gcoeflead, gexplead,
                   m, evlf, evlg, sgnf, sgng, idxf, idxg, tf, tg,
-                  anspoly, anssgn;
+                  anspoly, anssgn, tmpflag;
    integer nterms, i;
       evlf := mod_evaluation(f);
       evlg := mod_evaluation(g);
       sgnf := mod_signature(f);
       sgng := mod_signature(g);
-      idxf := car sgnf;
-      idxg := car sgng;
-      tf   := cadr sgnf;
-      tg   := cadr sgng;
 
       gexplead  := dip_evlmon(evlg);
       gcoeflead := dip_lbc(evlg);
 
-      nterms := dip_length(evlf);
-
       print {"2 try reduce ", f , " with ", g};
 
-      anspoly := f;
-      anssgn := sgnf;
+      nterms := dip_length(evlf);
+
+      anspoly := nil;
+      anssgn := nil;
+
+      flag := nil;
+
+      tmpevlf := evlf;
 
       for i := 1:nterms do <<
-         fexp  := car evlf;
-         fcoef := cadr evlf;
-         evlf  := cddr evlf;
+         fexp    := car tmpevlf;
+         fcoef   := cadr tmpevlf;
+         tmpevlf := cddr tmpevlf;
          % check that evaluations can be reduced
          % ORDER of arguments !!!!!
-         flag := ev_divides!?(gexplead, fexp);
-         if flag then <<
+         tmpflag := ev_divides!?(gexplead, fexp);
+         if (not flag) and tmpflag then <<
+            flag := t;
             m := ev_dif(fexp, gexplead);
             % check that reduction is regular
-            if not (tf equal mod_multSignature(tg, m)) then <<
+            if not (sgnf equal mod_multSignature(sgng, m)) then <<
+               % new polynomial instance
                anspoly := dip_ilcomb(evlf, bc_neg(gcoeflead), ev_zero(), evlg, fcoef, m);
-               anssgn  := sgnf
+               print {"anspoly is", anspoly};
+               % new signature instance
+               newexp  := for each x in cadr sgnf collect x;
+               anssgn  := car sgnf . newexp . nil
             >>
          >>
       >>;
 
       print {"2 result ", flag, anspoly};
 
-      return flag . anspoly . anssgn . nil
+      return flag . anspoly . anssgn
    end;
 
 % try to reduce module elem f with module G regurarly
@@ -156,7 +160,10 @@ procedure mod_tryRegularReduce1(f, g);
 procedure mod_tryRegularReduce(f, G);
    begin scalar ans, gg;
       print {"1 try reduce ", f, "  with  ", G};
+
       if null G then
+         ans := nil . f
+      else if null (car f) then
          ans := nil . f
       else <<
          gg := car G;
@@ -164,7 +171,7 @@ procedure mod_tryRegularReduce(f, G);
          print {"ans", ans}
       >>;
 
-      print {"1 result ", ans, car ans};
+      print {"1 result ", ans};
 
       return if not (car ans) then
          if not (null G) then mod_tryRegularReduce(f, cdr G) else ans
@@ -215,6 +222,29 @@ procedure mod_spolyCofactors(f, g);
       return mult1 . mult2
    end;
 
+% compute signatures of pi and pj
+% after multiplication by cofactors of Spolynomial of pi and pj
+procedure mod_spolyMultSignatures(pi, pj);
+   begin scalar mij, mi, mj, si, sj, msi, msj;
+      print {"in", pi, "    ", pj};
+      mij := mod_spolyCofactors(pi, pj);
+      mi := car mij;
+      mj := cdr mij;
+
+      print {"iiii", mi, mj};
+
+      si := mod_signature(pi);
+      sj := mod_signature(pj);
+
+      print {"mmmm", si, sj};
+
+      mod_multSignature(si, mj) . mod_multSignature(sj, mi);
+
+      print {"kkkk"};
+
+      return mod_multSignature(si, mj) . mod_multSignature(sj, mi)
+   end;
+
 % compute Spoly of f and g, where f and g are tuples in internal representation
 procedure mod_spoly(f, g);
    begin scalar p1, p2, e1, e2, c1, c2, elcm, mult1, mult2, ans,
@@ -242,8 +272,8 @@ procedure mod_spoly(f, g);
       sgn1 := mod_signature(f);
       sgn2 := mod_signature(g);
 
-      sgn11 := mod_multSignature(sgn1, mult1);
-      sgn22 := mod_multSignature(sgn2, mult2);
+      sgn11 := mod_multSignature(sgn1, mult2);
+      sgn22 := mod_multSignature(sgn2, mult1);
 
       print {"sgns", sgn11, sgn22};
 
@@ -257,5 +287,3 @@ endmodule;
 
 
 end;  % of file
-
-
