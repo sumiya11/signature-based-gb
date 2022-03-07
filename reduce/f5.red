@@ -1,4 +1,3 @@
-
 module f5;
 
 off1 'allfac;
@@ -25,7 +24,7 @@ asserted procedure f5_groebner(u: List): List;
          dip_f2dip numr simp f;
       outputBasis := f5_groebner1(inputBasis);
       outputBasis := 'list . for each f in outputBasis collect
-         dip_2a f;
+         dip_2a mod_evaluation f;
       return outputBasis
    end;
 
@@ -53,8 +52,8 @@ procedure f5_selectNext(spolys);
    end;
 
 procedure f5_groebner1(inputBasis);
-   begin scalar basis, spolys;
-   integer i;
+   begin scalar basis, spolys, known_syz;
+   integer i, ii;
 
       print {"input", inputBasis};
 
@@ -69,20 +68,9 @@ procedure f5_groebner1(inputBasis);
       for each pi in basis do <<
          for each pj in basis do <<
             if not (pi equal pj) then <<
-               print {"pi, pj", pi, pj};
-               mij := mod_spolyCofactors(pi, pj);
-               mi := car mij;
-               mj := cdr mij;
-
-               si := mod_signature(pi);
-               sj := mod_signature(pj);
-
-               msi := mod_multSignature(si, mj);
-               msj := mod_multSignature(sj, mi);
-               print {"mi, mj", mi, mj};
-
-               print {"si, sj, msi, msj", si, sj, msi, msj};
-               print {"passing pi, pj", pi, pj};
+               msij := mod_spolyMultSignatures(pi, pj);
+               msi  := car msij;
+               msj  := cdr msij;
 
                % do no add redundant pairs
                if mod_potCompareSignatures(msi, msj) then
@@ -94,7 +82,7 @@ procedure f5_groebner1(inputBasis);
       print {"GENERATED SPOLYS", spolys};
       print {"MAIN CYCLE START"};
 
-      i := 1;
+      ii := 1;
       while spolys do <<
          ip := f5_selectNext(spolys);
          i  := car ip;
@@ -105,7 +93,7 @@ procedure f5_groebner1(inputBasis);
 
          print "------------------";
          print {"signature ", mod_signature(p)};
-         print {"iteration ", i, p};
+         print {"iteration ", ii, p};
          print {"basis = ", basis};
          print {"spolys = ", spolys};
          print {"left spolys", length(spolys)};
@@ -118,22 +106,22 @@ procedure f5_groebner1(inputBasis);
             if (not mod_isSingularlyTopReducible(p_nf, basis)) then <<
                print {"Not top reducible"};
                for each gg in basis do <<
-                  mi, mj := mod_spolyCofactors(p_nf, gg);
-                  si := mod_signature(p_nf);
-                  sj := mod_signature(gg);
+                  print {"!!!", p_nf, gg};
+                  msij := mod_spolyMultSignatures(p_nf, gg);
+                  msi  := car msij;
+                  msj  := cdr msij;
 
-                  msi := mod_multSignature(si, mi);
-                  msj := mod_multSignature(sj, mj);
+                  print {"???"};
 
                   if not (msi equal msj) then
                      spolys := nconc(spolys, { mod_spoly(p_nf, gg) })
                >>;
-               basis := nconc(basis, p_nf)
+               basis := nconc(basis, { p_nf })
             >>
          >>;
 
-         i := i + 1;
-         % if i > 5 then spolys := nil;
+         ii := ii + 1
+         % if ii > 5 then spolys := nil;
       >>;
 
       return basis
@@ -146,8 +134,9 @@ tr f5_groebner1;
 
 in "mod.red";
 
-groebner({8*x1 + x2, x1*x2 + 4}, {x1, x2}, lex);
+% groebner({x1 + x2, x1*x2 + 1}, {x1, x2}, lex);
+% groebner({x1*x2 + 1, x2*x3 + 1}, {x1, x2, x3}, lex);
+groebner({x1 + x2 + x3, x1*x2 + x2*x3 + x1*x3, x1*x2*x3 - 1}, {x1, x2, x3}, lex);
+groebner({10*x1*x2^2 - 11*x1 + 10, 10*x1^2*x2 - 11*x2 + 10}, {x1, x2}, revgradlex);
 
 end;  % of file
-
-
