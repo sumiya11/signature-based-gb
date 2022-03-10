@@ -93,6 +93,8 @@ procedure mod_potCompare(f1, f2);
 procedure mod_isSyzygy(f);
    mod_evaluation(f) equal nil;
 
+% TODO: asserted, prints, trace
+
 % extract an array of exponent vectors of f
 procedure mod_extractDpExponents(f);
    begin scalar ans;
