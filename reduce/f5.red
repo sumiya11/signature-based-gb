@@ -1,10 +1,13 @@
+
+
+in "lp.red";
+
 module f5;
 
-off1 'allfac;
+load_package assert;
+on assert;
 
-load!-package 'dp;
-
-put('groebner, 'psopfn, 'f5_groebner);
+put('f5, 'psopfn, 'f5_groebner);
 
 asserted procedure f5_groebner(u: List): List;
    begin scalar inputBasis, variables, sortMode, outputBasis;
@@ -24,21 +27,21 @@ asserted procedure f5_groebner(u: List): List;
          dip_f2dip numr simp f;
       outputBasis := f5_groebner1(inputBasis);
       outputBasis := 'list . for each f in outputBasis collect
-         dip_2a mod_evaluation f;
+         dip_2a lp_evaluation f;
       return outputBasis
    end;
 
-asserted procedure f5_error(): Void;
+% Void return type failes assert check
+asserted procedure f5_error();
    rederr "usage: buchberger(polynomials: List, variables: List, sortmode: Id)";
 
-procedure f5_selectNext(spolys);
+asserted procedure f5_selectNext(spolys: List): List;
    begin scalar i, idx, sgn, elem;
       i := 1;
+      s := lp_signature(car spolys); % nonempty
       while spolys do <<
-         p := car spolys;
-         spolys := cdr spolys;
-         s := mod_signature(p);
-         if (i equal 1) or mod_potCompareSignatures(s, sgn) then <<
+         p . spolys := spolys;
+         if (i equal 1) or lp_potCompareSignatures(s, sgn) then <<
             idx  := i;
             elem := p;
             sgn  := s
@@ -46,75 +49,44 @@ procedure f5_selectNext(spolys);
          i := i + 1
       >>;
 
-      print {"IN SELECT idx, elem, sgn", idx, elem, " ---> ", sgn};
-
       return idx . elem;
    end;
 
-procedure f5_groebner1(inputBasis);
+asserted procedure f5_groebner1(inputBasis: List): List;
    begin scalar basis, spolys, known_syz;
    integer i, ii;
-
-      print {"input", inputBasis};
-
       % form output list..
-      basis  := mod_constructModule(inputBasis);
-
-      print {"basis", basis};
-      print {"firrst", car basis};
+      basis  := lp_constructModule(inputBasis);
 
       % and initial s-polynomials
       spolys := nil;
       for each pi in basis do <<
          for each pj in basis do <<
             if not (pi equal pj) then <<
-               msij := mod_spolyMultSignatures(pi, pj);
-               msi  := car msij;
-               msj  := cdr msij;
+               msi . msj := lp_spolyMultSignatures(pi, pj);
 
                % do no add redundant pairs
-               if mod_potCompareSignatures(msi, msj) then
-                  spolys := nconc(spolys, { mod_spoly(pi, pj) })
+               if lp_potCompareSignatures(msi, msj) then
+                  spolys := nconc(spolys, { lp_spoly(pi, pj) })
             >>
          >>
       >>;
 
-      print {"GENERATED SPOLYS", spolys};
-      print {"MAIN CYCLE START"};
-
       ii := 1;
       while spolys do <<
-         ip := f5_selectNext(spolys);
-         i  := car ip;
-         p  := cdr ip;
+         i . p := f5_selectNext(spolys);
 
          % inplace ?
          spolys := remove(spolys, i);
 
-         print "------------------";
-         print {"signature ", mod_signature(p)};
-         print {"iteration ", ii, p};
-         print {"basis = ", basis};
-         print {"spolys = ", spolys};
-         print {"left spolys", length(spolys)};
+         p_nf := lp_regularNormalForm(p, basis);
 
-         p_nf := mod_regularNormalForm(p, basis);
-         print {"normal form", p_nf};
-
-         if not mod_isSyzygy(p_nf) then <<
-            print {"Not a syzygy"};
-            if (not mod_isSingularlyTopReducible(p_nf, basis)) then <<
-               print {"Not top reducible"};
+         if not lp_isSyzygy(p_nf) then <<
+            if (not lp_isSingularlyTopReducible(p_nf, basis)) then <<
                for each gg in basis do <<
-                  print {"!!!", p_nf, gg};
-                  msij := mod_spolyMultSignatures(p_nf, gg);
-                  msi  := car msij;
-                  msj  := cdr msij;
-
-                  print {"???"};
-
+                  msi . msj := lp_spolyMultSignatures(p_nf, gg);
                   if not (msi equal msj) then
-                     spolys := nconc(spolys, { mod_spoly(p_nf, gg) })
+                     spolys := nconc(spolys, { lp_spoly(p_nf, gg) })
                >>;
                basis := nconc(basis, { p_nf })
             >>
@@ -127,16 +99,17 @@ procedure f5_groebner1(inputBasis);
       return basis
    end;
 
+
+trst f5_groebner;
+trst f5_groebner1;
+
+trst f5_selectNext;
+
+
 endmodule;
 
-tr f5_groebner;
-tr f5_groebner1;
-
-in "mod.red";
-
-% groebner({x1 + x2, x1*x2 + 1}, {x1, x2}, lex);
-% groebner({x1*x2 + 1, x2*x3 + 1}, {x1, x2, x3}, lex);
-groebner({x1 + x2 + x3, x1*x2 + x2*x3 + x1*x3, x1*x2*x3 - 1}, {x1, x2, x3}, lex);
-groebner({10*x1*x2^2 - 11*x1 + 10, 10*x1^2*x2 - 11*x2 + 10}, {x1, x2}, revgradlex);
+f5({x1 + x2 + x3, x1*x2 + x2*x3 + x1*x3, x1*x2*x3 - 1}, {x1, x2, x3}, lex);
 
 end;  % of file
+
+
