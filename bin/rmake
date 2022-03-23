@@ -1,0 +1,101 @@
+#!/bin/bash
+if [ "$1" == "-B" ]; then
+    rebuild="-B"
+    shift
+fi
+if [ "$*" == "" ]; then
+   echo "Compile Reduce packages for CSL and PSL" > /dev/stderr
+   echo "Usage: rmake [-B] package1 [package2 ...]" > /dev/stderr
+   exit
+fi
+cd $trunk
+ARCH="$($trunk/scripts/findhost.sh $(./config.guess))"
+
+# cd $trunk/cslbuild/$ARCH/csl
+# make -t reduce.img > /dev/null
+# for p in $*; do
+#     echo -e "\033[1mCompiling $p for CSL ...\033[0m"
+#     make recompile which=$p | awk '
+# BEGIN {BLACK="\033[30m"; RED="\033[31m"; GREEN="\033[32m"; YELLOW="\033[32m"; BLUE="\033[34m"; BOLD=""; BOLD="\033[1m"; DEFAULT="\033[0m"}
+# /Completed FASL/ {pr=0}
+# /^$/ {next}
+# #/^\+\+\+.*compiled/ {split($0,a); printf("%s%s%s ", GREEN, a[2], DEFAULT); next}
+# /^\+\+\+/ {printf("%s%s%s\n", GREEN, $0, DEFAULT); next}
+# /local variable.* not used/ {printf("%s%s%s\n", BLUE, $0, DEFAULT); next}
+# /struct.* not checked/ {printf("%s%s%s\n", BLUE, $0, DEFAULT); next}
+# /End-of-file read/ {printf("%s%s%s\n", BLUE, $0, DEFAULT); next}
+# /Compiling/ {printf("%s%s%s\n", BOLD, $0, DEFAULT); next}
+# /^\*\*\*\*\*/ {printf("%s%s%s%s\n",BOLD,RED,$0,DEFAULT); pr=0; next}
+# /^\*\*\*/ {printf("%s%s%s\n",RED,$0,DEFAULT); next}
+# (pr==1) {print}
+# /execute FASLEND/ {pr=1}'
+# done
+
+if [ "$RMAKE_COLOR" != "" ]; then
+   color=1 
+else
+   color=0
+fi
+
+echo
+for p in $*; do
+    # echo -e "\033[1mCompiling $p for PSL ...\033[0m"
+    pslmake $rebuild $p | awk -v color=$color '
+BEGIN {
+    if (color == "1") {
+        BLACK="\033[30m"; RED="\033[31m"; GREEN="\033[32m"; YELLOW="\033[32m"; BLUE="\033[34m";
+        BOLD="\033[1m";
+        BOLD="";
+    } else {    
+        BLACK=""; RED=""; GREEN=""; YELLOW=""; BLUE="";
+        BOLD="";
+    }
+    DEFAULT=BLACK;
+    pr=0;
+    ignore=0
+}
+(1) {
+    fflush()
+}
+(ignore==1) {
+    next
+}
+/Compiling/ {
+    printf("%s%s%s\n", BOLD, DEFAULT, $0, DEFAULT);
+    next
+ }
+/^\*\*\*\*\*/ {
+    printf("%s%s%s%s\n",BOLD, RED,$0,DEFAULT); pr=0; ignore=1; 
+    next
+}
+/^\*\*\* .* =>/ {
+    next
+}
+/\*\*\* struct .* not checked/ {
+    next
+}
+/^\*\*\* No new inline definitions here/ {
+    next
+}
+/^\*\*\* Init code length/ {
+    next
+}
+/^\*\*\* local variable .* not used/ {
+    printf("%s%s%s\n", BLUE, $0, DEFAULT);
+    next
+ }
+/^\*\*\*/ {
+    printf("%s%s%s\n",RED,$0,DEFAULT);
+    next
+}
+/^at line/ {
+    printf("%s%s%s\n",RED,$0,DEFAULT);
+    next
+}
+/\$\$\$/ {
+    pr=1
+}
+(pr==1) {
+    print
+}'
+done

@@ -1,0 +1,65 @@
+#!/bin/bash
+if [ "$*" == "" ]; then
+   echo "Compile one Reduce package for PSL" > /dev/stderr
+   echo "Usage: pslmake [-B] package" > /dev/stderr
+   exit
+fi
+
+if [ "$1" == "-B" ]; then
+    forcecompile="!*forcecompile := t;"
+    shift
+fi
+
+p="$1"
+
+cd $trunk
+
+ARCH="$($trunk/scripts/findhost.sh $(./config.guess))"
+
+export fasl=./red
+export reduce=$trunk
+
+cd $trunk/pslbuild/$ARCH
+
+if test -f 64
+then
+STORE=4000
+else
+STORE=64000000
+fi
+
+./psl/bpsl -f ./red/reduce.img <<XXX
+
+linelength 10000;
+
+symbolic;
+
+load compiler;
+errorset('(load compat),nil,nil); % PSL compiler support.
+off verboseload;
+
+% Specific package loads to avoid BPS problems.
+if '$p eq 'susy2 then flag('(susy2),'lap)
+else if '$p eq 'fps then load_package limits,factor,specfn,sfgamma
+else if '$p eq 'mrvlimit then load_package taylor;
+
+load remake;
+
+$forcecompile
+
+!*argnochk := t;
+
+begin
+  scalar w, i, s;
+  i := open("$reduce/packages/package.map", 'input);
+  s := rds i;
+  w := read();
+  rds s;
+  close i;
+  for each x in w do put(car x, 'folder, cadr x)
+end;
+
+package!-remake '$p;
+
+bye;
+XXX
