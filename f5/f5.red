@@ -1,12 +1,21 @@
-
-in "lp.red";
-
 module f5;
 
+%
+%
+%
+
+create!-package('(f5 f5lp f5poly), nil); 
+
 load_package assert;
-on assert;
+on1 'assert;
 
 put('f5, 'psopfn, 'f5_groebner);
+
+% from poly module
+struct Polynomial;
+
+% from lp module
+struct LabeledPolynomial;
 
 asserted procedure f5_groebner(u: List): List;
    begin scalar inputBasis, variables, sortMode, outputBasis;
@@ -21,7 +30,7 @@ asserted procedure f5_groebner(u: List): List;
       sortMode := pop u;
       if not null u then
          f5_error();
-      dip_init(variables, sortMode);
+      dip_init(variables, sortMode, nil);
       inputBasis := for each f in inputBasis collect
          dip_f2dip numr simp f;
       outputBasis := f5_groebner1(inputBasis);
@@ -35,7 +44,7 @@ asserted procedure f5_error();
    rederr "usage: buchberger(polynomials: List, variables: List, sortmode: Id)";
 
 asserted procedure f5_selectNext(spolys: List): List;
-   begin scalar i, idx, sgn, elem;
+   begin scalar i, idx, s, p, sgn, elem;
       i := 1;
       s := lp_signature(car spolys); % nonempty
       while spolys do <<
@@ -52,21 +61,21 @@ asserted procedure f5_selectNext(spolys: List): List;
    end;
 
 asserted procedure f5_groebner1(inputBasis: List): List;
-   begin scalar basis, spolys, known_syz;
+   begin scalar basis, spolys;
    integer i, ii;
       % form output list..
       basis  := lp_constructModule(inputBasis);
 
       % and initial s-polynomials
       spolys := nil;
-      for each pi in basis do <<
+      for each p1 in basis do <<
          for each pj in basis do <<
-            if not (pi equal pj) then <<
-               msi . msj := lp_spolyMultSignatures(pi, pj);
+            if not (p1 equal pj) then <<
+               msi . msj := lp_spolyMultSignatures(p1, pj);
 
                % do no add redundant pairs
                if lp_potCompareSignatures(msi, msj) then
-                  spolys := nconc(spolys, { lp_spoly(pi, pj) })
+                  spolys := nconc(spolys, { lp_spoly(p1, pj) })
             >>
          >>
       >>;
@@ -99,15 +108,15 @@ asserted procedure f5_groebner1(inputBasis: List): List;
    end;
 
 
-trst f5_groebner;
-trst f5_groebner1;
+% trst f5_groebner;
+% trst f5_groebner1;
 
-trst f5_selectNext;
+% trst f5_selectNext;
 
 
 endmodule;
 
-f5({x1 + x2 + x3, x1*x2 + x2*x3 + x1*x3, x1*x2*x3 - 1}, {x1, x2, x3}, lex);
+% f5({x1 + x2 + x3, x1*x2 + x2*x3 + x1*x3, x1*x2*x3 - 1}, {x1, x2, x3}, lex);
 
 end;  % of file
 

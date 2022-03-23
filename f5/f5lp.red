@@ -1,9 +1,4 @@
-
-% using polynomial interface from poly.red
-% implemented as `Polynomial` object
-in "poly.red";
-
-module lp;
+module f5lp;
 
 %  The LP module provides Labeled Polynomial interface --
 %  a tuple of polynomials for usage in f5-style algorithms.
@@ -228,11 +223,11 @@ asserted procedure lp_spolyCofactors(f: LabeledPolynomial, g: LabeledPolynomial)
 
 % compute signatures of pi and pj
 % after multiplication by cofactors of Spolynomial of pi and pj
-asserted procedure lp_spolyMultSignatures(pi: LabeledPolynomial, pj: LabeledPolynomial): List;
+asserted procedure lp_spolyMultSignatures(p1: LabeledPolynomial, pj: LabeledPolynomial): List;
    begin scalar mij, mi, mj, si, sj, msi, msj;
-      mi . mj := lp_spolyCofactors(pi, pj);
+      mi . mj := lp_spolyCofactors(p1, pj);
 
-      si := lp_signature(pi);
+      si := lp_signature(p1);
       sj := lp_signature(pj);
 
       return lp_multSignature(si, mj) . lp_multSignature(sj, mi)
@@ -275,14 +270,14 @@ asserted procedure lp_spoly(f: LabeledPolynomial, g: LabeledPolynomial): Labeled
    end;
 
 
-trst lp_LabeledPolynomial;
-trst lp_spoly;
-trst lp_spolyMultSignatures;
-trst lp_spolyCofactors;
-trst lp_multSignature;
+% trst lp_LabeledPolynomial;
+% trst lp_spoly;
+% trst lp_spolyMultSignatures;
+% trst lp_spolyCofactors;
+% trst lp_multSignature;
 
-trst lp_tryRegularReduce1;
-trst lp_tryRegularReduce;
+% trst lp_tryRegularReduce1;
+% trst lp_tryRegularReduce;
 
 % untrst lp_LabeledPolynomial;
 
@@ -290,5 +285,3 @@ endmodule;
 
 
 end;  % of file
-
-

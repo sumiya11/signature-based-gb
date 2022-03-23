@@ -1,15 +1,8 @@
+module f5poly;
 
-
-% currently use dp implementation
 load!-package 'dp;
 
-% polynomial interface
-module poly;
-
 off1 'allfac;
-
-% Base structure
-struct Polynomial;
 
 % return exponent vector of zeros
 asserted procedure poly_zeroExponent(): List;
@@ -54,5 +47,3 @@ endmodule;
 
 
 end;  % of file
-
-
