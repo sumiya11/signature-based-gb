@@ -4,7 +4,7 @@
 % Fougeres F5 algorithm
 module f5;
 
-create!-package('(f5 f5lp f5poly), nil);
+create!-package('(f5 f5lp f5poly f5mod f5primes), nil);
 
 load_package assert;
 on1 'assert;
