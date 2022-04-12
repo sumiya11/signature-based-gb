@@ -1,22 +1,19 @@
 module f5lp;
 
-%  The LP module provides Labeled Polynomial interface --
+%  The lp module provides Labeled Polynomial interface --
 %  a tuple of polynomials for usage in f5-style algorithms.
-%  Polynomial `p` is stored internally as a 4-item list:
+%  LabeledPolynomial `p` is stored internally as a 4-item list:
 %     {'lp, evaluation of `p`, signature index of `p`, signature monomial of `p`}
 %
 % The interface provides, in particular,
 % functions lp_evaluation and lp_signature, that return
 % second and {third, fouth} items of internal list respectively
-%
-
-struct LabeledPolynomial;
 
 % instantiate LabeledPolynomial from Polynomial and leading index
 asserted inline procedure lp_LabeledPolynomial1(
                               poly: Polynomial,
                               idx: Integer): LabeledPolynomial;
-   lp_LabeledPolynomial2(poly, { idx, poly_zeroExponent() });
+   lp_LabeledPolynomial2(poly, { idx, poly_zeroExp() });
 
 % instantiate LabeledPolynomial from Polynomial and signature
 asserted inline procedure lp_LabeledPolynomial2(
@@ -36,169 +33,180 @@ asserted inline procedure lp_getLabel(lp: LabeledPolynomial): List;
 asserted inline procedure lp_signature(f: LabeledPolynomial): List;
    lp_getLabel(f);
 
+% return the index of signature of module element f
+asserted inline procedure lp_index(f: LabeledPolynomial): Integer;
+   car lp_getLabel(f);
+
 % return the evaluation of module element f
 asserted inline procedure lp_evaluation(f: LabeledPolynomial): Polynomial;
    lp_getPoly(f);
-
-% for a given set of polynomials F construct
-% a standard basis of unit vectors corresponding to F
-% in internal representation
-asserted procedure lp_constructModule(F: List): List;
-   begin scalar f, elem, outputModule;
-   integer i;
-      outputModule := nil;
-      i := 1;
-      while F do <<
-         ff := car F;
-         elem := lp_LabeledPolynomial1(ff, i);
-         outputModule := nconc(outputModule, {elem});
-         i := i + 1;
-         F := cdr F
-      >>;
-      return outputModule
-   end;
 
 % multiply signature sgn by monomial exponent vector ev
 asserted inline procedure lp_multSignature(sgn: List, ev: List);
    begin scalar idx, term;
       idx . term := sgn;
-      return { idx, poly_sumExponents(term, ev) };
+      term := car term;
+      return { idx, poly_sumExp(term, ev) }
    end;
 
 % compare signatures sgn1 vs. sgn2 with the
 % position over term extension
-asserted procedure lp_potCompareSignatures(sgn1: List, sgn2: List): Boolean;
+asserted procedure lp_potCmpSignature(sgn1: List, sgn2: List): Boolean;
    begin integer idx1, idx2;
    scalar ev1, ev2;
       idx1 . ev1 := sgn1;
       idx2 . ev2 := sgn2;
-      return if idx1 equal idx2 then poly_cmpExponents(ev1, ev2)
+      return if idx1 equal idx2 then poly_cmpExp(ev1, ev2)
          else (idx1 > idx2)
    end;
 
 % minimal signature based on pot comparison strategy
 asserted inline procedure lp_potMinSignature(sgn1: List, sgn2: List): List;
-   << if lp_potCompareSignatures(sgn1, sgn2) then sgn1 else sgn2 >>;
+   << if lp_potCmpSignature(sgn1, sgn2) then sgn1 else sgn2 >>;
 
 % maximal signature based on pot comparison strategy
 asserted inline procedure lp_potMaxSignature(sgn1: List, sgn2: List): List;
-   << if lp_potCompareSignatures(sgn1, sgn2) then sgn2 else sgn1 >>;
+   << if lp_potCmpSignature(sgn1, sgn2) then sgn2 else sgn1 >>;
 
 % compare LabeledPolynomials as module elems lp1 vs. lp2 with
 % position over term extension
-asserted procedure lp_potCompareLP(lp1: LabeledPolynomial, lp2: LabeledPolynomial): Boolean;
-   begin scalar s1, s2;
-      sgn1   := lp_signature(lp1);
-      sgn2   := lp_signature(lp2);
-      lp_potCompareSignatures(sgn1, sgn2)
+asserted procedure lp_potCmpLP(lp1: LabeledPolynomial, lp2: LabeledPolynomial): Boolean;
+   begin scalar sgn1, sgn2;
+      sgn1 := lp_signature(lp1);
+      sgn2 := lp_signature(lp2);
+      lp_potCmpSignature(sgn1, sgn2)
    end;
 
 % checks if lp represents a syzygy
 asserted inline procedure lp_isSyzygy(lp: LabeledPolynomial): Boolean;
-   lp_evaluation(lp) equal nil;
+   poly_iszero!?(lp_evaluation(lp));
 
-% extract an array of exponent vectors of f
-% TODO: remove this
-asserted procedure lp_extractDpExponents(f);
-   begin scalar ans;
-      while f do <<
-         ans := nconc(ans, {car f});
-         f   := cddr f >>;
-      return ans
+% if lp is zero (represented as ('lp, (p, nil, nil), smth, smth) )
+% Same as lp_isSyzygy, in fact
+asserted inline procedure lp_iszero(lp);
+   poly_iszero!?(lp_evaluation(lp));
+
+% checks if signature sgn1 divides signature sgn2
+asserted procedure lp_signatureDivides(sgn1, sgn2): Boolean;
+   (car sgn1 equal car sgn2) and poly_divExp!?(cadr sgn1, cadr sgn2);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% construct a principal syzygy of LabeledPolynomials (fi, fj)
+% as a LabeledPolynomial itself
+%
+% Assumes i != j
+%
+% A syzygy of form ej*fi - ei*fj, with evaluation equal to fj*fi - fi*fj == 0
+% and signature = { min(j, i), lt(fi) if j < i else lt(fj) };
+asserted procedure lp_principalSyzygy(
+                        fi: LabeledPolynomial,
+                        fj: LabeledPolynomial): LabeledPolynomial;
+
+   begin scalar i, j, ei, ej, sgn;
+
+      i := lp_index(fi);
+      j := lp_index(fj);
+
+      ei := poly_leadExp(lp_evaluation(fi));
+      ej := poly_leadExp(lp_evaluation(fj));
+
+      sgn := if i < j then {i, ej} else {j, ej};
+
+      return lp_LabeledPolynomial2(poly_zero(), sgn)
    end;
 
-% try to reduce module elem f with module elem g regularly,
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% try to reduce module elem f with module elem g
 % returns success flag with the result of reduction
-asserted procedure lp_tryRegularReduce1(f: LabeledPolynomial, g: LabeledPolynomial): List;
-   begin scalar fexps, fexp, fcoef, gcoeflead, gexplead,
-                  m, evlf, evlg, sgnf, sgng, idxf, idxg, tf, tg,
-                  anspoly, anssgn, tmpflag;
-   integer nterms, i;
-      evlf := lp_evaluation(f);
-      evlg := lp_evaluation(g);
-      sgnf := lp_signature(f);
-      sgng := lp_signature(g);
+asserted procedure lp_tryReduce1(f: LabeledPolynomial,
+                                 g: LabeledPolynomial,
+                                 isregular);
+   begin scalar fexps, fcoeffs, fe, fc, zeroexp, gexplead,
+                gcoefflead, flag1, fevl, gevl, fsgn, gsgn, ans;
+      % note that isregular=nil breaks the signature invariant
+      % (storage of signature may become garbage as well)
+      fevl := lp_evaluation(f);
+      gevl := lp_evaluation(g);
+      fsgn := lp_signature(f);
+      gsgn := lp_signature(g);
 
-      gexplead  := poly_leadExponent(evlg);
-      gcoeflead := poly_leadCoeff(evlg);
+      zeroexp    := poly_zeroExp();
+      gexplead   := poly_leadExp(gevl);
+      gcoefflead := poly_leadCoeff(gevl);
 
-      nterms := poly_length(evlf);
+      fexps   := poly_getExps(fevl);
+      fcoeffs := poly_getCoeffs(fevl);
 
-      anspoly := nil;
-      anssgn := nil;
+      flag1 := nil;
+      ans   := fevl;
 
-      flag := nil;
-
-      tmpevlf := evlf;
-
-      for i := 1:nterms do <<
-         % TODO: rewrite this
-         fexp    := car tmpevlf;
-         fcoef   := cadr tmpevlf;
-         tmpevlf := cddr tmpevlf;
-         % check that evaluations can be reduced
-         % ORDER of arguments !!!!!
-         tmpflag := poly_dividesExponents(gexplead, fexp);
-         if (not flag) and tmpflag then <<
-            flag := t;
-            m := poly_difExponents(fexp, gexplead);
-            % check that reduction is regular
-            if not (sgnf equal lp_multSignature(sgng, m)) then <<
-               % new polynomial instance
-               % TODO: abstract this a bit
-               anspoly := dip_ilcomb(evlf, bc_neg(gcoeflead), ev_zero(), evlg, fcoef, m);
-               % new signature instance
-               newexp  := for each x in cadr sgnf collect x;
-               anssgn  := car sgnf . newexp . nil
+      while fexps do <<
+         fe . fexps   := fexps;
+         fc . fcoeffs := fcoeffs;
+         if not flag1 then <<
+            if poly_divExp!?(gexplead, fe) then <<
+               gmult := poly_subExp(fe, gexplead);
+               if (not isregular) or not (fsgn equal lp_multSignature(gsgn, gmult)) then <<
+                  flag1 := t;
+                  ans := poly_paircomb(fevl, zeroexp, fc, gevl, gmult, gcoefflead);
+               >>
             >>
          >>
       >>;
 
-      % TODO: Construction of a LabeledPolynomial
-      return flag . lp_LabeledPolynomial2(anspoly, anssgn)
+      return flag1 . lp_LabeledPolynomial2(ans, fsgn)
    end;
 
-% try to reduce module elem f with module G regurarly
+% try to reduce module elem f once with each element of module G,
 % returns success flag with the result of reduction
-asserted procedure lp_tryRegularReduce(f: LabeledPolynomial, G: List): List;
-   begin scalar ans, gg;
-      if null G then
-         ans := nil . f
-      else if null (car f) then
-         ans := nil . f
+asserted procedure lp_tryReduce(f: LabeledPolynomial, G: List, isregular);
+   begin scalar flag2, flag3, reducer;
+      return if null G then
+         nil . f
       else <<
-         gg := car G;
-         ans := lp_tryRegularReduce1(f, gg);
-      >>;
-
-      return if not (car ans) then
-         if not (null G) then lp_tryRegularReduce(f, cdr G) else ans
-      else ans
+         reducer := car G;
+         flag2 . f := lp_tryReduce1(f, reducer, isregular);
+         flag3 . f := lp_tryReduce(f, cdr G, isregular);
+         (flag2 or flag3) . f
+      >>
    end;
 
-asserted procedure lp_regularNormalForm(
+% compute the normal form of LP f w.r.t. G and return it
+% If isregular is set, performs only regular reductions,
+% otherwise the reduction may corrupt the signature of f
+%
+% Contract: use isregular=nil only in the final interreduction
+%           when corrupted signature is not a problem
+asserted procedure lp_normalForm(
                               f: LabeledPolynomial,
-                              G: List): LabeledPolynomial;
-   begin scalar res;
-      state := t . f;
-      while car state do <<
-         state := lp_tryRegularReduce(cdr state, G);
+                              G: List,
+                              isregular): LabeledPolynomial;
+   begin scalar state;
+      state := t;
+      while state do <<
+         state . f := lp_tryReduce(f, G, isregular);
+         state := state and (not lp_iszero(f))
       >>;
-      return cdr state
+      return f
    end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 asserted procedure lp_isSingularlyTopReducible(f: LabeledPolynomial, G: List): Boolean;
-   begin scalar evlf, evlg, tf, tg, leadf, leadg, m, ans;
+   begin scalar evlf, evlg, tf, tg, leadf, leadg, m, ans, gg;
       evlf  := lp_evaluation(f);
-      leadf := poly_leadExponent(evlf);
+      leadf := poly_leadExp(evlf);
       tf := lp_signature(f);
-      tg := lp_signature(g);
       for each gg in G do <<
          evlg := lp_evaluation(gg);
-         leadg := poly_leadExponent(evlg);
-         if poly_dividesExponents(leadg, leadf) then <<
-            m := difExponents(leadf, leadg);
-            if tf equal lp_multSignature(tg, m) then ans := t
+         tg := lp_signature(gg);
+         leadg := poly_leadExp(evlg);
+         if poly_divExp!?(leadg, leadf) then <<
+            m := poly_subExp(leadf, leadg);
+            if tf equal lp_multSignature(tg, m) then
+               ans := t
          >>
       >>;
       return ans
@@ -210,25 +218,25 @@ asserted procedure lp_spolyCofactors(f: LabeledPolynomial, g: LabeledPolynomial)
       p1 := lp_evaluation(f);
       p2 := lp_evaluation(g);
 
-      e1 := poly_leadExponent(p1);
-      e2 := poly_leadExponent(p2);
+      e1 := poly_leadExp(p1);
+      e2 := poly_leadExp(p2);
 
-      elcm := poly_lcmExponents(e1, e2);
+      elcm := poly_lcmExp(e1, e2);
 
-      mult1 := poly_difExponents(elcm, e2);
-      mult2 := poly_difExponents(elcm, e1);
+      mult1 := poly_subExp(elcm, e2);
+      mult2 := poly_subExp(elcm, e1);
 
       return mult1 . mult2
    end;
 
-% compute signatures of pi and pj
-% after multiplication by cofactors of Spolynomial of pi and pj
-asserted procedure lp_spolyMultSignatures(p1: LabeledPolynomial, pj: LabeledPolynomial): List;
+% compute signatures of p1 and p2
+% after multiplication by cofactors of Spolynomial of p1 and p2
+asserted procedure lp_spolyMultSignatures(p1: LabeledPolynomial, p2: LabeledPolynomial): List;
    begin scalar mij, mi, mj, si, sj, msi, msj;
-      mi . mj := lp_spolyCofactors(p1, pj);
+      mi . mj := lp_spolyCofactors(p1, p2);
 
       si := lp_signature(p1);
-      sj := lp_signature(pj);
+      sj := lp_signature(p2);
 
       return lp_multSignature(si, mj) . lp_multSignature(sj, mi)
    end;
@@ -238,25 +246,21 @@ asserted procedure lp_spoly(f: LabeledPolynomial, g: LabeledPolynomial): Labeled
    begin scalar p1, p2, e1, e2, c1, c2, elcm, mult1, mult2, ans,
                   sgn1, sgn2, sgn11, sgn22, anssgn;
 
-      % here, we may that signatures do not cancel each other,
+      % here, signatures do not cancel each other,
+      % Maybe write an assert?..
       % so the updated signature can be computed easily
 
       p1 := lp_evaluation(f);
       p2 := lp_evaluation(g);
+      e1 := poly_leadExp(p1);
+      e2 := poly_leadExp(p2);
 
-      e1 := poly_leadExponent(p1);
-      e2 := poly_leadExponent(p2);
+      elcm := poly_lcmExp(e1, e2);
 
-      elcm := poly_lcmExponents(e1, e2);
+      mult1 := poly_subExp(elcm, e2);
+      mult2 := poly_subExp(elcm, e1);
 
-      c1 := poly_leadCoeff(p1);
-      c2 := poly_leadCoeff(p2);
-
-      mult1 := poly_difExponents(elcm, e2);
-      mult2 := poly_difExponents(elcm, e1);
-
-      % TODO: abstract this a bit
-      ans := dip_ilcomb(p2, c1, mult1, p1, bc_neg(c2), mult2);
+      ans := poly_paircomb(p1, mult2, poly_leadCoeff(p1), p2, mult1, poly_leadCoeff(p2));
 
       sgn1 := lp_signature(f);
       sgn2 := lp_signature(g);
@@ -269,6 +273,14 @@ asserted procedure lp_spoly(f: LabeledPolynomial, g: LabeledPolynomial): Labeled
       return lp_LabeledPolynomial2(ans, anssgn)
    end;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LabeledPolynomial sorting ad-hoc
+
+% return true if lead(poly1) < lead(poly2)
+asserted procedure poly_cmpLPLead(lp1, lp2);
+ 	poly_cmpPolyLead(lp_evaluation(lp1), lp_evaluation(lp2));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % trst lp_LabeledPolynomial;
 % trst lp_spoly;
@@ -276,10 +288,12 @@ asserted procedure lp_spoly(f: LabeledPolynomial, g: LabeledPolynomial): Labeled
 % trst lp_spolyCofactors;
 % trst lp_multSignature;
 
-% trst lp_tryRegularReduce1;
-% trst lp_tryRegularReduce;
+% trst lp_tryReduce1;
+% trst lp_tryReduce;
+% trst lp_normalForm;
+% trst lp_isSingularlyTopReducible;
 
-% untrst lp_LabeledPolynomial;
+% trst lp_principalSyzygy;
 
 endmodule;
 
