@@ -1,6 +1,6 @@
 module f5primes;
 
-% Helper module to keep track of prime numbers used in F5 modular computations
+% The helper module to keep track of prime numbers used in F5 modular computations
 
 % The standard largest!-small!-modulus value is 2^23, which is 8388608
 % Thus, lets take initial_prime!* to be
@@ -27,8 +27,6 @@ asserted procedure primes_isLuckyPrime(basis, prime);
       if flag then <<
         coeffs := poly_getCoeffs(poly);
         for each cf in coeffs do <<
-          ASSERT(denr(cf) = 1);
-          cf := numr(cf);
           if modular!-number(cf) = 0 then
             flag := nil
         >>
