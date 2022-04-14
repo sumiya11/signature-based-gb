@@ -1,3 +1,4 @@
+
 module f5mod;
 
 % The module provides rational reconstruction routine
@@ -6,9 +7,10 @@ module f5mod;
 % Using modular arithmetic backend from smallmod
 load_package 'smallmod;
 
-% If f5 should use modular arithmetic
+% If f5 should use modular arithmetic.
+% True by default
 switch f5modular;
-on1 'f5modular;
+off1 'f5modular;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% ADAPTIVE ARITHMETIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -98,7 +100,38 @@ asserted procedure mod_reconstruction(a, m);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% trst mod_reconstruction;
+% Returns x and y such that a*x + b*y = 1.
+% Assumes that a and b are coprime
+asserted procedure mod_extendedPrimeGcd(a, b, x, y);
+  % The function is adapted from the `reciprocal!-by!-gcd` function at
+  %   reduce-algebra/packages/rtools/smallmod.red
+  if b > a then
+    mod_extendedPrimeGcd(b, a, x, y)
+  else if b = 1 then
+    % TODO: is this actually correct?
+    x . y
+  else begin scalar w;
+    w := a #/ b; % Truncated integer division;
+    return mod_extendedPrimeGcd(b, a #- b #* w, y, x #- y #* w)
+  end;
+
+% Chinese reminder theorem reconstruction implementation
+% Returns integer x such that
+%   x ≡ a1 (mod m1)
+%   x ≡ a2 (mod m2)
+asserted procedure mod_crt(a1, m1, a2, m2);
+  begin scalar x, n1, n2, m;
+    m := m1 #* m2;
+    n1 . n2 := mod_extendedPrimeGcd(m1, m2, 0, 1);
+    x := n1 #* m1 #* a2 #+ n2 #* m2 #* a1;
+    return x #/ m
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+trst mod_reconstruction;
+trst mod_crt;
+trst mod_extendedPrimeGcd;
 
 endmodule;
 
