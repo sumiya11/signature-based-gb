@@ -23,12 +23,12 @@ load_package 'dp;
 %   {'p, {{3, 1, 2}, (1, 1, 0)}, {1, 3}}
 %
 %	Possible monomial orderings are
-%     lex, deglex
+%     lex, revgradlex
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % the current monomial ordering
-poly_ord!* := 'deglex;
+poly_ord!* := 'revgradlex;
 
 % the current number of variables
 poly_nvars!* := 0;
@@ -38,17 +38,12 @@ poly_vars!* := '(list);
 
 % initialize polynomial ring with variables `vars` and monomial ordering `ord`
 asserted procedure poly_initRing(vars, ord);
-	begin
+  begin;
     poly_nvars!* := length(vars);
     poly_ord!*   := ord;
     poly_vars!*  := vars;
 
-		dipord := if ord = 'lex then
-			'lex
-		else
-			'revgradlex;
-
-		dip_init(vars, dipord, nil)
+		dip_init(vars, ord, nil)
    end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -65,7 +60,7 @@ inline procedure poly_init(exps: List, coeffs: List): Polynomial;
 
 % Standard form -> Polynomial
 asserted procedure poly_f2poly(f);
-	begin scalar exps, coeffs, ans;
+	begin scalar exps, coeffs, ans, dpoly, ev, cf, deg;
 		dpoly := dip_f2dip(f);
 		while dpoly do <<
 			ev . dpoly := dpoly;
@@ -83,7 +78,8 @@ asserted procedure poly_f2poly(f);
 
 % Polynomial -> Standard form
 asserted procedure poly_poly2a(poly);
-	begin scalar ans;
+	begin scalar ans, exps, coeffs, dpoly,
+                ev, cf;
 		exps := poly_getExps(poly);
 		coeffs := poly_getCoeffs(poly);
 		dpoly := nil;
@@ -173,8 +169,8 @@ asserted procedure poly_cmpExpLex(e1: List, e2: List);
 		return if flag then nil else ep1 < ep2
 	end;
 
-% comparator for exponent vectors e1, e2 w.r.t. deglex monomial ordering
-asserted procedure poly_cmpExpDeglex(e1: List, e2: List);
+% comparator for exponent vectors e1, e2 w.r.t. gradlex monomial ordering
+asserted procedure poly_cmpExpGradlex(e1: List, e2: List);
 	begin integer ep1, ep2;
         scalar flag;
     flag := t;
@@ -188,12 +184,22 @@ asserted procedure poly_cmpExpDeglex(e1: List, e2: List);
     return if flag then nil else ep1 < ep2
   end;
 
+% comparator for exponent vectors e1, e2 w.r.t. gradlex monomial ordering
+asserted procedure poly_cmpExpRevgradlex(e1: List, e2: List);
+  begin integer ep1, ep2;
+        scalar flag;
+
+  end;
+
+
 % comparator for exponent vectors e1, e2
 asserted procedure poly_cmpExp(e1: List, e2: List);
 	if poly_ord!* eq 'lex then
 		poly_cmpExpLex(e1, e2)
-	else if poly_ord!* eq 'deglex then
-		poly_cmpExpDeglex(e1, e2);
+	else if poly_ord!* eq 'gradlex then
+		poly_cmpExpGradlex(e1, e2)
+	else
+		poly_cmpExpRevgradlex(e1, e2);
 
 % checks that e1 = e2 elementwise
 asserted procedure poly_eqExp!?(e1: List, e2: List);
@@ -254,7 +260,7 @@ asserted procedure poly_length(poly: Polynomial): Integer;
 % where C is -fcoeff/gcoeff
 asserted procedure poly_paircomb(f, fmult, fcoeff, g, gmult, gcoeff): Polynomial;
 	begin scalar fexps, fcoeffs, gexps, gcoeffs, gmultcoeff, sexps, scoeffs,
-               e1, e2, c1, c2, c;
+                e1, e2, c1, c2, c;
     sexps   := {};
     scoeffs := {};
 
@@ -438,6 +444,36 @@ asserted procedure poly_normalize(poly: Polynomial): Polynomial;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+asserted procedure poly_commonDenominator(f);
+  begin scalar den, coeffs, c;
+    den := 1;
+    coeffs := poly_getCoeffs(f);
+    while coeffs do <<
+      c . coeffs := coeffs;
+      den := denr(c)
+    >>;
+    return den
+  end;
+
+asserted procedure poly_scaleDenominatorsInplace(f);
+  begin scalar den, coeffs, c;
+    den := poly_commonDenominator(f);
+    coeffs := poly_getCoeffs(f);
+    while coeffs do <<
+      c := car coeffs;
+      c := numr(c) * (den / denr(c));
+      car coeffs := c;
+      coeffs := cdr coeffs
+    >>;
+    return f
+  end;
+
+asserted procedure poly_scaleDenominators(f);
+  begin scalar copyf;
+    copyf := copy(f);
+    return poly_scaleDenominatorsInplace(copyf)
+  end;
+
 % reduce coefficients of poly by the given prime and return new polynomial
 asserted procedure poly_reduceCoeffs(poly: Polynomial, prime): Polynomial;
    begin scalar poly, sgn, ans;
@@ -446,9 +482,8 @@ asserted procedure poly_reduceCoeffs(poly: Polynomial, prime): Polynomial;
       while coeffs do <<
          c  . coeffs := coeffs;
 
-         ASSERT(denr(c) = 1);
+         % ASSERT(denr(c) = 1);
 
-         c := numr(c);
          c := modular!-number(c);
          ansCoeffs :=  c . ansCoeffs
       >>;
@@ -460,17 +495,33 @@ asserted procedure poly_reduceCoeffs(poly: Polynomial, prime): Polynomial;
 
 % reconstruct coefficients of poly by the given prime and return new polynomial
 asserted procedure poly_reconstructCoeffs(poly: Polynomial, prime): Polynomial;
-   begin scalar poly, sgn, ans;
-		coeffs := poly_getCoeffs(poly);
+  begin scalar coeffs, c, ansCoeffs;
+    coeffs := poly_getCoeffs(poly);
 		ansCoeffs := nil;
-      while coeffs do <<
-			c  . coeffs := coeffs;
-         c := mod_reconstruction(c, prime);
-         ansCoeffs := c . ansCoeffs
-      >>;
+    while coeffs do <<
+      c  . coeffs := coeffs;
+      c := mod_reconstruction(c, prime);
+      ansCoeffs := c . ansCoeffs
+    >>;
 
 		return poly_init(poly_getExps(poly), reversip(ansCoeffs))
    end;
+
+% Apply CRT to (polyaccum mod modulo) and (polycomp mod prime)
+% to obtain new polynomial over modulo*prime
+asserted procedure poly_crtCoeffs(polyaccum, polycomp, modulo, prime): Polynomial;
+  begin scalar coeffsaccum, coeffscomp, ansCoeffs, ca, cc, c;
+    coeffsaccum := poly_getCoeffs(polyaccum);
+    coeffscomp  := poly_getCoeffs(polycomp);
+		ansCoeffs := nil;
+    while coeffsaccum do <<
+      ca . coeffsaccum := coeffsaccum;
+      cc . coeffscomp  := coeffscomp;
+      c := mod_crt(ca, modulo, cc, prime);
+      ansCoeffs := c . ansCoeffs
+    >>;
+    return poly_init(poly_getExps(polyaccum), reversip(ansCoeffs))
+  end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Polynomial sorting ad-hoc
@@ -481,7 +532,7 @@ asserted procedure poly_cmpPolyLead(poly1, poly2);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% trst poly_f2poly;
+trst poly_f2poly;
 % trst poly_poly2a;
 
 % trst poly_leadCmp;
@@ -492,8 +543,8 @@ asserted procedure poly_cmpPolyLead(poly1, poly2);
 % trst poly_unsafePaircombInplace;
 
 % trst poly_reduceCoeffs;
-% trst poly_reconstructCoeffs;
-
+trst poly_reconstructCoeffs;
+trst poly_scaleDenominatorsInplace;
 
 endmodule;
 

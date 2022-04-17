@@ -1,4 +1,3 @@
-
 module f5mod;
 
 % The module provides rational reconstruction routine
