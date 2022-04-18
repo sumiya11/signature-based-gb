@@ -15,13 +15,7 @@ module f5;
 %
 % The algorithm is randomized. By default, the obtained result
 % will be correct with high probability.
-
-% create!-package('(f5 f5lp f5poly f5mod f5primes), nil);
-
-in "f5primes.red";
-in "f5mod.red";
-in "f5poly.red";
-in "f5lp.red";
+create!-package('(f5 f5lp f5poly f5mod f5primes), nil);
 
 load_package 'assert;
 on1 'assert;
