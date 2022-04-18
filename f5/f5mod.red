@@ -1,7 +1,8 @@
 module f5mod;
 
-% The module provides rational reconstruction routine
-% together with generic arithmetic interface
+% The module provides rational reconstruction
+% and Chinese reminder theorem routines
+% together with generic number arithmetic interface
 
 % Using modular arithmetic backend from smallmod
 load_package 'smallmod;
@@ -53,11 +54,14 @@ inline procedure mod_inv(a);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% RECONSTRUCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Rational number reconstruction implementation modified a bit
-% to suit the 'Modern Computer Algebra' definitions
-% Returns a rational r // h of Rational field in a canonical form such that
+% Rational number reconstruction implementation from CLUE
+%   https://arxiv.org/abs/2004.11961
+% modified a bit to suit the 'Modern Computer Algebra' definitions.
+% Returns rational r // h in canonical form such that
 %   r // h ≡ a (mod m)
-asserted procedure mod_reconstruction(a, m);
+%
+% Here, a and m can be *arbitrary large* integers
+asserted procedure mod_reconstruction(a: Integer, m: Integer);
   begin integer ans, x, com, u1, u2, u3, q, bnd,
                 v1, v2, v3, t1, t2, t3, tt, r;
     if a #= 0 then
@@ -97,7 +101,7 @@ asserted procedure mod_reconstruction(a, m);
           r  := - r
         >>;
 
-        com := mod_euclead(abs(r), tt);
+        com := mod_euclid(abs(r), tt);
         ans := (r / com) . (tt / com)
     >>;
 
@@ -106,20 +110,24 @@ asserted procedure mod_reconstruction(a, m);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-asserted procedure mod_euclead(a, b);
+% Standard Euclidean algorithm
+%
+% Here, a and b can be *arbitrary large* integers
+asserted procedure mod_euclid(a: Integer, b: Integer);
   if b #= 0 then
       a
   else
-    mod_euclead(b, a mod b);
+    mod_euclid(b, a mod b);
 
+% Standard Extended Euclidean algorithm,
 % Returns x and y such that a*x + b*y = 1.
-% Assumes that a and b are coprime
-asserted procedure mod_extendedEuclead(a, b);
+% Assumes that a and b are coprime and *arbitrary large* integers
+asserted procedure mod_extendedEuclid(a, b);
   begin integer x, y, k;
     return if b #= 0 then
       1 . 0
     else <<
-      x . y := mod_extendedEuclead(b, a mod b);
+      x . y := mod_extendedEuclid(b, a mod b);
       k := x - (a / b) * y;
       y . k
     >>
@@ -132,7 +140,7 @@ asserted procedure mod_extendedEuclead(a, b);
 asserted procedure mod_crt(a1, m1, a2, m2);
   begin integer x, y, n, m;
     m := m1 * m2;
-    x . y := mod_extendedEuclead(m1, m2);
+    x . y := mod_extendedEuclid(m1, m2);
     n := a2 * x * m1 + a1 * y * m2;
     return ((n mod m) + m) mod m
   end;

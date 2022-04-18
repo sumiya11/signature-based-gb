@@ -10,6 +10,8 @@ off1 'allfac;
 % TODO: write our own?
 load_package 'dp;
 
+fluid '(poly_ord!* poly_nvars!* poly_vars!*);
+
 % Polynomial `p` is stored internally as a list of 3 items:
 %     {'p, monomials, coeffs}
 % Where `p` is a convenience tag,
@@ -392,7 +394,7 @@ asserted procedure poly_commonDenominator(f);
     coeffs := poly_getCoeffs(f);
     while coeffs do <<
       c . coeffs := coeffs;
-      den := denr(c)
+      den := lcm(den, denr(c))
     >>;
     return den
   end;

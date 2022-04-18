@@ -1,15 +1,16 @@
-
 module f5primes;
 
 % The helper module to keep track of prime numbers used in F5 modular computations.
 % Provides the structure `Primetracker` to store intermediate lucky and reliable primes.
-% Primetracker represented internally as list of integers
+% Primetracker is represented internally as a list of integers
 %   {lucky prime, reliable prime, accum modulo}
-% where first two guaranteed to be small integers < largest!-small!-modulus.
+% where the first two guaranteed to be small integers < largest!-small!-modulus.
 
 % We call the prime "lucky" if it is used directly for modular computation.
 % We call the ptime "reliable" if it is used to verify the correctness of
-% modular computation.
+% the modular computation.
+
+fluid '(initial_lucky_prime!* initial_reliable_prime!*);
 
 % The standard largest!-small!-modulus value is 2^23, which is 8388608
 % Thus, lets take initial_lucky_prime!* to be
@@ -21,15 +22,14 @@ module f5primes;
 % There are 268216 primes between 2^22 and 2^23,
 % so it should be enough in most cases
 initial_lucky_prime!* := largest!-small!-modulus / 2;
-% initial_lucky_prime!* := 4;
 
 % All reliable primes would be at any moment bigger than lucky ones,
 % Namely, the range would be
 %   [largest!-small!-modulus * 3/2, largest!-small!-modulus]
 initial_reliable_prime!* := (largest!-small!-modulus / 3) * 2;
-% initial_reliable_prime!* := 100;
 
 % We expect this to hold
+% TODO: make this more verbose
 if not (largest!-small!-modulus = 2^23) then
   prin2t {"*** Strange largest!-small!-modulus value: expected 2^23, found", largest!-small!-modulus};
 
@@ -54,13 +54,13 @@ asserted inline procedure primes_getReliablePrime(p: Primetracker): Integer;
 asserted inline procedure primes_getAccumModulo(p: Primetracker): Integer;
   caddr p;
 
-asserted inline procedure primes_setLuckyPrime(p: Primetracker, i): Integer;
+asserted inline procedure primes_setLuckyPrime(p: Primetracker, i);
   car p := i;
 
-asserted inline procedure primes_setReliablePrime(p: Primetracker, i): Integer;
+asserted inline procedure primes_setReliablePrime(p: Primetracker, i);
   cadr p := i;
 
-asserted inline procedure primes_setAccumModulo(p: Primetracker, i): Integer;
+asserted inline procedure primes_setAccumModulo(p: Primetracker, i);
   caddr p := i;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -103,7 +103,7 @@ asserted procedure primes_nextLuckyPrime(primetracker, basis);
 asserted procedure primes_isReliablePrime(basis, prime: Integer);
   primes_isLuckyPrime(basis, prime);
 
-% Returns the next lucky prime number for primetracker
+% Returns the next reliable prime number for primetracker
 asserted procedure primes_nextReliablePrime(primetracker, basis);
   begin integer nextprime;
     nextprime := primes_nextPrime(primes_getReliablePrime(primetracker));
