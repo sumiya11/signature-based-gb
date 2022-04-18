@@ -119,7 +119,7 @@ asserted procedure poly_subExp(e1: List, e2: List): List;
 
 % return elementwise maximum of exponent vectors e1, e2
 asserted procedure poly_lcmExp(e1: List, e2: List): List;
-	begin ans;
+	begin scalar ans;
 		ans := poly_lcmExp1(e1, e2);
 		car ans := 0;
 		car ans := for each x in ans sum x;
@@ -184,11 +184,45 @@ asserted procedure poly_cmpExpGradlex(e1: List, e2: List);
     return if flag then nil else ep1 < ep2
   end;
 
-% comparator for exponent vectors e1, e2 w.r.t. gradlex monomial ordering
+% comparator for exponent vectors e1, e2 w.r.t. revgradlex monomial ordering
 asserted procedure poly_cmpExpRevgradlex(e1: List, e2: List);
   begin integer ep1, ep2;
-        scalar flag;
+			ep1 := car e1;
+			ep2 := car e2;
+			return if ep1 #< ep2 then
+				t
+			else if ep1 #= ep2 then
+				poly_cmpExpRevLex(cdr e1, cdr e2)
+			else
+				nil
+  end;
 
+% comparator for exponent vectors e1, e2 w.r.t. revlex monomial ordering
+asserted procedure poly_cmpExpRevLex(e1: List, e2: List);
+  poly_cmpExpRevLexHelper(e1, e2) #= 1;
+
+asserted procedure poly_cmpExpRevLexHelper(e1: List, e2: List);
+  begin integer ep1, ep2, cmp, rec;
+        scalar last;
+    ep1 := car e1;
+    ep2 := car e2;
+    cmp := if ep1 #> ep2 then
+      1
+    else if ep1 #= ep2 then
+      2
+    else
+      3;
+    last := null (cdr e1);
+    if not last then
+      rec := poly_cmpExpRevLexHelper(cdr e1, cdr e2)
+    else
+      rec := 2;
+    return if ((not last) and rec #= 1) or (last and cmp #= 1) then
+      1
+    else if rec #= 2 then
+      cmp
+    else
+      3
   end;
 
 
@@ -327,98 +361,6 @@ asserted procedure poly_paircomb(f, fmult, fcoeff, g, gmult, gcoeff): Polynomial
     return poly_init(sexps, scoeffs)
 	end;
 
-% reduces multf*f - multg*g inplace in f
-% Under the assumption that leading terms in the sum mutually cancel each other
-asserted procedure poly_unsafePaircombInplace(f, fmult, g, gmult);
-	begin scalar fexps;
-		fexps   := poly_getExps(f);
-		fcoeffs := poly_getCoeffs(f);
-		gexps   := poly_getExps(g);
-		gcoeffs := poly_getCoeffs(g);
-
-		gleadcoeff := car gcoeffs;
-		fleadcoeff := car fcoeffs;
-		gmultcoeff := mod_neg(mod_div(fleadcoeff, gleadcoeff));
-
-		ftailexps := cdr fexps;
-		gtailexps := cdr gexps;
-		ftailcoeffs := cdr fcoeffs;
-		gtailcoeffs := cdr gcoeffs;
-
-		while ftailexps and gtailexps do <<
-			e1 := poly_sumExp(car ftailexps, fmult);
-			c1 := car ftailcoeffs;
-			e2 := poly_sumExp(car gtailexps, gmult);
-
-			c2 := car gtailcoeffs;
-			c2 := mod_mul(c2,gmultcoeff);
-
-			if poly_cmpExp(e2, e1) then <<
-				car ftailexps := e1;
-				fexps   := cdr fexps;
-				fcoeffs := cdr fcoeffs;
-				ftailexps   := cdr ftailexps;
-				ftailcoeffs := cdr ftailcoeffs
-			>> else if poly_eqExp!?(e1, e2) then <<
-				c := mod_add(c1, c2);
-				if not mod_iszero!?(c) then <<
-					car ftailcoeffs := c;
-					fexps   := cdr fexps;
-					fcoeffs := cdr fcoeffs;
-					ftailexps   := cdr ftailexps;
-					ftailcoeffs := cdr ftailcoeffs
-				>> else <<
-					ftailexps   := cdr ftailexps;
-					ftailcoeffs := cdr ftailcoeffs;
-					cdr fexps   := ftailexps;
-					cdr fcoeffs := ftailcoeffs
-				>>;
-				gtailexps   := cdr gtailexps;
-				gtailcoeffs := cdr gtailcoeffs
-			>> else <<
-				cdr fexps   := e2 . ftailexps;
-				cdr fcoeffs := c2 . ftailcoeffs;
-				gtailexps   := cdr gtailexps;
-				gtailcoeffs := cdr gtailcoeffs
-			>>
-		>>;
-
-		while ftailexps do <<
-			e1 := poly_sumExp(car ftailexps, fmult);
-			c1 := car ftailcoeffs;
-			car ftailexps := e1;
-			fexps   := cdr fexps;
-			fcoeffs := cdr fcoeffs;
-			ftailexps   := cdr ftailexps;
-			ftailcoeffs := cdr ftailcoeffs;
-		>>;
-
-		while gtailexps do <<
-			e2 := poly_sumExp(car gtailexps, gmult);
-			c2 := car gtailcoeffs;
-			c2 := mod_mul(c2, gmultcoeff);
-			fexps := nconc(fexps, {e2});
-			fcoeffs := nconc(fcoeffs, {c2});
-			gtailexps   := cdr gtailexps;
-			gtailcoeffs := cdr gtailcoeffs
-		>>;
-
-		fexpsinit := poly_getExps(f);
-		fcoeffsinit := poly_getCoeffs(f);
-
-		if length(fexpsinit) equal 1 then <<
-			car fexpsinit := nil;
-			car fcoeffsinit := nil
-		>> else <<
-			car fexpsinit := cadr fexpsinit;
-			cdr fexpsinit := cddr fexpsinit;
-			car fcoeffsinit := cadr fcoeffsinit;
-			cdr fcoeffsinit := cddr fcoeffsinit
-		>>;
-
-		return f
-	end;
-
 % divide all coefficients by the leading one
 asserted procedure poly_normalize(poly: Polynomial): Polynomial;
   begin scalar mult1, sexps, scoeffs, exps, coeffs, ex, cf;
@@ -476,7 +418,7 @@ asserted procedure poly_scaleDenominators(f);
 
 % reduce coefficients of poly by the given prime and return new polynomial
 asserted procedure poly_reduceCoeffs(poly: Polynomial, prime): Polynomial;
-   begin scalar poly, sgn, ans;
+   begin scalar coeffs, ansCoeffs, c;
 		coeffs := poly_getCoeffs(poly);
 		ansCoeffs := nil;
       while coeffs do <<
@@ -509,7 +451,7 @@ asserted procedure poly_reconstructCoeffs(poly: Polynomial, prime): Polynomial;
 
 % Apply CRT to (polyaccum mod modulo) and (polycomp mod prime)
 % to obtain new polynomial over modulo*prime
-asserted procedure poly_crtCoeffs(polyaccum, polycomp, modulo, prime): Polynomial;
+asserted procedure poly_crtCoeffs(polyaccum, modulo, polycomp, prime): Polynomial;
   begin scalar coeffsaccum, coeffscomp, ansCoeffs, ca, cc, c;
     coeffsaccum := poly_getCoeffs(polyaccum);
     coeffscomp  := poly_getCoeffs(polycomp);
@@ -532,7 +474,7 @@ asserted procedure poly_cmpPolyLead(poly1, poly2);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-trst poly_f2poly;
+% trst poly_f2poly;
 % trst poly_poly2a;
 
 % trst poly_leadCmp;
@@ -541,10 +483,15 @@ trst poly_f2poly;
 
 % trst poly_paircomb;
 % trst poly_unsafePaircombInplace;
+% trst poly_cmpExpRevgradlex;
+% trst poly_cmpExpRevlex;
+% trst poly_cmpExpLex;
+% trst poly_cmpExpRevLexHelper;
 
 % trst poly_reduceCoeffs;
-trst poly_reconstructCoeffs;
-trst poly_scaleDenominatorsInplace;
+% trst poly_crtCoeffs;
+% trst poly_reconstructCoeffs;
+% trst poly_scaleDenominatorsInplace;
 
 endmodule;
 

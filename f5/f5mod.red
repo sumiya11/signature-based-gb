@@ -58,13 +58,14 @@ inline procedure mod_inv(a);
 % Returns a rational r // h of Rational field in a canonical form such that
 %   r // h ≡ a (mod m)
 asserted procedure mod_reconstruction(a, m);
-  begin integer ans, x;
-    if a equal 0 then
+  begin integer ans, x, com, u1, u2, u3, q, bnd,
+                v1, v2, v3, t1, t2, t3, tt, r;
+    if a #= 0 then
         ans := 0 . 1
-    else if a equal 1 then
+    else if a #= 1 then
         ans := 1 . 1
     else <<
-        bnd := sqrt(float(m) / 2);
+        bnd := isqrt(m / 2);
 
         u1 := 1;
         u2 := 0;
@@ -91,7 +92,13 @@ asserted procedure mod_reconstruction(a, m);
         tt := abs(v2);
         r := v3 * sgn(v2);
 
-        ans := r . tt
+        if tt < 0 then <<
+          tt := - tt;
+          r  := - r
+        >>;
+
+        com := mod_euclead(abs(r), tt);
+        ans := (r / com) . (tt / com)
     >>;
 
     return ans
@@ -99,19 +106,23 @@ asserted procedure mod_reconstruction(a, m);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+asserted procedure mod_euclead(a, b);
+  if b #= 0 then
+      a
+  else
+    mod_euclead(b, a mod b);
+
 % Returns x and y such that a*x + b*y = 1.
 % Assumes that a and b are coprime
-asserted procedure mod_extendedPrimeGcd(a, b, x, y);
-  % The function is adapted from the `reciprocal!-by!-gcd` function at
-  %   reduce-algebra/packages/rtools/smallmod.red
-  if b > a then
-    mod_extendedPrimeGcd(b, a, x, y)
-  else if b = 1 then
-    % TODO: is this actually correct?
-    x . y
-  else begin scalar w;
-    w := a #/ b; % Truncated integer division;
-    return mod_extendedPrimeGcd(b, a #- b #* w, y, x #- y #* w)
+asserted procedure mod_extendedEuclead(a, b);
+  begin integer x, y, k;
+    return if b #= 0 then
+      1 . 0
+    else <<
+      x . y := mod_extendedEuclead(b, a mod b);
+      k := x - (a / b) * y;
+      y . k
+    >>
   end;
 
 % Chinese reminder theorem reconstruction implementation
@@ -119,18 +130,18 @@ asserted procedure mod_extendedPrimeGcd(a, b, x, y);
 %   x ≡ a1 (mod m1)
 %   x ≡ a2 (mod m2)
 asserted procedure mod_crt(a1, m1, a2, m2);
-  begin scalar x, n1, n2, m;
-    m := m1 #* m2;
-    n1 . n2 := mod_extendedPrimeGcd(m1, m2, 0, 1);
-    x := n1 #* m1 #* a2 #+ n2 #* m2 #* a1;
-    return x #/ m
+  begin integer x, y, n, m;
+    m := m1 * m2;
+    x . y := mod_extendedEuclead(m1, m2);
+    n := a2 * x * m1 + a1 * y * m2;
+    return ((n mod m) + m) mod m
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-trst mod_reconstruction;
-trst mod_crt;
-trst mod_extendedPrimeGcd;
+% trst mod_reconstruction;
+% trst mod_crt;
+% trst mod_extendedEuclead;
 
 endmodule;
 

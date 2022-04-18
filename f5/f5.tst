@@ -1,24 +1,45 @@
 
 % Correctness tests of f5
 
-f5({x1}, {x1}, lex, nil);
+f5({x1}, {x1}, lex);
 
-f5({x1, x2}, {x1, x2}, lex, nil);
+f5({x1, x2}, {x1, x2}, lex);
 
-f5({x2, x1, x1, x1, x2, x2, x1, x2, x1, x2}, {x1, x2}, lex, nil);
+f5({x2, x1, x1, x1, x2, x2, x1, x2, x1, x2}, {x1, x2}, lex);
 
-f5({x1 + x2, (x1 + x2)^2, (x1 + x2)^3}, {x1, x2}, lex, nil);
+f5({x1 + x2, (x1 + x2)^2, (x1 + x2)^3}, {x1, x2}, lex);
 
-f5({x1 + x2, x1*x2 + 1}, {x1, x2}, lex, nil);
+f5({x1 + x2, x1*x2 + 1}, {x1, x2}, lex);
 
-f5({x1*x2 + 1, x2*x3 + 1}, {x1, x2, x3}, lex, nil);
+f5({x1*x2 + 1, x2*x3 + 1}, {x1, x2, x3}, lex);
 
-f5({x1 + x2 + x3, x1*x2 + x2*x3 + x1*x3, x1*x2*x3 - 1}, {x1, x2, x3}, lex, nil);
+f5({x1 + x2 + x3, x1*x2 + x2*x3 + x1*x3, x1*x2*x3 - 1}, {x1, x2, x3}, lex);
 
-% f5({10*x1*x2^2 - 11*x1 + 10, 10*x1^2*x2 - 11*x2 + 10}, {x1, x2}, revgradlex);
+f5({10*x1*x2^2 - 11*x1 + 10, 10*x1^2*x2 - 11*x2 + 10}, {x1, x2}, lex);
+
+noon3 := {10*x1*x2^2 + 10*x1*x3^2 - 11*x1 + 10,
+          10*x1^2*x2 + 10*x2*x3^2 - 11*x2 + 10,
+          10*x1^2*x3 + 10*x2^2*x3 - 11*x3 + 10}$
+f5(noon3, {x1, x2, x3}, revgradlex);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Tests from groebner package
+% Some more tests
+
+on f5modular;
+f5(noon3, {x1, x2, x3}, revgradlex);
+
+f5({x1 + x2, x1*x2 + 100}, {x1, x2}, lex);
+f5({x1 + x2, x1*x2 + 1e5}, {x1, x2}, lex);
+
+% this number is special because it is the default prime number
+f5({x1 + x2, x1*x2 + 4194319}, {x1, x2}, lex);
+f5({x1 + 4194329*x2, x1*x2 + 4194319}, {x1, x2}, lex);
+
+f5({x1 + x2, x1*x2 + 1e10}, {x1, x2}, lex);
+f5({x1 + x2, x1*x2 + 1e100}, {x1, x2}, lex);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tests from groebner Reduce package
 
 % Test 1.
 
@@ -45,19 +66,22 @@ system := {q1,
           - 1/3*q3**4*q2**2*q5**3 + 1/3*q4**4*q2**2*q5**3 + 1/3*q4**2
             *q3**4*q5**3 - 1/3*q4**4*q3**2*q5**3}$
 
-f5(system, vars, lex, nil);
+f5(system, vars, lex);
 
-% Test 2. (Little) Trinks problem with 7 polynomials in 6 variables.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tests from Groebner.jl Julia package
 
-trinksvars := {w,p,z,t,s,b}$
-trinkspolys:={45*p + 35*s - 165*b - 36,
-          35*p + 40*z + 25*t - 27*s,
-          15*w + 25*p*s + 30*z - 18*t - 165*b**2,
-          - 9*w + 15*p*t + 20*z*s,
-          w*p + 2*z*t - 11*b**3,
-          99*w - 11*s*b + 3*b**2,
-          b**2 + 33/50*b + 2673/10000}$
+system := {
+  x1 + x2 + x3 + x4 + x5,
+  x1*x2 + x1*x3 + x1*x4 + x1*x5 + x2*x3 + x2*x4 + x2*x5 + x3*x4 + x3*x5 + x4*x5,
+  x1*x2*x3 + x1*x2*x4 + x1*x2*x5 + x1*x3*x4 + x1*x3*x5 + x1*x4*x5 + x2*x3*x4 + x2*x3*x5 + x2*x4*x5 + x3*x4*x5,
+  x1*x2*x3*x4 + x1*x2*x3*x5 + x1*x2*x4*x5 + x1*x3*x4*x5 + x2*x3*x4*x5,
+  x1*x2*x3*x4*x5 - 1
+}$
 
-f5(trinkspolys, trinksvars, lex, t);
+vars := {x1, x2, x3, x4, x5}$
+
+f5(system, vars, lex);
+
 
 end;  % of file

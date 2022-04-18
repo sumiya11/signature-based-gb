@@ -1,4 +1,3 @@
-
 module f5lp;
 
 % The lp module provides Labeled Polynomial interface --
@@ -9,6 +8,12 @@ module f5lp;
 % The interface provides, in particular,
 % functions lp_evaluation and lp_signature, that return
 % second and {third, fouth} items of internal list respectively
+
+% instantiate LabeledPolynomial from Polynomial and
+% place garbage in signature
+asserted inline procedure lp_LabeledPolynomial0(
+                              poly: Polynomial): LabeledPolynomial;
+  lp_LabeledPolynomial2(poly, {0, poly_zeroExp()});
 
 % instantiate LabeledPolynomial from Polynomial and leading index
 asserted inline procedure lp_LabeledPolynomial1(
@@ -62,8 +67,10 @@ asserted procedure lp_potCmpSignature(sgn1: List, sgn2: List): Boolean;
         scalar ev1, ev2, sgn1, sgn2;
     idx1 . ev1 := sgn1;
     idx2 . ev2 := sgn2;
+    ev1 := car ev1;
+    ev2 := car ev2;
     return if idx1 equal idx2 then poly_cmpExp(ev1, ev2)
-      else (idx1 > idx2)
+      else (idx1 #> idx2)
   end;
 
 % minimal signature based on pot comparison strategy
@@ -120,15 +127,18 @@ asserted procedure lp_normalize(f: LabeledPolynomial);
 asserted procedure lp_scaleDenominators(f: LabeledPolynomial);
   lp_LabeledPolynomial2(poly_scaleDenominators(lp_evaluation(f)), lp_signature(f));
 
+  asserted procedure lp_scaleDenominatorsInplace(f: LabeledPolynomial);
+    lp_LabeledPolynomial2(poly_scaleDenominatorsInplace(lp_evaluation(f)), lp_signature(f));
+
 asserted procedure lp_reduceCoeffs(f: LabeledPolynomial, prime);
   lp_LabeledPolynomial2(poly_reduceCoeffs(lp_evaluation(f), prime), lp_signature(f));
 
 asserted procedure lp_reconstructCoeffs(f: LabeledPolynomial, prime);
   lp_LabeledPolynomial2(poly_reconstructCoeffs(lp_evaluation(f), prime), lp_signature(f));
 
-asserted procedure lp_crtCoeffs(polyaccum, polycomp, modulo, prime);
-  begin underlyingpoly;
-    underlyingpoly := poly_crtCoeffs(lp_evaluation(polyaccum), lp_evaluation(polycomp), modulo, prime);
+asserted procedure lp_crtCoeffs(polyaccum, modulo, polycomp, prime);
+  begin scalar underlyingpoly;
+    underlyingpoly := poly_crtCoeffs(lp_evaluation(polyaccum), modulo, lp_evaluation(polycomp), prime);
     return lp_LabeledPolynomial2(underlyingpoly, lp_signature(polyaccum))
   end;
 

@@ -1,6 +1,6 @@
 % F5 algorithm implementation module
 %
-% The module provides Groebner basis computation routine `f5` based on
+% The module provides Groebner basis computation algorithm `f5` based on
 % Fougeres F5 algorithm
 module f5;
 
@@ -13,13 +13,24 @@ module f5;
 %   . `ordering` is the monomial ordering to compute the basis in.
 %     Possible options are `lex`, `revgradlex`,
 %
-% The algorithm is randomized by default. The obtained result
-% will be correct with high probability. To run the deterministic version
-% turn off the f5modular switch
-create!-package('(f5 f5lp f5poly f5mod f5primes), nil);
+% The algorithm is randomized. By default, the obtained result
+% will be correct with high probability.
 
-load_package assert;
+% create!-package('(f5 f5lp f5poly f5mod f5primes), nil);
+
+in "f5primes.red";
+in "f5mod.red";
+in "f5poly.red";
+in "f5lp.red";
+
+load_package 'assert;
 on1 'assert;
+
+% If f5 should certify the answer.
+% False by default, meaning that the algorithm is randomized
+% and may output incorrect answer with a very small probability (~1/2^22)
+switch f5certify;
+off1 'f5certify;
 
 put('f5, 'psopfn, 'f5_groebner);
 
@@ -30,7 +41,8 @@ struct Primetracker;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 asserted procedure f5_groebner(u: List): List;
-   begin scalar inputBasis, variables, sortMode, outputBasis;
+   begin scalar inputBasis, variables, sortMode,
+                inputModule, outputModule;
       if null u then
          f5_error();
       inputBasis := reval pop u;
@@ -46,14 +58,16 @@ asserted procedure f5_groebner(u: List): List;
       inputBasis := for each f in inputBasis collect
          poly_f2poly numr simp f;
 
-      if !*f5modular then
-         outputBasis := f5_groebnerModular1(inputBasis)
-      else
-         outputBasis := f5_groebner1(inputBasis);
+      inputModule := f5_constructModule(inputBasis);
 
-      outputBasis := 'list . for each f in outputBasis collect
+      if !*f5modular then
+         outputModule := f5_groebnerModular1(inputModule)
+      else
+         outputModule := f5_groebner1(inputModule);
+
+      outputModule := 'list . for each f in outputModule collect
                         poly_poly2a lp_evaluation f;
-      return outputBasis
+      return outputModule
    end;
 
 % Void return type fails assert check
@@ -61,15 +75,13 @@ asserted procedure f5_error();
    rederr "usage: f5(polynomials: List, variables: List, sortmode: Id)";
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%% MODULAR F5 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% MODULAR CORRECTNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Verify that the given reconstructed basis is indeed the Groebner basis
 % of the original input set
 % By default, probabilistic and heuristic correctness checks are used
 asserted procedure f5_correctnessCheck(pt, intBasis, recBasis);
-  if t then
-    t
-  else if not f5_heuristicCorrectnessCheck(reconstructedBasis) then
+   if not f5_heuristicCorrectnessCheck(recBasis) then
     nil
   else if not f5_randomizedCorrectnessCheck(pt, intBasis, recBasis) then
     nil
@@ -82,15 +94,17 @@ asserted procedure f5_heuristicCorrectnessCheck(reconstructedBasis: List);
   t;
 
 asserted procedure f5_randomizedCorrectnessCheck(pt, intBasis, recBasis);
-  begin scalar reliable_prime, ans;
-    reliable_prime := primes_getReliablePrime(pt);
+  begin integer reliable_prime;
+        scalar intBasisReduced, recBasisScaled, recBasisReduced,
+                isgroebner;
+    reliable_prime := primes_nextReliablePrime(pt, intBasis);
 
-    intBasisReduced := f5_modularReductionModule(intBasis, reliable_prime);
+    intBasisReduced := f5_modularReduction(intBasis, reliable_prime);
 
-    recBasisScaled := f5_scaleDenominatorsModule(recBasis);
-    recBasisReduced := f5_modularReductionModule(recBasisScaled, reliable_prime);
+    recBasisScaled := f5_scaleDenominators(recBasis);
+    recBasisReduced := f5_modularReduction(recBasisScaled, reliable_prime);
 
-    isgroebner := f5_checkIsGroebner(recBasisReduced);
+    isgroebner := f5_isGroebner(recBasisReduced);
 
     return if isgroebner then
       f5_checkIdealInclusion(recBasisReduced, intBasisReduced)
@@ -101,25 +115,19 @@ asserted procedure f5_randomizedCorrectnessCheck(pt, intBasis, recBasis);
 asserted procedure f5_guaranteedCorrectnessCheck(reconstructedBasis: List);
   t;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% MODULAR F5 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Given a set of generators with integer coefficients construct
 % a new basis with coefficients reduced modulo current prime
 asserted procedure f5_modularReduction(inputBasis: List, prime): List;
   begin scalar prime, ans, poly;
     while inputBasis do <<
       poly . inputBasis := inputBasis;
-      ans := poly_reduceCoeffs(poly, prime) . ans
-    >>;
-    return reversip(ans)
-    end;
-
-asserted procedure f5_modularReductionModule(inputBasis: List, prime): List;
-  begin scalar prime, ans, poly;
-    while inputBasis do <<
-      poly . inputBasis := inputBasis;
       ans := lp_reduceCoeffs(poly, prime) . ans
     >>;
     return reversip(ans)
-  end;
+    end;
 
 % Given a basis computed modulo some prime,
 % reconstructs each coefficient into rational field.
@@ -127,7 +135,7 @@ asserted procedure f5_modularReductionModule(inputBasis: List, prime): List;
 % (since this function is assumed to called only for number case)
 asserted procedure f5_rationalReconstruction(inputBasis: List, primetracker): List;
    begin scalar prime, poly, ans;
-      prime := primes_getLuckyPrime(primetracker);
+      prime := primes_getAccumModulo(primetracker);
       while inputBasis do <<
          poly . inputBasis := inputBasis;
          ans := lp_reconstructCoeffs(poly, prime) . ans
@@ -136,7 +144,7 @@ asserted procedure f5_rationalReconstruction(inputBasis: List, primetracker): Li
    end;
 
 asserted procedure f5_crtReconstruction(accumBasis, computedBasis, primetracker);
-   begin scalar modulo, prime, poly, ans;
+   begin scalar modulo, prime, ans, polyaccum, polycomp;
       modulo := primes_getAccumModulo(primetracker);
       prime  := primes_getLuckyPrime(primetracker);
       if modulo #= 1 then
@@ -145,10 +153,12 @@ asserted procedure f5_crtReconstruction(accumBasis, computedBasis, primetracker)
         while accumBasis do <<
           polyaccum . accumBasis := accumBasis;
           polycomp  . computedBasis := computedBasis;
-          ans := lp_crtCoeffs(polyaccum, polycomp, modulo, prime) . ans
-        >>
+          ans := lp_crtCoeffs(polyaccum, modulo, polycomp, prime) . ans
+        >>;
+        ans := reversip(ans)
       >>;
-      return reversip(ans)
+      primes_setAccumModulo(primetracker, modulo * prime);
+      return ans
    end;
 
 % Given a set of generators with rational numbers as polynomial coefficients,
@@ -159,36 +169,34 @@ asserted procedure f5_scaleDenominatorsInplace(inputBasis: List): List;
       tmp := inputBasis;
       while tmp do <<
          poly := car tmp;
-         car tmp := poly_scaleDenominatorsInplace(poly);
+         car tmp := lp_scaleDenominatorsInplace(poly);
          tmp := cdr tmp
       >>;
       return inputBasis
    end;
 
-asserted procedure f5_scaleDenominatorsModule(inputBasis: List, prime): List;
-  begin scalar prime, ans, poly;
+asserted procedure f5_scaleDenominators(inputBasis: List): List;
+  begin scalar ans, poly;
     while inputBasis do <<
       poly . inputBasis := inputBasis;
-      ans := lp_scaleDenominators(poly, prime) . ans
+      ans := lp_scaleDenominators(poly) . ans
     >>;
     return reversip(ans)
   end;
 
-
-%
-%
-%
+% Main function for modular F5 Groebner basis computation
 asserted procedure f5_groebnerModular1(inputBasis: List): List;
-   begin scalar integerBasis, reducedBasis, computedBasis,
+  begin scalar integerBasis, reducedBasis, computedBasis,
                 reconstructedBasis, accumBasis,
-                correctness, prime;
+                correctness, prime, primetracker;
+        integer iter;
 
       % contains current lucky prime for reduction and accumulates
       % the product of all previous ones
       primetracker := primes_Primetracker();
 
       % scale coefficients to integers
-      integerBasis := f5_scaleDenominatorsInplace(inputBasis);
+      integerBasis := f5_scaleDenominators(inputBasis);
       % now all denominators are 1 and coefficients are actually "big" integers
 
       % this basis will store accumulated coefficients
@@ -199,6 +207,7 @@ asserted procedure f5_groebnerModular1(inputBasis: List): List;
       while not correctness do <<
          % select next lucky prime
          prime := primes_nextLuckyPrime(primetracker, integerBasis);
+         ASSERT(primep prime);
 
          % reduce the basis w.r.t the prime
          reducedBasis := f5_modularReduction(integerBasis, prime);
@@ -216,6 +225,8 @@ asserted procedure f5_groebnerModular1(inputBasis: List): List;
          correctness := f5_correctnessCheck(primetracker,
                                             integerBasis,
                                             reconstructedBasis);
+        iter := iter + 1
+        % if iter #> 100 then correctness := t
       >>;
 
       return reconstructedBasis
@@ -362,13 +373,47 @@ asserted procedure f5_standardizeOutput(basis: List): List;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-asserted procedure f5_groebner1(inputBasis: List): List;
+asserted procedure f5_checkIdealInclusion(basis: List, polys: List);
+  begin scalar ans, isRegular, p, pNf;
+    isRegular := nil;
+    ans := t;
+
+    while polys do <<
+      p . polys := polys;
+      pNf := lp_normalForm(p, basis, isRegular);
+      if not lp_iszero!?(pNf) then
+        ans := nil
+    >>;
+
+    return ans
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+asserted procedure f5_isGroebner(basis: List);
+  begin scalar spolys, ans, isRegular, p, pNf;
+    % construct S-polynomials
+    spolys   := f5_constructSpolys(basis);
+
+    isRegular := nil;
+    ans := t;
+
+    while spolys do <<
+      p . spolys := spolys;
+      pNf := lp_normalForm(p, basis, isRegular);
+      if not lp_iszero!?(pNf) then
+        ans := nil
+    >>;
+
+    return ans
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+asserted procedure f5_groebner1(basis: List): List;
   begin scalar basis, spolys, syzygies, isRegular, p, pNf,
                 msi, msj, gg;
-        integer i;
-
-    % form initial basis list
-    basis    := f5_constructModule(inputBasis);
+        integer i, iter;
 
     % form principal syzygies
     syzygies := f5_constructSyzygies(basis);
@@ -402,6 +447,8 @@ asserted procedure f5_groebner1(inputBasis: List): List;
           basis := pNf . basis
         >>
       >>;
+      iter := iter #+ 1
+      % if iter #> 1 then spolys := nil
     >>;
 
     basis := f5_standardizeOutput(basis);
@@ -421,7 +468,12 @@ asserted procedure f5_groebner1(inputBasis: List): List;
 % trst f5_interreduceBasis;
 
 % trst f5_groebner1;
-trst f5_groebnerModular1;
+% trst f5_checkIdealInclusion;
+% trst f5_isGroebner;
+
+% trst f5_groebnerModular1;
+% trst f5_randomizedCorrectnessCheck;
+% trst f5_crtReconstruction;
 % trst f5_modularReduction;
 % trst f5_rationalReconstruction;
 

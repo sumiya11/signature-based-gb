@@ -1,3 +1,4 @@
+
 module f5primes;
 
 % The helper module to keep track of prime numbers used in F5 modular computations.
@@ -20,11 +21,13 @@ module f5primes;
 % There are 268216 primes between 2^22 and 2^23,
 % so it should be enough in most cases
 initial_lucky_prime!* := largest!-small!-modulus / 2;
+% initial_lucky_prime!* := 4;
 
 % All reliable primes would be at any moment bigger than lucky ones,
 % Namely, the range would be
 %   [largest!-small!-modulus * 3/2, largest!-small!-modulus]
 initial_reliable_prime!* := (largest!-small!-modulus / 3) * 2;
+% initial_reliable_prime!* := 100;
 
 % We expect this to hold
 if not (largest!-small!-modulus = 2^23) then
@@ -66,11 +69,11 @@ asserted inline procedure primes_setAccumModulo(p: Primetracker, i): Integer;
 % Checks if the given `prime` is lucky w.r.t. the input `basis` coefficients,
 % It is sufficient to check that generator's terms do not vanish under reduction
 asserted procedure primes_isLuckyPrime(basis, prime);
-  begin flag;
+  begin scalar flag, poly, coeffs, cf;
     flag := t;
     for each poly in basis do <<
       if flag then <<
-        coeffs := poly_getCoeffs(poly);
+        coeffs := poly_getCoeffs(lp_getPoly(poly));
         for each cf in coeffs do <<
           if modular!-number(cf) = 0 then
             flag := nil
@@ -85,8 +88,10 @@ asserted procedure primes_nextLuckyPrime(primetracker, basis);
   begin integer nextprime;
     nextprime := primes_nextPrime(primes_getLuckyPrime(primetracker));
     set!-small!-modulus nextprime;
-    if not primes_isLuckyPrime(basis, nextprime) then
-      nextprime := primes_nextLuckyPrime(basis, nextprime);
+    while not primes_isLuckyPrime(basis, nextprime) do <<
+      nextprime := primes_nextPrime(nextprime);
+      set!-small!-modulus nextprime
+    >>;
     primes_setLuckyPrime(primetracker, nextprime);
     return nextprime
   end;
@@ -101,10 +106,12 @@ asserted procedure primes_isReliablePrime(basis, prime: Integer);
 % Returns the next lucky prime number for primetracker
 asserted procedure primes_nextReliablePrime(primetracker, basis);
   begin integer nextprime;
-    nextprime := primes_nextPrime(primes_getReliablePrime(prime));
+    nextprime := primes_nextPrime(primes_getReliablePrime(primetracker));
     set!-small!-modulus nextprime;
-    if not primes_isReliablePrime(basis, nextprime) then
-      nextprime := primes_nextReliablePrime(basis, nextprime);
+    while not primes_isReliablePrime(basis, nextprime) do <<
+      nextprime := primes_nextPrime(nextprime);
+      set!-small!-modulus nextprime
+    >>;
     primes_setReliablePrime(primetracker, nextprime);
     return nextprime
   end;
@@ -127,6 +134,7 @@ asserted procedure primes_nextPrime(prime);
   end;
 
 % trst primes_nextPrime;
+% trst primes_nextReliablePrime;
 % trst primes_nextLuckyPrime;
 % trst primes_isLuckyPrime;
 
