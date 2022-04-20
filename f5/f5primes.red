@@ -31,7 +31,9 @@ initial_reliable_prime!* := (largest!-small!-modulus / 3) * 2;
 % We expect this to hold
 % TODO: make this more verbose
 if not (largest!-small!-modulus = 2^23) then
-  prin2t {"*** Strange largest!-small!-modulus value: expected 2^23, found", largest!-small!-modulus};
+  % switch msg ;
+  lprim {Strange largest!-small!-modulus value: expected 2^23, found", largest!-small!-modulus};
+  % prin2t {"*** Strange largest!-small!-modulus value: expected 2^23, found", largest!-small!-modulus};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
