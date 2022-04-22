@@ -1,3 +1,4 @@
+
 module f5poly;
 
 % Polynomial interface module to be used in f5 computation.
@@ -110,14 +111,14 @@ asserted procedure poly_sumExp(e1: List, e2: List): List;
 	if null e1 then
 		nil
 	else
-		(car e1 + car e2) . poly_sumExp(cdr e1, cdr e2);
+		(car e1 #+ car e2) . poly_sumExp(cdr e1, cdr e2);
 
 % return difference of exponent vectors e1, e2
 asserted procedure poly_subExp(e1: List, e2: List): List;
 	if null e1 then
 		nil
 	else
-		(car e1 - car e2) . poly_subExp(cdr e1, cdr e2);
+		(car e1 #- car e2) . poly_subExp(cdr e1, cdr e2);
 
 % return elementwise maximum of exponent vectors e1, e2
 asserted procedure poly_lcmExp(e1: List, e2: List): List;
@@ -150,7 +151,7 @@ asserted procedure poly_disjExp!?(e1: List, e2: List);
 asserted procedure poly_disjExp1(e1: List, e2: List);
 	if null e1 then
 		t
-	else if (car e1 * car e2) > 0 then
+	else if (car e1 #* car e2) > 0 then
 		nil
 	else
 		poly_disjExp1(cdr e1, cdr e2);
@@ -166,9 +167,9 @@ asserted procedure poly_cmpExpLex(e1: List, e2: List);
 		while e1 and flag do <<
 			ep1 . e1 := e1;
 			ep2 . e2 := e2;
-			flag := (ep1 = ep2);
+			flag := (ep1 #= ep2);
 		>>;
-		return if flag then nil else ep1 < ep2
+		return if flag then nil else ep1 #< ep2
 	end;
 
 % comparator for exponent vectors e1, e2 w.r.t. gradlex monomial ordering
@@ -181,9 +182,9 @@ asserted procedure poly_cmpExpGradlex(e1: List, e2: List);
     while e1 and flag do <<
       ep1 . e1 := e1;
       ep2 . e2 := e2;
-      flag := (ep1 = ep2);
+      flag := (ep1 #= ep2);
     >>;
-    return if flag then nil else ep1 < ep2
+    return if flag then nil else ep1 #< ep2
   end;
 
 % comparator for exponent vectors e1, e2 w.r.t. revgradlex monomial ordering
