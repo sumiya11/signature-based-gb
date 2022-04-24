@@ -1,7 +1,7 @@
 
-in "C:\data\projects\mpi\signature-based-gb\f5\f5.red"$
+load_package f5;
 
-% eco-5 system in degrevlex
+% ojika-4 system in degrevlex
 
 system := {
         x1+x3*x1^3+x1*x3*x2^2-x1*x3,

@@ -1,7 +1,7 @@
 
-in "C:\data\projects\mpi\signature-based-gb\f5\f5.red"$
+load_package f5;
 
-% eco-5 system in degrevlex
+% ku-10 system in degrevlex
 
 system := {
         5*x1*x2+ 5*x1+ 3*x2+ 55,

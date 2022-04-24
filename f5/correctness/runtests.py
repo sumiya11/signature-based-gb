@@ -2,8 +2,9 @@ import os
 import sys
 import subprocess
 
-REDUCE = r"reduce"
+REDUCE = r"redcsl"
 ARG1 = '~/signature-based-gb/f5/correctness/{0}.red'
+ARG2 = '-w ~/signature-based-gb/f5/correctness/output.rlg'
 
 KEYWORDS = ['Wrong Answer', 'Regression', 'Modular Error']
 
@@ -52,9 +53,9 @@ def compare_output(test, true):
     return Report("", True)
 
 def runtests_f5(upd):
-    p = subprocess.run([REDUCE, ARG1.format("general_tests")],
+    p = subprocess.run([REDUCE, ARG2, ARG1.format("general_tests")],
                         capture_output=True,
-                        shell=True)
+                        shell=False)
 
     output = p.stdout.decode()
 
@@ -73,7 +74,7 @@ def runtests_f5(upd):
 def runtests_mod(upd):
     p = subprocess.run([REDUCE, ARG1.format("modular_tests")],
                         capture_output=True,
-                        shell=True)
+                        shell=False)
 
     output = p.stdout.decode()
 
@@ -91,8 +92,7 @@ def runtests_mod(upd):
 def runtests_regression(upd):
     p = subprocess.run([REDUCE, ARG2, ARG1.format("regression_tests")],
                         capture_output=True,
-                        shell=True)
-    print(p)
+                        shell=False)
     output = p.stdout.decode()
 
     if upd:

@@ -1,6 +1,6 @@
-% cyclic-5 system in lex
+% cyclic-8 system in lex
 
-in "C:\data\projects\mpi\signature-based-gb\f5\f5.red"$
+load_package f5;
 
 system := {
 x1 + x2 + x3 + x4 + x5 + x6

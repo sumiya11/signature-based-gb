@@ -1,6 +1,6 @@
 % katsura-6 system in degrevlex
 
-in "C:\data\projects\mpi\signature-based-gb\f5\f5.red"$
+load_package f5;
 
 system := {x1 + 2*x2 + 2*x3 + 2*x4 + 2*x5 + 2*x6 + 2*x7 - 1,
     2*x1*x6 + 2*x2*x5 + 2*x2*x7 + 2*x3*x4 - x6,

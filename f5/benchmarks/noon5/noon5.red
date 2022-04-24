@@ -1,5 +1,5 @@
 
-in "C:\data\projects\mpi\signature-based-gb\f5\f5.red"$
+load_package f5;
 
 % noon-5 system in degrevlex
 
