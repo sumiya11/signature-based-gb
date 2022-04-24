@@ -1,24 +1,24 @@
+% cyclic-5 system in lex
 
-in "C:\data\projects\mpi\signature-based-gb\f5\f5.red"$
-
-% noon-4 system in degrevlex
+load_package groebner;
 
 system := {
         10*x1*x2^2 + 10*x1*x3^2 + 10*x1*x4^2 - 11*x1 + 10,
         10*x1^2*x2 + 10*x2*x3^2 + 10*x2*x4^2 - 11*x2 + 10,
         10*x1^2*x3 + 10*x2^2*x3 + 10*x3*x4^2 - 11*x3 + 10,
         10*x1^2*x4 + 10*x2^2*x4 + 10*x3^2*x4 - 11*x4 + 10
-};
+}$
 
-vars := {x1, x2, x3, x4};
+vars := {x1, x2, x3, x4}$
+torder(vars, revgradlex)$
 
-share system, vars;
+share system;
 
 lisp;
 st := time();
 
 algebraic;
-gb := f5(system, vars, 'revgradlex)$
+gb := groebner(system)$
 
 lisp;
 prin2t({"TIME", time() - st});

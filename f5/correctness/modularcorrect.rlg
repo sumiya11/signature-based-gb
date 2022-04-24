@@ -1,0 +1,1414 @@
+Reduce (CSL, rev 6110), 19-Oct-2021 ...
+
+
+nil
+
+nil
+
+core_basiskeeper
+
+core_addpoly
+
+core_setpoly
+
+core_getpoly
+
+core_getbasisidx
+
+core_pairtotaldegreecmp
+
+core_pairlcmcmp
+
+core_getpairlcm
+
+core_getpairfirst
+
+core_getpairsecond
+
+core_constructmodule
+
+*** local variable ri in procedure core_findreductor not used 
+
+core_findreductor
+
+core_topreduction
+
+core_reducepolyby
+
+core_normalform
+
+*** local variable prev in procedure core_insertsorted not used 
+
+core_insertsorted
+
+core_reduction
+
+core_istopreducible
+
+*** local variable tf in procedure core_istopreduciblemonom not used 
+
+core_istopreduciblemonom
+
+core_criticalpair
+
+core_rewriterule
+
+core_rulemonom
+
+core_ruleindex
+
+*** local variable sgn in procedure core_addrule not used 
+
+core_addrule
+
+core_findrewriting
+
+core_isrewritable
+
+core_spoly
+
+core_computespolys
+
+*** top level pairs = ... in block 
+
+core_incrementalbasis
+
+core_getreducers
+
+core_interreducebasis
+
+core_normalizebasis
+
+core_standardizeoutput
+
+*** nonlocal use of undeclared variable *f5fullreduce in procedure 
+core_groebner1 
+
+core_groebner1
+
+*** local variable basis in procedure core_checkidealinclusion1 not used 
+
+*** local variable polys in procedure core_checkidealinclusion1 not used 
+
+core_checkidealinclusion1
+
+*** local variable basis in procedure core_isgroebner1 not used 
+
+core_isgroebner1
+
+nil
+
+nil
+
+nil
+
+nil
+
+4194304
+
+5592404
+
+nil
+
+primes_primetracker
++++ Record new inline definition:
+(de primes_getluckyprime (p) (car p))
+(progn (de primes_getluckyprime (p) (car p)) (put (quote primes_getluckyprime) (
+quote number!-of!-args) 1) (putc (quote primes_getluckyprime) (quote inline) (
+quote (lambda (p) (car p)))))
+
+(lambda (p) (car p))
++++ Record new inline definition:
+(de primes_getreliableprime (p) (cadr p))
+(progn (de primes_getreliableprime (p) (cadr p)) (put (quote
+primes_getreliableprime) (quote number!-of!-args) 1) (putc (quote
+primes_getreliableprime) (quote inline) (quote (lambda (p) (cadr p)))))
+
+(lambda (p) (cadr p))
++++ Record new inline definition:
+(de primes_getaccummodulo (p) (caddr p))
+(progn (de primes_getaccummodulo (p) (caddr p)) (put (quote
+primes_getaccummodulo) (quote number!-of!-args) 1) (putc (quote
+primes_getaccummodulo) (quote inline) (quote (lambda (p) (caddr p)))))
+
+(lambda (p) (caddr p))
++++ Record new inline definition:
+(de primes_setluckyprime (p i) (setcar p i))
+(progn (de primes_setluckyprime (p i) (setcar p i)) (put (quote
+primes_setluckyprime) (quote number!-of!-args) 2) (putc (quote
+primes_setluckyprime) (quote inline) (quote (lambda (p i) (setcar p i)))))
+
+(lambda (p i) (setcar p i))
++++ Record new inline definition:
+(de primes_setreliableprime (p i) (setcar (cdr p) i))
+(progn (de primes_setreliableprime (p i) (setcar (cdr p) i)) (put (quote
+primes_setreliableprime) (quote number!-of!-args) 2) (putc (quote
+primes_setreliableprime) (quote inline) (quote (lambda (p i) (setcar (cdr p) i))
+)))
+
+(lambda (p i) (setcar (cdr p) i))
++++ Record new inline definition:
+(de primes_setaccummodulo (p i) (setcar (cddr p) i))
+(progn (de primes_setaccummodulo (p i) (setcar (cddr p) i)) (put (quote
+primes_setaccummodulo) (quote number!-of!-args) 2) (putc (quote
+primes_setaccummodulo) (quote inline) (quote (lambda (p i) (setcar (cddr p) i)))
+))
+
+(lambda (p i) (setcar (cddr p) i))
+
+*** local variable prime in procedure primes_isluckyprime not used 
+
+primes_isluckyprime
+
+primes_nextluckyprime
+
+primes_isreliableprime
+
+primes_nextreliableprime
+
+primes_nextprime
+
+nil
+
+nil
+
+nil
+
+nil
+
+*** nonlocal use of undeclared variable *f5certify in procedure 
+mod_correctnesscheck 
+
+*** nonlocal use of undeclared variable reconstructedbasis in procedure 
+mod_correctnesscheck 
+
+mod_correctnesscheck
+
+*** local variable reconstructedbasis in procedure mod_heuristiccorrectnesscheck
+ not used 
+
+mod_heuristiccorrectnesscheck
+
+mod_randomizedcorrectnesscheck
+
+*** local variable reconstructedbasis in procedure 
+mod_guaranteedcorrectnesscheck not used 
+
+mod_guaranteedcorrectnesscheck
+
+mod_modularreduction
+
+mod_rationalreconstruction
+
+*** nonlocal use of undeclared variable primetracker in procedure 
+mod_crtreconstruction 
+
+mod_crtreconstruction
+
+mod_scaledenominatorsinplace
+
+mod_scaledenominators
+
+mod_groebnermodular1
+
+*** local variable x in procedure mod_reconstruction not used 
+
+mod_reconstruction
+
+mod_euclid
+
+mod_extendedeuclid
+
+mod_crt
+
+nil
+
+nil
+
+nil
+
+nil
+
+nil
+
+nil
+
+revgradlex
+
+0
+
+(list)
+
+poly_initring
++++ Record new inline definition:
+(de poly_getexps (poly) (cadr poly))
+(progn (de poly_getexps (poly) (cadr poly)) (put (quote poly_getexps) (quote
+number!-of!-args) 1) (put (quote poly_getexps) (quote defined!-on!-line) (quote
+53)) (put (quote poly_getexps) (quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_getexps) (quote procedure_type) (quote (arrow polynomial list))) (putc (
+quote poly_getexps) (quote inline) (quote (lambda (poly) (cadr poly)))))
+
+(lambda (poly) (cadr poly))
++++ Record new inline definition:
+(de poly_getcoeffs (poly) (caddr poly))
+(progn (de poly_getcoeffs (poly) (caddr poly)) (put (quote poly_getcoeffs) (
+quote number!-of!-args) 1) (put (quote poly_getcoeffs) (quote defined!-on!-line)
+(quote 56)) (put (quote poly_getcoeffs) (quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_getcoeffs) (quote procedure_type) (quote (arrow polynomial list))) (putc (
+quote poly_getcoeffs) (quote inline) (quote (lambda (poly) (caddr poly)))))
+
+(lambda (poly) (caddr poly))
++++ Record new inline definition:
+(de poly_init (exps coeffs) (cons (quote p) (cons exps (cons coeffs nil))))
+(progn (de poly_init (exps coeffs) (cons (quote p) (cons exps (cons coeffs nil))
+)) (put (quote poly_init) (quote number!-of!-args) 2) (put (quote poly_init) (
+quote defined!-on!-line) (quote 60)) (put (quote poly_init) (quote
+defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_init) (quote procedure_type) (quote (arrow (times list list) polynomial)))
+(putc (quote poly_init) (quote inline) (quote (lambda (exps coeffs) (cons (quote
+p) (cons exps (cons coeffs nil)))))))
+
+(lambda (exps coeffs) (cons (quote p) (cons exps (cons coeffs nil))))
+
+*** local variable ans in procedure poly_f2poly not used 
+
+poly_f2poly
+
+*** local variable ans in procedure poly_poly2a not used 
+
+poly_poly2a
++++ Record new inline definition:
+(de poly_zeroexp nil (prog (x forall!-result forall!-endptr) (setq x 0) (cond ((
+minusp (difference poly_nvars!* x)) (return nil))) (setq forall!-result (setq
+forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (
+difference poly_nvars!* x)) (return forall!-result))) (rplacd forall!-endptr (
+cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go looplabel)))
+(progn (de poly_zeroexp nil (prog (x forall!-result forall!-endptr) (setq x 0) (
+cond ((minusp (difference poly_nvars!* x)) (return nil))) (setq forall!-result (
+setq forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp
+(difference poly_nvars!* x)) (return forall!-result))) (rplacd forall!-endptr (
+cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go looplabel))) (put (
+quote poly_zeroexp) (quote number!-of!-args) 0) (put (quote poly_zeroexp) (quote
+defined!-on!-line) (quote 105)) (put (quote poly_zeroexp) (quote
+defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_zeroexp) (quote procedure_type) (quote (arrow unit list))) (putc (quote
+poly_zeroexp) (quote inline) (quote (lambda nil (prog (x forall!-result
+forall!-endptr) (setq x 0) (cond ((minusp (difference poly_nvars!* x)) (return
+nil))) (setq forall!-result (setq forall!-endptr (cons 0 nil))) looplabel (setq
+x (plus2 x 1)) (cond ((minusp (difference poly_nvars!* x)) (return
+forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq forall!-endptr (cdr
+forall!-endptr)) (go looplabel))))))
+
+(lambda nil (prog (x forall!-result forall!-endptr) (setq x 0) (cond ((minusp (
+difference poly_nvars!* x)) (return nil))) (setq forall!-result (setq
+forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (
+difference poly_nvars!* x)) (return forall!-result))) (rplacd forall!-endptr (
+cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go looplabel)))
+
+poly_sumexp
+
+poly_subexp
+
+poly_lcmexp
+
+poly_lcmexp1
+
+poly_divexp!?
+
+poly_disjexp!?
+
+poly_disjexp1
+
+poly_cmpexplex
+
+poly_cmpexpgradlex
+
+poly_cmpexprevgradlex
+
+poly_cmpexprevlex
+
+poly_cmpexprevlexhelper
+
+poly_cmpexp
+
+poly_eqexp!?
+
+poly_tdegcmp
+
+poly_totaldeg
++++ Record new inline definition:
+(de poly_zero nil (cons (quote p) (cons (list) (cons (list) nil))))
+(progn (de poly_zero nil (cons (quote p) (cons (list) (cons (list) nil)))) (put
+(quote poly_zero) (quote number!-of!-args) 0) (put (quote poly_zero) (quote
+defined!-on!-line) (quote 260)) (put (quote poly_zero) (quote defined!-in!-file)
+(quote !C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (
+quote poly_zero) (quote procedure_type) (quote (arrow unit polynomial))) (putc (
+quote poly_zero) (quote inline) (quote (lambda nil (cons (quote p) (cons (list)
+(cons (list) nil)))))))
+
+(lambda nil (cons (quote p) (cons (list) (cons (list) nil))))
++++ Record new inline definition:
+(de poly_iszero!? (p) (null (cadr p)))
+(progn (de poly_iszero!? (p) (null (cadr p))) (put (quote poly_iszero!?) (quote
+number!-of!-args) 1) (put (quote poly_iszero!?) (quote defined!-on!-line) (quote
+264)) (put (quote poly_iszero!?) (quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_iszero!?) (quote procedure_type) (quote (arrow general general))) (putc (
+quote poly_iszero!?) (quote inline) (quote (lambda (p) (null (cadr p))))))
+
+(lambda (p) (null (cadr p)))
+
+poly_tail
++++ Record new inline definition:
+(de poly_leadexp (poly) (car (cadr poly)))
+(progn (de poly_leadexp (poly) (car (cadr poly))) (put (quote poly_leadexp) (
+quote number!-of!-args) 1) (put (quote poly_leadexp) (quote defined!-on!-line) (
+quote 273)) (put (quote poly_leadexp) (quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_leadexp) (quote procedure_type) (quote (arrow polynomial list))) (putc (
+quote poly_leadexp) (quote inline) (quote (lambda (poly) (car (cadr poly))))))
+
+(lambda (poly) (car (cadr poly)))
+
+poly_leadcoeff
++++ Record new inline definition:
+(de poly_tailexps (poly) (cdr (cadr poly)))
+(progn (de poly_tailexps (poly) (cdr (cadr poly))) (put (quote poly_tailexps) (
+quote number!-of!-args) 1) (put (quote poly_tailexps) (quote defined!-on!-line)
+(quote 281)) (put (quote poly_tailexps) (quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_tailexps) (quote procedure_type) (quote (arrow polynomial list))) (putc (
+quote poly_tailexps) (quote inline) (quote (lambda (poly) (cdr (cadr poly))))))
+
+(lambda (poly) (cdr (cadr poly)))
+
+poly_tailcoeffs
+
+poly_disjlead!?
+
+poly_length
+
+poly_paircomb
+
+poly_normalize
+
+poly_commondenominator
+
+poly_scaledenominatorsinplace
+
+poly_scaledenominators
+
+*** local variable prime in procedure poly_reducecoeffs not used 
+
+poly_reducecoeffs
+
+poly_reconstructcoeffs
+
+poly_crtcoeffs
+
+poly_cmppolylead
+
+poly_leadtotaldegreecmp
+
+nil
+
+nil
+
+nil
++++ Record new inline definition:
+(de lp_labeledpolynomial0 (poly) (lp_labeledpolynomial2 poly (list 0 (prog (x
+forall!-result forall!-endptr) (setq x 0) (cond ((minusp (difference
+poly_nvars!* x)) (return nil))) (setq forall!-result (setq forall!-endptr (cons
+0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (difference poly_nvars!*
+x)) (return forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq
+forall!-endptr (cdr forall!-endptr)) (go looplabel)))))
+(progn (de lp_labeledpolynomial0 (poly) (lp_labeledpolynomial2 poly (list 0 (
+prog (x forall!-result forall!-endptr) (setq x 0) (cond ((minusp (difference
+poly_nvars!* x)) (return nil))) (setq forall!-result (setq forall!-endptr (cons
+0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (difference poly_nvars!*
+x)) (return forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq
+forall!-endptr (cdr forall!-endptr)) (go looplabel))))) (put (quote
+lp_labeledpolynomial0) (quote number!-of!-args) 1) (putc (quote
+lp_labeledpolynomial0) (quote inline) (quote (lambda (poly) (
+lp_labeledpolynomial2 poly (list 0 (prog (x forall!-result forall!-endptr) (setq
+x 0) (cond ((minusp (difference poly_nvars!* x)) (return nil))) (setq
+forall!-result (setq forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)
+) (cond ((minusp (difference poly_nvars!* x)) (return forall!-result))) (rplacd
+forall!-endptr (cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go
+looplabel))))))))
+
+(lambda (poly) (lp_labeledpolynomial2 poly (list 0 (prog (x forall!-result
+forall!-endptr) (setq x 0) (cond ((minusp (difference poly_nvars!* x)) (return
+nil))) (setq forall!-result (setq forall!-endptr (cons 0 nil))) looplabel (setq
+x (plus2 x 1)) (cond ((minusp (difference poly_nvars!* x)) (return
+forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq forall!-endptr (cdr
+forall!-endptr)) (go looplabel)))))
++++ Record new inline definition:
+(de lp_labeledpolynomial1 (poly idx) (lp_labeledpolynomial2 poly (list idx (prog
+(x forall!-result forall!-endptr) (setq x 0) (cond ((minusp (difference
+poly_nvars!* x)) (return nil))) (setq forall!-result (setq forall!-endptr (cons
+0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (difference poly_nvars!*
+x)) (return forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq
+forall!-endptr (cdr forall!-endptr)) (go looplabel)))))
+(progn (de lp_labeledpolynomial1 (poly idx) (lp_labeledpolynomial2 poly (list
+idx (prog (x forall!-result forall!-endptr) (setq x 0) (cond ((minusp (
+difference poly_nvars!* x)) (return nil))) (setq forall!-result (setq
+forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (
+difference poly_nvars!* x)) (return forall!-result))) (rplacd forall!-endptr (
+cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go looplabel))))) (put
+(quote lp_labeledpolynomial1) (quote number!-of!-args) 2) (putc (quote
+lp_labeledpolynomial1) (quote inline) (quote (lambda (poly idx) (
+lp_labeledpolynomial2 poly (list idx (prog (x forall!-result forall!-endptr) (
+setq x 0) (cond ((minusp (difference poly_nvars!* x)) (return nil))) (setq
+forall!-result (setq forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)
+) (cond ((minusp (difference poly_nvars!* x)) (return forall!-result))) (rplacd
+forall!-endptr (cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go
+looplabel))))))))
+
+(lambda (poly idx) (lp_labeledpolynomial2 poly (list idx (prog (x forall!-result
+forall!-endptr) (setq x 0) (cond ((minusp (difference poly_nvars!* x)) (return
+nil))) (setq forall!-result (setq forall!-endptr (cons 0 nil))) looplabel (setq
+x (plus2 x 1)) (cond ((minusp (difference poly_nvars!* x)) (return
+forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq forall!-endptr (cdr
+forall!-endptr)) (go looplabel)))))
++++ Record new inline definition:
+(de lp_labeledpolynomial2 (poly sgn) (cons (quote lbl) (cons poly sgn)))
+(progn (de lp_labeledpolynomial2 (poly sgn) (cons (quote lbl) (cons poly sgn)))
+(put (quote lp_labeledpolynomial2) (quote number!-of!-args) 2) (putc (quote
+lp_labeledpolynomial2) (quote inline) (quote (lambda (poly sgn) (cons (quote lbl
+) (cons poly sgn))))))
+
+(lambda (poly sgn) (cons (quote lbl) (cons poly sgn)))
++++ Record new inline definition:
+(de lp_getpoly (lp) (cadr lp))
+(progn (de lp_getpoly (lp) (cadr lp)) (put (quote lp_getpoly) (quote
+number!-of!-args) 1) (putc (quote lp_getpoly) (quote inline) (quote (lambda (lp)
+(cadr lp)))))
+
+(lambda (lp) (cadr lp))
++++ Record new inline definition:
+(de lp_getlabel (lp) (cddr lp))
+(progn (de lp_getlabel (lp) (cddr lp)) (put (quote lp_getlabel) (quote
+number!-of!-args) 1) (putc (quote lp_getlabel) (quote inline) (quote (lambda (lp
+) (cddr lp)))))
+
+(lambda (lp) (cddr lp))
++++ Record new inline definition:
+(de lp_iszero!? (lp) (null (cadr (lp_eval lp))))
+(progn (de lp_iszero!? (lp) (null (cadr (lp_eval lp)))) (put (quote lp_iszero!?)
+(quote number!-of!-args) 1) (putc (quote lp_iszero!?) (quote inline) (quote (
+lambda (lp) (null (cadr (lp_eval lp)))))))
+
+(lambda (lp) (null (cadr (lp_eval lp))))
++++ Record new inline definition:
+(de lp_seteval (f ev) (setcar (cdr f) ev))
+(progn (de lp_seteval (f ev) (setcar (cdr f) ev)) (put (quote lp_seteval) (quote
+number!-of!-args) 2) (putc (quote lp_seteval) (quote inline) (quote (lambda (f
+ev) (setcar (cdr f) ev)))))
+
+(lambda (f ev) (setcar (cdr f) ev))
++++ Record new inline definition:
+(de lp_sgninit (i m) (list i m))
+(progn (de lp_sgninit (i m) (list i m)) (put (quote lp_sgninit) (quote
+number!-of!-args) 2) (putc (quote lp_sgninit) (quote inline) (quote (lambda (i m
+) (list i m)))))
+
+(lambda (i m) (list i m))
++++ Record new inline definition:
+(de lp_sgn (f) (cddr f))
+(progn (de lp_sgn (f) (cddr f)) (put (quote lp_sgn) (quote number!-of!-args) 1)
+(putc (quote lp_sgn) (quote inline) (quote (lambda (f) (cddr f)))))
+
+(lambda (f) (cddr f))
+
+lp_eqsignature
++++ Record new inline definition:
+(de lp_index (f) (car (cddr f)))
+(progn (de lp_index (f) (car (cddr f))) (put (quote lp_index) (quote
+number!-of!-args) 1) (putc (quote lp_index) (quote inline) (quote (lambda (f) (
+car (cddr f))))))
+
+(lambda (f) (car (cddr f)))
++++ Record new inline definition:
+(de lp_monom (f) (cadr (cddr f)))
+(progn (de lp_monom (f) (cadr (cddr f))) (put (quote lp_monom) (quote
+number!-of!-args) 1) (putc (quote lp_monom) (quote inline) (quote (lambda (f) (
+cadr (cddr f))))))
+
+(lambda (f) (cadr (cddr f)))
++++ Record new inline definition:
+(de lp_eval (f) (cadr f))
+(progn (de lp_eval (f) (cadr f)) (put (quote lp_eval) (quote number!-of!-args) 1
+) (putc (quote lp_eval) (quote inline) (quote (lambda (f) (cadr f)))))
+
+(lambda (f) (cadr f))
+
+lp_multsignature
+
+lp_sgnmonom
+
+lp_sgnindex
+
+lp_multsgn
+
+lp_sgncmp
++++ Record new inline definition:
+(de lp_potminsignature (sgn1 sgn2) (cond ((lp_potcmpsignature sgn1 sgn2) sgn1) (
+t sgn2)))
+(progn (de lp_potminsignature (sgn1 sgn2) (cond ((lp_potcmpsignature sgn1 sgn2)
+sgn1) (t sgn2))) (put (quote lp_potminsignature) (quote number!-of!-args) 2) (
+putc (quote lp_potminsignature) (quote inline) (quote (lambda (sgn1 sgn2) (cond
+((lp_potcmpsignature sgn1 sgn2) sgn1) (t sgn2))))))
+
+(lambda (sgn1 sgn2) (cond ((lp_potcmpsignature sgn1 sgn2) sgn1) (t sgn2)))
++++ Record new inline definition:
+(de lp_potmaxsignature (sgn1 sgn2) (cond ((lp_potcmpsignature sgn1 sgn2) sgn2) (
+t sgn1)))
+(progn (de lp_potmaxsignature (sgn1 sgn2) (cond ((lp_potcmpsignature sgn1 sgn2)
+sgn2) (t sgn1))) (put (quote lp_potmaxsignature) (quote number!-of!-args) 2) (
+putc (quote lp_potmaxsignature) (quote inline) (quote (lambda (sgn1 sgn2) (cond
+((lp_potcmpsignature sgn1 sgn2) sgn2) (t sgn1))))))
+
+(lambda (sgn1 sgn2) (cond ((lp_potcmpsignature sgn1 sgn2) sgn2) (t sgn1)))
+
+lp_potcmplp
++++ Record new inline definition:
+(de lp_issyzygy (lp) (null (cadr (cadr lp))))
+(progn (de lp_issyzygy (lp) (null (cadr (cadr lp)))) (put (quote lp_issyzygy) (
+quote number!-of!-args) 1) (putc (quote lp_issyzygy) (quote inline) (quote (
+lambda (lp) (null (cadr (cadr lp)))))))
+
+(lambda (lp) (null (cadr (cadr lp))))
+
+lp_sgndivides
+
+lp_principalsyzygy
+
+lp_normalize
+
+lp_scaledenominators
+
+lp_scaledenominatorsinplace
+
+lp_reducecoeffs
+
+lp_reconstructcoeffs
+
+lp_crtcoeffs
+
+lp_tryreduce1
+
+lp_tryreduce
+
+lp_normalform
+
+lp_eqlist
+
+lp_issingularlytopreducible
+
+lp_spolycofactors
+
+lp_spolymultsignatures
+
+lp_spoly
+
+lp_cmplplead
+
+lp_cmplpleadreverse
+
+lp_leadtotaldegreecmp
+
+nil
+
+nil
+
+nil
+
+nil
+
+nil
+
+nil
+
+nil
+
+nil
+
+f5_groebner
+
+*** struct polynomial is not checked 
+
+nil
+
+*** struct labeledpolynomial is not checked 
+
+nil
+
+*** struct primetracker is not checked 
+
+nil
+
+f5_groebner
+
+f5_argumenterror
++++ Record new inline definition:
+(de mod_iszero!? (a) (cond (!*f5modular (equal a 0)) (t (equal (car a) nil))))
+(progn (de mod_iszero!? (a) (cond (!*f5modular (equal a 0)) (t (equal (car a)
+nil)))) (put (quote mod_iszero!?) (quote number!-of!-args) 1) (put (quote
+mod_iszero!?) (quote defined!-on!-line) (quote 74)) (put (quote mod_iszero!?) (
+quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_iszero!?) (quote procedure_type) (quote (arrow general general))) (putc (
+quote mod_iszero!?) (quote inline) (quote (lambda (a) (cond (!*f5modular (equal
+a 0)) (t (equal (car a) nil)))))))
+
+(lambda (a) (cond (!*f5modular (equal a 0)) (t (equal (car a) nil))))
++++ Record new inline definition:
+(de mod_add (a b) (cond (!*f5modular (modular!-plus a b)) (t (addsq a b))))
+(progn (de mod_add (a b) (cond (!*f5modular (modular!-plus a b)) (t (addsq a b))
+)) (put (quote mod_add) (quote number!-of!-args) 2) (put (quote mod_add) (quote
+defined!-on!-line) (quote 80)) (put (quote mod_add) (quote defined!-in!-file) (
+quote !C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_add) (quote procedure_type) (quote (arrow (times general general) general)))
+(putc (quote mod_add) (quote inline) (quote (lambda (a b) (cond (!*f5modular (
+modular!-plus a b)) (t (addsq a b)))))))
+
+(lambda (a b) (cond (!*f5modular (modular!-plus a b)) (t (addsq a b))))
++++ Record new inline definition:
+(de mod_mul (a b) (cond (!*f5modular (modular!-times a b)) (t (multsq a b))))
+(progn (de mod_mul (a b) (cond (!*f5modular (modular!-times a b)) (t (multsq a b
+)))) (put (quote mod_mul) (quote number!-of!-args) 2) (put (quote mod_mul) (
+quote defined!-on!-line) (quote 86)) (put (quote mod_mul) (quote
+defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_mul) (quote procedure_type) (quote (arrow (times general general) general)))
+(putc (quote mod_mul) (quote inline) (quote (lambda (a b) (cond (!*f5modular (
+modular!-times a b)) (t (multsq a b)))))))
+
+(lambda (a b) (cond (!*f5modular (modular!-times a b)) (t (multsq a b))))
++++ Record new inline definition:
+(de mod_neg (a) (cond (!*f5modular (modular!-minus a)) (t (negsq a))))
+(progn (de mod_neg (a) (cond (!*f5modular (modular!-minus a)) (t (negsq a)))) (
+put (quote mod_neg) (quote number!-of!-args) 1) (put (quote mod_neg) (quote
+defined!-on!-line) (quote 92)) (put (quote mod_neg) (quote defined!-in!-file) (
+quote !C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_neg) (quote procedure_type) (quote (arrow general general))) (putc (quote
+mod_neg) (quote inline) (quote (lambda (a) (cond (!*f5modular (modular!-minus a)
+) (t (negsq a)))))))
+
+(lambda (a) (cond (!*f5modular (modular!-minus a)) (t (negsq a))))
++++ Record new inline definition:
+(de mod_div (a b) (cond (!*f5modular (modular!-quotient a b)) (t (multsq a (
+invsq b)))))
+(progn (de mod_div (a b) (cond (!*f5modular (modular!-quotient a b)) (t (multsq
+a (invsq b))))) (put (quote mod_div) (quote number!-of!-args) 2) (put (quote
+mod_div) (quote defined!-on!-line) (quote 98)) (put (quote mod_div) (quote
+defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_div) (quote procedure_type) (quote (arrow (times general general) general)))
+(putc (quote mod_div) (quote inline) (quote (lambda (a b) (cond (!*f5modular (
+modular!-quotient a b)) (t (multsq a (invsq b))))))))
+
+(lambda (a b) (cond (!*f5modular (modular!-quotient a b)) (t (multsq a (invsq b)
+))))
++++ Record new inline definition:
+(de mod_inv (a) (cond (!*f5modular (modular!-reciprocal a)) (t (cons (cdr a) (
+car a)))))
+(progn (de mod_inv (a) (cond (!*f5modular (modular!-reciprocal a)) (t (cons (cdr
+a) (car a))))) (put (quote mod_inv) (quote number!-of!-args) 1) (put (quote
+mod_inv) (quote defined!-on!-line) (quote 104)) (put (quote mod_inv) (quote
+defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_inv) (quote procedure_type) (quote (arrow general general))) (putc (quote
+mod_inv) (quote inline) (quote (lambda (a) (cond (!*f5modular (
+modular!-reciprocal a)) (t (cons (cdr a) (car a))))))))
+
+(lambda (a) (cond (!*f5modular (modular!-reciprocal a)) (t (cons (cdr a) (car a)
+))))
+
+
+
+modularmessage
+
+
+nil
+
+
+nil
+
+nil
+
+core_basiskeeper
+
+core_addpoly
+
+core_setpoly
+
+core_getpoly
+
+core_getbasisidx
+
+core_pairtotaldegreecmp
+
+core_pairlcmcmp
+
+core_getpairlcm
+
+core_getpairfirst
+
+core_getpairsecond
+
+core_constructmodule
+
+*** local variable ri in procedure core_findreductor not used 
+
+core_findreductor
+
+core_topreduction
+
+core_reducepolyby
+
+core_normalform
+
+*** local variable prev in procedure core_insertsorted not used 
+
+core_insertsorted
+
+core_reduction
+
+core_istopreducible
+
+*** local variable tf in procedure core_istopreduciblemonom not used 
+
+core_istopreduciblemonom
+
+core_criticalpair
+
+core_rewriterule
+
+core_rulemonom
+
+core_ruleindex
+
+*** local variable sgn in procedure core_addrule not used 
+
+core_addrule
+
+core_findrewriting
+
+core_isrewritable
+
+core_spoly
+
+core_computespolys
+
+*** top level pairs = ... in block 
+
+core_incrementalbasis
+
+core_getreducers
+
+core_interreducebasis
+
+core_normalizebasis
+
+core_standardizeoutput
+
+core_groebner1
+
+*** local variable basis in procedure core_checkidealinclusion1 not used 
+
+*** local variable polys in procedure core_checkidealinclusion1 not used 
+
+core_checkidealinclusion1
+
+*** local variable basis in procedure core_isgroebner1 not used 
+
+core_isgroebner1
+
+nil
+
+nil
+
+nil
+
+nil
+
+4194304
+
+5592404
+
+nil
+
+primes_primetracker
+(progn (de primes_getluckyprime (p) (car p)) (put (quote primes_getluckyprime) (
+quote number!-of!-args) 1) (putc (quote primes_getluckyprime) (quote inline) (
+quote (lambda (p) (car p)))))
+
+(lambda (p) (car p))
+(progn (de primes_getreliableprime (p) (cadr p)) (put (quote
+primes_getreliableprime) (quote number!-of!-args) 1) (putc (quote
+primes_getreliableprime) (quote inline) (quote (lambda (p) (cadr p)))))
+
+(lambda (p) (cadr p))
+(progn (de primes_getaccummodulo (p) (caddr p)) (put (quote
+primes_getaccummodulo) (quote number!-of!-args) 1) (putc (quote
+primes_getaccummodulo) (quote inline) (quote (lambda (p) (caddr p)))))
+
+(lambda (p) (caddr p))
+(progn (de primes_setluckyprime (p i) (setcar p i)) (put (quote
+primes_setluckyprime) (quote number!-of!-args) 2) (putc (quote
+primes_setluckyprime) (quote inline) (quote (lambda (p i) (setcar p i)))))
+
+(lambda (p i) (setcar p i))
+(progn (de primes_setreliableprime (p i) (setcar (cdr p) i)) (put (quote
+primes_setreliableprime) (quote number!-of!-args) 2) (putc (quote
+primes_setreliableprime) (quote inline) (quote (lambda (p i) (setcar (cdr p) i))
+)))
+
+(lambda (p i) (setcar (cdr p) i))
+(progn (de primes_setaccummodulo (p i) (setcar (cddr p) i)) (put (quote
+primes_setaccummodulo) (quote number!-of!-args) 2) (putc (quote
+primes_setaccummodulo) (quote inline) (quote (lambda (p i) (setcar (cddr p) i)))
+))
+
+(lambda (p i) (setcar (cddr p) i))
+
+*** local variable prime in procedure primes_isluckyprime not used 
+
+primes_isluckyprime
+
+primes_nextluckyprime
+
+primes_isreliableprime
+
+primes_nextreliableprime
+
+primes_nextprime
+
+nil
+
+nil
+
+nil
+
+smallmod
+
+*** nonlocal use of undeclared variable reconstructedbasis in procedure 
+mod_correctnesscheck 
+
+mod_correctnesscheck
+
+*** local variable reconstructedbasis in procedure mod_heuristiccorrectnesscheck
+ not used 
+
+mod_heuristiccorrectnesscheck
+
+mod_randomizedcorrectnesscheck
+
+*** local variable reconstructedbasis in procedure 
+mod_guaranteedcorrectnesscheck not used 
+
+mod_guaranteedcorrectnesscheck
+
+mod_modularreduction
+
+mod_rationalreconstruction
+
+*** nonlocal use of undeclared variable primetracker in procedure 
+mod_crtreconstruction 
+
+mod_crtreconstruction
+
+mod_scaledenominatorsinplace
+
+mod_scaledenominators
+
+mod_groebnermodular1
+
+*** local variable x in procedure mod_reconstruction not used 
+
+mod_reconstruction
+
+mod_euclid
+
+mod_extendedeuclid
+
+mod_crt
+
+nil
+
+nil
+
+nil
+
+nil
+
+dp
+
+nil
+
+revgradlex
+
+0
+
+(list)
+
+poly_initring
+(progn (de poly_getexps (poly) (cadr poly)) (put (quote poly_getexps) (quote
+number!-of!-args) 1) (put (quote poly_getexps) (quote defined!-on!-line) (quote
+53)) (put (quote poly_getexps) (quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_getexps) (quote procedure_type) (quote (arrow polynomial list))) (putc (
+quote poly_getexps) (quote inline) (quote (lambda (poly) (cadr poly)))))
+
+(lambda (poly) (cadr poly))
+(progn (de poly_getcoeffs (poly) (caddr poly)) (put (quote poly_getcoeffs) (
+quote number!-of!-args) 1) (put (quote poly_getcoeffs) (quote defined!-on!-line)
+(quote 56)) (put (quote poly_getcoeffs) (quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_getcoeffs) (quote procedure_type) (quote (arrow polynomial list))) (putc (
+quote poly_getcoeffs) (quote inline) (quote (lambda (poly) (caddr poly)))))
+
+(lambda (poly) (caddr poly))
+(progn (de poly_init (exps coeffs) (cons (quote p) (cons exps (cons coeffs nil))
+)) (put (quote poly_init) (quote number!-of!-args) 2) (put (quote poly_init) (
+quote defined!-on!-line) (quote 60)) (put (quote poly_init) (quote
+defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_init) (quote procedure_type) (quote (arrow (times list list) polynomial)))
+(putc (quote poly_init) (quote inline) (quote (lambda (exps coeffs) (cons (quote
+p) (cons exps (cons coeffs nil)))))))
+
+(lambda (exps coeffs) (cons (quote p) (cons exps (cons coeffs nil))))
+
+*** local variable ans in procedure poly_f2poly not used 
+
+poly_f2poly
+
+*** local variable ans in procedure poly_poly2a not used 
+
+poly_poly2a
+(progn (de poly_zeroexp nil (prog (x forall!-result forall!-endptr) (setq x 0) (
+cond ((minusp (difference poly_nvars!* x)) (return nil))) (setq forall!-result (
+setq forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp
+(difference poly_nvars!* x)) (return forall!-result))) (rplacd forall!-endptr (
+cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go looplabel))) (put (
+quote poly_zeroexp) (quote number!-of!-args) 0) (put (quote poly_zeroexp) (quote
+defined!-on!-line) (quote 105)) (put (quote poly_zeroexp) (quote
+defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_zeroexp) (quote procedure_type) (quote (arrow unit list))) (putc (quote
+poly_zeroexp) (quote inline) (quote (lambda nil (prog (x forall!-result
+forall!-endptr) (setq x 0) (cond ((minusp (difference poly_nvars!* x)) (return
+nil))) (setq forall!-result (setq forall!-endptr (cons 0 nil))) looplabel (setq
+x (plus2 x 1)) (cond ((minusp (difference poly_nvars!* x)) (return
+forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq forall!-endptr (cdr
+forall!-endptr)) (go looplabel))))))
+
+(lambda nil (prog (x forall!-result forall!-endptr) (setq x 0) (cond ((minusp (
+difference poly_nvars!* x)) (return nil))) (setq forall!-result (setq
+forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (
+difference poly_nvars!* x)) (return forall!-result))) (rplacd forall!-endptr (
+cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go looplabel)))
+
+poly_sumexp
+
+poly_subexp
+
+poly_lcmexp
+
+poly_lcmexp1
+
+poly_divexp!?
+
+poly_disjexp!?
+
+poly_disjexp1
+
+poly_cmpexplex
+
+poly_cmpexpgradlex
+
+poly_cmpexprevgradlex
+
+poly_cmpexprevlex
+
+poly_cmpexprevlexhelper
+
+poly_cmpexp
+
+poly_eqexp!?
+
+poly_tdegcmp
+
+poly_totaldeg
+(progn (de poly_zero nil (cons (quote p) (cons (list) (cons (list) nil)))) (put
+(quote poly_zero) (quote number!-of!-args) 0) (put (quote poly_zero) (quote
+defined!-on!-line) (quote 260)) (put (quote poly_zero) (quote defined!-in!-file)
+(quote !C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (
+quote poly_zero) (quote procedure_type) (quote (arrow unit polynomial))) (putc (
+quote poly_zero) (quote inline) (quote (lambda nil (cons (quote p) (cons (list)
+(cons (list) nil)))))))
+
+(lambda nil (cons (quote p) (cons (list) (cons (list) nil))))
+(progn (de poly_iszero!? (p) (null (cadr p))) (put (quote poly_iszero!?) (quote
+number!-of!-args) 1) (put (quote poly_iszero!?) (quote defined!-on!-line) (quote
+264)) (put (quote poly_iszero!?) (quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_iszero!?) (quote procedure_type) (quote (arrow general general))) (putc (
+quote poly_iszero!?) (quote inline) (quote (lambda (p) (null (cadr p))))))
+
+(lambda (p) (null (cadr p)))
+
+poly_tail
+(progn (de poly_leadexp (poly) (car (cadr poly))) (put (quote poly_leadexp) (
+quote number!-of!-args) 1) (put (quote poly_leadexp) (quote defined!-on!-line) (
+quote 273)) (put (quote poly_leadexp) (quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_leadexp) (quote procedure_type) (quote (arrow polynomial list))) (putc (
+quote poly_leadexp) (quote inline) (quote (lambda (poly) (car (cadr poly))))))
+
+(lambda (poly) (car (cadr poly)))
+
+poly_leadcoeff
+(progn (de poly_tailexps (poly) (cdr (cadr poly))) (put (quote poly_tailexps) (
+quote number!-of!-args) 1) (put (quote poly_tailexps) (quote defined!-on!-line)
+(quote 281)) (put (quote poly_tailexps) (quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5poly!.red)) (put (quote
+poly_tailexps) (quote procedure_type) (quote (arrow polynomial list))) (putc (
+quote poly_tailexps) (quote inline) (quote (lambda (poly) (cdr (cadr poly))))))
+
+(lambda (poly) (cdr (cadr poly)))
+
+poly_tailcoeffs
+
+poly_disjlead!?
+
+poly_length
+
+poly_paircomb
+
+poly_normalize
+
+poly_commondenominator
+
+poly_scaledenominatorsinplace
+
+poly_scaledenominators
+
+*** local variable prime in procedure poly_reducecoeffs not used 
+
+poly_reducecoeffs
+
+poly_reconstructcoeffs
+
+poly_crtcoeffs
+
+poly_cmppolylead
+
+poly_leadtotaldegreecmp
+
+nil
+
+nil
+
+nil
++++ Record new inline definition:
+(de lp_labeledpolynomial0 (poly) (cons (quote lbl) (cons poly (list 0 (prog (x
+forall!-result forall!-endptr) (setq x 0) (cond ((minusp (difference
+poly_nvars!* x)) (return nil))) (setq forall!-result (setq forall!-endptr (cons
+0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (difference poly_nvars!*
+x)) (return forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq
+forall!-endptr (cdr forall!-endptr)) (go looplabel))))))
+(progn (de lp_labeledpolynomial0 (poly) (cons (quote lbl) (cons poly (list 0 (
+prog (x forall!-result forall!-endptr) (setq x 0) (cond ((minusp (difference
+poly_nvars!* x)) (return nil))) (setq forall!-result (setq forall!-endptr (cons
+0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (difference poly_nvars!*
+x)) (return forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq
+forall!-endptr (cdr forall!-endptr)) (go looplabel)))))) (put (quote
+lp_labeledpolynomial0) (quote number!-of!-args) 1) (putc (quote
+lp_labeledpolynomial0) (quote inline) (quote (lambda (poly) (cons (quote lbl) (
+cons poly (list 0 (prog (x forall!-result forall!-endptr) (setq x 0) (cond ((
+minusp (difference poly_nvars!* x)) (return nil))) (setq forall!-result (setq
+forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (
+difference poly_nvars!* x)) (return forall!-result))) (rplacd forall!-endptr (
+cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go looplabel)))))))))
+
+(lambda (poly) (cons (quote lbl) (cons poly (list 0 (prog (x forall!-result
+forall!-endptr) (setq x 0) (cond ((minusp (difference poly_nvars!* x)) (return
+nil))) (setq forall!-result (setq forall!-endptr (cons 0 nil))) looplabel (setq
+x (plus2 x 1)) (cond ((minusp (difference poly_nvars!* x)) (return
+forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq forall!-endptr (cdr
+forall!-endptr)) (go looplabel))))))
++++ Record new inline definition:
+(de lp_labeledpolynomial1 (poly idx) (cons (quote lbl) (cons poly (list idx (
+prog (x forall!-result forall!-endptr) (setq x 0) (cond ((minusp (difference
+poly_nvars!* x)) (return nil))) (setq forall!-result (setq forall!-endptr (cons
+0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (difference poly_nvars!*
+x)) (return forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq
+forall!-endptr (cdr forall!-endptr)) (go looplabel))))))
+(progn (de lp_labeledpolynomial1 (poly idx) (cons (quote lbl) (cons poly (list
+idx (prog (x forall!-result forall!-endptr) (setq x 0) (cond ((minusp (
+difference poly_nvars!* x)) (return nil))) (setq forall!-result (setq
+forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (
+difference poly_nvars!* x)) (return forall!-result))) (rplacd forall!-endptr (
+cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go looplabel)))))) (put
+(quote lp_labeledpolynomial1) (quote number!-of!-args) 2) (putc (quote
+lp_labeledpolynomial1) (quote inline) (quote (lambda (poly idx) (cons (quote lbl
+) (cons poly (list idx (prog (x forall!-result forall!-endptr) (setq x 0) (cond
+((minusp (difference poly_nvars!* x)) (return nil))) (setq forall!-result (setq
+forall!-endptr (cons 0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (
+difference poly_nvars!* x)) (return forall!-result))) (rplacd forall!-endptr (
+cons 0 nil)) (setq forall!-endptr (cdr forall!-endptr)) (go looplabel)))))))))
+
+(lambda (poly idx) (cons (quote lbl) (cons poly (list idx (prog (x
+forall!-result forall!-endptr) (setq x 0) (cond ((minusp (difference
+poly_nvars!* x)) (return nil))) (setq forall!-result (setq forall!-endptr (cons
+0 nil))) looplabel (setq x (plus2 x 1)) (cond ((minusp (difference poly_nvars!*
+x)) (return forall!-result))) (rplacd forall!-endptr (cons 0 nil)) (setq
+forall!-endptr (cdr forall!-endptr)) (go looplabel))))))
+(progn (de lp_labeledpolynomial2 (poly sgn) (cons (quote lbl) (cons poly sgn)))
+(put (quote lp_labeledpolynomial2) (quote number!-of!-args) 2) (putc (quote
+lp_labeledpolynomial2) (quote inline) (quote (lambda (poly sgn) (cons (quote lbl
+) (cons poly sgn))))))
+
+(lambda (poly sgn) (cons (quote lbl) (cons poly sgn)))
+(progn (de lp_getpoly (lp) (cadr lp)) (put (quote lp_getpoly) (quote
+number!-of!-args) 1) (putc (quote lp_getpoly) (quote inline) (quote (lambda (lp)
+(cadr lp)))))
+
+(lambda (lp) (cadr lp))
+(progn (de lp_getlabel (lp) (cddr lp)) (put (quote lp_getlabel) (quote
+number!-of!-args) 1) (putc (quote lp_getlabel) (quote inline) (quote (lambda (lp
+) (cddr lp)))))
+
+(lambda (lp) (cddr lp))
++++ Record new inline definition:
+(de lp_iszero!? (lp) (null (cadr (cadr lp))))
+(progn (de lp_iszero!? (lp) (null (cadr (cadr lp)))) (put (quote lp_iszero!?) (
+quote number!-of!-args) 1) (putc (quote lp_iszero!?) (quote inline) (quote (
+lambda (lp) (null (cadr (cadr lp)))))))
+
+(lambda (lp) (null (cadr (cadr lp))))
+(progn (de lp_seteval (f ev) (setcar (cdr f) ev)) (put (quote lp_seteval) (quote
+number!-of!-args) 2) (putc (quote lp_seteval) (quote inline) (quote (lambda (f
+ev) (setcar (cdr f) ev)))))
+
+(lambda (f ev) (setcar (cdr f) ev))
+(progn (de lp_sgninit (i m) (list i m)) (put (quote lp_sgninit) (quote
+number!-of!-args) 2) (putc (quote lp_sgninit) (quote inline) (quote (lambda (i m
+) (list i m)))))
+
+(lambda (i m) (list i m))
+(progn (de lp_sgn (f) (cddr f)) (put (quote lp_sgn) (quote number!-of!-args) 1)
+(putc (quote lp_sgn) (quote inline) (quote (lambda (f) (cddr f)))))
+
+(lambda (f) (cddr f))
+
+lp_eqsignature
+(progn (de lp_index (f) (car (cddr f))) (put (quote lp_index) (quote
+number!-of!-args) 1) (putc (quote lp_index) (quote inline) (quote (lambda (f) (
+car (cddr f))))))
+
+(lambda (f) (car (cddr f)))
+(progn (de lp_monom (f) (cadr (cddr f))) (put (quote lp_monom) (quote
+number!-of!-args) 1) (putc (quote lp_monom) (quote inline) (quote (lambda (f) (
+cadr (cddr f))))))
+
+(lambda (f) (cadr (cddr f)))
+(progn (de lp_eval (f) (cadr f)) (put (quote lp_eval) (quote number!-of!-args) 1
+) (putc (quote lp_eval) (quote inline) (quote (lambda (f) (cadr f)))))
+
+(lambda (f) (cadr f))
+
+lp_multsignature
+
+lp_sgnmonom
+
+lp_sgnindex
+
+lp_multsgn
+
+lp_sgncmp
+(progn (de lp_potminsignature (sgn1 sgn2) (cond ((lp_potcmpsignature sgn1 sgn2)
+sgn1) (t sgn2))) (put (quote lp_potminsignature) (quote number!-of!-args) 2) (
+putc (quote lp_potminsignature) (quote inline) (quote (lambda (sgn1 sgn2) (cond
+((lp_potcmpsignature sgn1 sgn2) sgn1) (t sgn2))))))
+
+(lambda (sgn1 sgn2) (cond ((lp_potcmpsignature sgn1 sgn2) sgn1) (t sgn2)))
+(progn (de lp_potmaxsignature (sgn1 sgn2) (cond ((lp_potcmpsignature sgn1 sgn2)
+sgn2) (t sgn1))) (put (quote lp_potmaxsignature) (quote number!-of!-args) 2) (
+putc (quote lp_potmaxsignature) (quote inline) (quote (lambda (sgn1 sgn2) (cond
+((lp_potcmpsignature sgn1 sgn2) sgn2) (t sgn1))))))
+
+(lambda (sgn1 sgn2) (cond ((lp_potcmpsignature sgn1 sgn2) sgn2) (t sgn1)))
+
+lp_potcmplp
+(progn (de lp_issyzygy (lp) (null (cadr (cadr lp)))) (put (quote lp_issyzygy) (
+quote number!-of!-args) 1) (putc (quote lp_issyzygy) (quote inline) (quote (
+lambda (lp) (null (cadr (cadr lp)))))))
+
+(lambda (lp) (null (cadr (cadr lp))))
+
+lp_sgndivides
+
+lp_principalsyzygy
+
+lp_normalize
+
+lp_scaledenominators
+
+lp_scaledenominatorsinplace
+
+lp_reducecoeffs
+
+lp_reconstructcoeffs
+
+lp_crtcoeffs
+
+lp_tryreduce1
+
+lp_tryreduce
+
+lp_normalform
+
+lp_eqlist
+
+lp_issingularlytopreducible
+
+lp_spolycofactors
+
+lp_spolymultsignatures
+
+lp_spoly
+
+lp_cmplplead
+
+lp_cmplpleadreverse
+
+lp_leadtotaldegreecmp
+
+nil
+
+nil
+
+nil
+
+nil
+
+nil
+
+nil
+
+nil
+
+nil
+
+f5_groebner
+
+*** struct polynomial is not checked 
+
+nil
+
+*** struct labeledpolynomial is not checked 
+
+nil
+
+*** struct primetracker is not checked 
+
+nil
+
+f5_groebner
+
+f5_argumenterror
+(progn (de mod_iszero!? (a) (cond (!*f5modular (equal a 0)) (t (equal (car a)
+nil)))) (put (quote mod_iszero!?) (quote number!-of!-args) 1) (put (quote
+mod_iszero!?) (quote defined!-on!-line) (quote 74)) (put (quote mod_iszero!?) (
+quote defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_iszero!?) (quote procedure_type) (quote (arrow general general))) (putc (
+quote mod_iszero!?) (quote inline) (quote (lambda (a) (cond (!*f5modular (equal
+a 0)) (t (equal (car a) nil)))))))
+
+(lambda (a) (cond (!*f5modular (equal a 0)) (t (equal (car a) nil))))
+(progn (de mod_add (a b) (cond (!*f5modular (modular!-plus a b)) (t (addsq a b))
+)) (put (quote mod_add) (quote number!-of!-args) 2) (put (quote mod_add) (quote
+defined!-on!-line) (quote 80)) (put (quote mod_add) (quote defined!-in!-file) (
+quote !C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_add) (quote procedure_type) (quote (arrow (times general general) general)))
+(putc (quote mod_add) (quote inline) (quote (lambda (a b) (cond (!*f5modular (
+modular!-plus a b)) (t (addsq a b)))))))
+
+(lambda (a b) (cond (!*f5modular (modular!-plus a b)) (t (addsq a b))))
+(progn (de mod_mul (a b) (cond (!*f5modular (modular!-times a b)) (t (multsq a b
+)))) (put (quote mod_mul) (quote number!-of!-args) 2) (put (quote mod_mul) (
+quote defined!-on!-line) (quote 86)) (put (quote mod_mul) (quote
+defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_mul) (quote procedure_type) (quote (arrow (times general general) general)))
+(putc (quote mod_mul) (quote inline) (quote (lambda (a b) (cond (!*f5modular (
+modular!-times a b)) (t (multsq a b)))))))
+
+(lambda (a b) (cond (!*f5modular (modular!-times a b)) (t (multsq a b))))
+(progn (de mod_neg (a) (cond (!*f5modular (modular!-minus a)) (t (negsq a)))) (
+put (quote mod_neg) (quote number!-of!-args) 1) (put (quote mod_neg) (quote
+defined!-on!-line) (quote 92)) (put (quote mod_neg) (quote defined!-in!-file) (
+quote !C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_neg) (quote procedure_type) (quote (arrow general general))) (putc (quote
+mod_neg) (quote inline) (quote (lambda (a) (cond (!*f5modular (modular!-minus a)
+) (t (negsq a)))))))
+
+(lambda (a) (cond (!*f5modular (modular!-minus a)) (t (negsq a))))
+(progn (de mod_div (a b) (cond (!*f5modular (modular!-quotient a b)) (t (multsq
+a (invsq b))))) (put (quote mod_div) (quote number!-of!-args) 2) (put (quote
+mod_div) (quote defined!-on!-line) (quote 98)) (put (quote mod_div) (quote
+defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_div) (quote procedure_type) (quote (arrow (times general general) general)))
+(putc (quote mod_div) (quote inline) (quote (lambda (a b) (cond (!*f5modular (
+modular!-quotient a b)) (t (multsq a (invsq b))))))))
+
+(lambda (a b) (cond (!*f5modular (modular!-quotient a b)) (t (multsq a (invsq b)
+))))
+(progn (de mod_inv (a) (cond (!*f5modular (modular!-reciprocal a)) (t (cons (cdr
+a) (car a))))) (put (quote mod_inv) (quote number!-of!-args) 1) (put (quote
+mod_inv) (quote defined!-on!-line) (quote 104)) (put (quote mod_inv) (quote
+defined!-in!-file) (quote
+!C!:!\data!\projects!\mpi!\signature!-based!-gb!\f5!\f5!.red)) (put (quote
+mod_inv) (quote procedure_type) (quote (arrow general general))) (putc (quote
+mod_inv) (quote inline) (quote (lambda (a) (cond (!*f5modular (
+modular!-reciprocal a)) (t (cons (cdr a) (car a))))))))
+
+(lambda (a) (cond (!*f5modular (modular!-reciprocal a)) (t (cons (cdr a) (car a)
+))))
+
+nil
+
+nil
+
+
+1031
+
+
+((0 . 1) (1 . 1) (2 . 1) (3 . 1) (4 . 1) (5 . 1) (6 . 1) (7 . 1) (8 . 1) (9 . 1)
+(10 . 1) (11 . 1) (12 . 1) (13 . 1) (14 . 1) (15 . 1) (16 . 1) (17 . 1) (18 . 1)
+(19 . 1) (20 . 1) (21 . 1) (-19 . 46) (-19 . 44) (1 . 43) (-6 . 41) (-17 . 39) (
+-5 . 38) (5 . 37) (-16 . 35) (-11 . 34) (-8 . 33) (-7 . 32) (-8 . 31) (-11 . 30)
+(-16 . 29) (13 . 29) (5 . 28) (-5 . 27) (-17 . 26) (9 . 26) (-6 . 25) (19 . 25)
+(1 . 24) (-19 . 23) (4 . 23) (-19 . 22) (3 . 22) (2 . 43) (-2 . 21))
+
+
+nil
+
+
+
+
+
+
+
+*** End-of-file read 

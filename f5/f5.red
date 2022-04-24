@@ -20,10 +20,8 @@ module f5;
 %
 % - If using modular computation is not desirable, set `off f5modular`.
 
-create!-package('(f5 f5lp f5poly f5mod f5primes), nil);
+create!-package('(f5 f5lp f5poly f5core f5primes f5mod), nil);
 
-load_package 'assert;
-off1 'assert;
 
 % If f5 should certify the correctness of result.
 % False by default, meaning that the algorithm is randomized
@@ -31,18 +29,21 @@ off1 'assert;
 switch f5certify;
 off1 'f5certify;
 
-% Maybe place other switches also here?.. 
+% If f5 should use modular arithmetic.
+% True by default
+switch f5modular;
+off1 'f5modular;
 
+% If the output basis should be interreduced.
+% If true, the basis is unique.
+switch f5fullreduce;
+on1 'f5fullreduce;
+
+load!-package 'assert;
+off1 'assert;
+
+% The only function in the interface
 put('f5, 'psopfn, 'f5_groebner);
-
-% interface implemented in f5poly.red
-struct Polynomial;
-
-% interface implemented in f5lp.red
-struct LabeledPolynomial;
-
-% interface implemented in f5primes.red
-struct Primetracker;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -80,7 +81,7 @@ asserted procedure f5_groebner(u: List): List;
       inputModule := core_constructModule(inputBasis);
 
       if !*f5modular then
-         outputModule := f5_groebnerModular1(inputModule)
+         outputModule := mod_groebnerModular1(inputModule)
       else
          outputModule := core_groebner1(inputModule);
 

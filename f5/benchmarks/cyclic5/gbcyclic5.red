@@ -1,6 +1,6 @@
 % cyclic-5 system in lex
 
-in "C:\data\projects\mpi\signature-based-gb\f5\f5.red"$
+load_package groebner;
 
 system := {
   x1 + x2 + x3 + x4 + x5,
@@ -11,14 +11,15 @@ system := {
 }$
 
 vars := {x1, x2, x3, x4, x5}$
+torder(vars, lex)$
 
-share system, vars;
+share system;
 
 lisp;
 st := time();
 
 algebraic;
-gb := f5(system, vars, 'lex)$
+gb := groebner(system)$
 
 lisp;
 prin2t({"TIME", time() - st});

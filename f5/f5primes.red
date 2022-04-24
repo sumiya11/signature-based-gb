@@ -1,3 +1,4 @@
+
 module f5primes;
 
 % The helper module to keep track of prime numbers used in F5 modular computations.
@@ -10,30 +11,28 @@ module f5primes;
 % We call the ptime "reliable" if it is used to verify the correctness of
 % the modular computation.
 
-fluid '(initial_lucky_prime!* initial_reliable_prime!*);
+fluid '(primes_initialLuckyPrime!* primes_initialReliablePrime!*);
 
 % The standard largest!-small!-modulus value is 2^23, which is 8388608
-% Thus, lets take initial_lucky_prime!* to be
+% Thus, lets take primes_initialLuckyPrime!* to be
 %   largest!-small!-modulus / 2
 %
 % We will use lucky primes in range
-%   [largest!-small!-modulus / 2, largest!-small!-modulus / 2]
+%   [largest!-small!-modulus / 2, largest!-small!-modulus]
 % for modular computations as candidates for lucky primes.
 % There are 268216 primes between 2^22 and 2^23,
 % so it should be enough in most cases
-initial_lucky_prime!* := largest!-small!-modulus / 2;
+primes_initialLuckyPrime!* := largest!-small!-modulus / 2;
 
 % All reliable primes would be at any moment bigger than lucky ones,
 % Namely, the range would be
 %   [largest!-small!-modulus * 3/2, largest!-small!-modulus]
-initial_reliable_prime!* := (largest!-small!-modulus / 3) * 2;
+primes_initialReliablePrime!* := (largest!-small!-modulus / 3) * 2;
 
 % We expect this to hold
-% TODO: make this more verbose
-if not (largest!-small!-modulus = 2^23) then
-  % switch msg ;
-  lprim {Strange largest!-small!-modulus value: expected 2^23, found", largest!-small!-modulus};
-  % prin2t {"*** Strange largest!-small!-modulus value: expected 2^23, found", largest!-small!-modulus};
+% Write another swith =)
+if largest!-small!-modulus < 2^10 then
+  rederr {"*** Strange largest!-small!-modulus value: expected at least 2^10, found", largest!-small!-modulus};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -41,8 +40,8 @@ if not (largest!-small!-modulus = 2^23) then
 asserted procedure primes_Primetracker();
   begin integer lucky_prime, reliable_prime;
         scalar accum_modulo;
-    lucky_prime := initial_lucky_prime!*;
-    reliable_prime := initial_reliable_prime!*;
+    lucky_prime := primes_initialLuckyPrime!*;
+    reliable_prime := primes_initialReliablePrime!*;
     accum_modulo := 1;
     return {lucky_prime, reliable_prime, accum_modulo}
   end;

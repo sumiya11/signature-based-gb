@@ -1,4 +1,3 @@
-
 module f5hash;
 
 % struct MonomHashtable
@@ -120,6 +119,6 @@ asserted procedure hash_sumExp(e1: List, e2: List): List;
 
 endmodule;
 
-% trst hash_insertExp;
+trst hash_insertExp;
 
 end;  % of file

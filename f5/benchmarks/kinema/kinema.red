@@ -1,6 +1,7 @@
-% kinema system in degrevlex
 
-load_package f5;
+in "C:\data\projects\mpi\signature-based-gb\f5\f5.red"$
+
+% kinema system in degrevlex
 
 system := {
     z1^2 - 12*z1 + z2^2 + z3^2 - 68,
@@ -16,6 +17,15 @@ system := {
 
 vars := {z1, z2, z3, z4, z5, z6, z7, z8, z9};
 
-basis := f5(system, vars, revgradlex);
+share system, vars;
 
-end; %eof
+lisp;
+st := time();
+
+algebraic;
+gb := f5(system, vars, 'revgradlex)$
+
+lisp;
+prin2t({"TIME", time() - st});
+
+end;

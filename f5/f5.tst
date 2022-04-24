@@ -25,7 +25,7 @@ f5(noon3, {x1, x2, x3}, revgradlex);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Some more tests
 
-on f5modular;
+% on f5modular;
 f5(noon3, {x1, x2, x3}, revgradlex);
 
 f5({x1 + x2, x1*x2 + 100}, {x1, x2}, lex);

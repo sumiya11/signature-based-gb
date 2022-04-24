@@ -9,7 +9,7 @@ off1 'allfac;
 
 % we use parsing StandardFrom -> Polynomial routine from dp
 % TODO: write our own?
-load_package 'dp;
+load!-package 'dp;
 
 fluid '(poly_ord!* poly_nvars!* poly_vars!*);
 
@@ -247,6 +247,12 @@ asserted procedure poly_eqExp!?(e1: List, e2: List);
 	else
 		nil;
 
+asserted procedure poly_tdegCmp(exp1, exp2);
+	car exp1 #< car exp2;
+
+asserted procedure poly_totalDeg(exp1);
+	car exp1;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % returns zero polynomial, internally represented as
@@ -472,8 +478,18 @@ asserted procedure poly_crtCoeffs(polyaccum, modulo, polycomp, prime): Polynomia
 % Polynomial sorting ad-hoc
 
 % return true if lead(poly1) < lead(poly2)
-asserted procedure poly_cmpPolyLead(poly1, poly2);
+asserted inline procedure poly_cmpPolyLead(poly1, poly2);
  	poly_cmpExp(poly_leadExp(poly1), poly_leadExp(poly2));
+
+asserted procedure poly_leadTotalDegreeCmp(poly1, poly2);
+	begin integer t1, t2;
+		t1 := poly_totalDeg(poly_leadExp(poly1));
+		t2 := poly_totalDeg(poly_leadExp(poly2));
+		return if t1 #= t2 then
+			poly_cmpPolyLead(poly1, poly2)
+		else
+			t1 #< t2
+	end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

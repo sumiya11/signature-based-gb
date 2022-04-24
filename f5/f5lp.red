@@ -1,373 +1,517 @@
-module f5lp;
 
-% The lp module provides the Labeled Polynomial interface --
-% a special polynomial type to be used in the f5-style algorithms.
-% The LabeledPolynomial object `p` is stored internally as a 4-item list:
-%   {'lp, evaluation of `p`, signature index of `p`, signature monomial of `p`}
+module f5poly;
+
+% Polynomial interface module to be used in f5 computation.
+% The module provides functions for basic operations with `Polynomial` type
+
+% do we need this hmm?
+off1 'allfac;
+
+% we use parsing StandardFrom -> Polynomial routine from dp
+% TODO: write our own?
+load!-package 'dp;
+
+fluid '(poly_ord!* poly_nvars!* poly_vars!*);
+
+% Polynomial `p` is stored internally as a list of 3 items:
+%     {'p, monomials, coeffs}
+% Where `p` is a convenience tag,
+%         `monomials` is an array of monomials stored as exponent vectors,
+%         `coeffs` is an array of coefficients
+% with `monomials` and `coeffs` ordered from lead to tail. Exponent vectors
+% are stored internally as integer lists:
+%		{totaldegree, pow1, pow2, ... pown}
 %
-% The interface provides, in particular,
-% functions `lp_eval` and `lp_sgn`, that return
-% second and {third, fouth} items of the internal list respectively
-
-% instantiates LabeledPolynomial from the given Polynomial `poly` and
-% places garbage in the signature position
+% For example, xy^2 + 3x is stored as
+%   {'p, {{3, 1, 2}, (1, 1, 0)}, {1, 3}}
 %
-% Currently, used only in computing plain polynomial normal form
-asserted inline procedure lp_LabeledPolynomial0(
-                              poly: Polynomial): LabeledPolynomial;
-  lp_LabeledPolynomial2(poly, {0, poly_zeroExp()});
-
-% instantiates LabeledPolynomial from Polynomial and the leading index
-asserted inline procedure lp_LabeledPolynomial1(
-                              poly: Polynomial,
-                              idx: Integer): LabeledPolynomial;
-  lp_LabeledPolynomial2(poly, {idx, poly_zeroExp()});
-
-% instantiates LabeledPolynomial from Polynomial and its signature
-asserted inline procedure lp_LabeledPolynomial2(
-                              poly: Polynomial,
-                              sgn: List): LabeledPolynomial;
-  'lbl . poly . sgn;
-
-asserted inline procedure lp_getPoly(lp: LabeledPolynomial): Polynomial;
-  cadr lp;
-
-asserted inline procedure lp_getLabel(lp: LabeledPolynomial): List;
-  cddr lp;
-
-% Checks if LP is zero
-%
-% Zero LabeledPolynomial is represented as
-%   ('lp, zero Polynomial, smth, smth)
-%
-% Same as lp_isSyzygy!?, in fact
-asserted inline procedure lp_iszero!?(lp);
-  poly_iszero!?(lp_eval(lp));
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%% SIGNATURE MANIPULATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% return the signature {i, m}
-asserted inline procedure lp_sgnInit(i: Integer, m: List): List;
-  {i, m};
-
-% return the signature of module element f
-asserted inline procedure lp_sgn(f: LabeledPolynomial): List;
-  lp_getLabel(f);
-
-% sgn1 == sgn2 ?
-asserted procedure lp_eqSignature(sgn1: List, sgn2: List);
-  car sgn1 #= car sgn2 and lp_eqList(cdr sgn1, cdr sgn2);
-
-% return the index of the signature of module element f
-asserted inline procedure lp_sgnIndex(f: LabeledPolynomial): Integer;
-  car lp_getLabel(f);
-
-% return the monom of the signature of module element f
-asserted inline procedure lp_sgnMonom(f: LabeledPolynomial): Integer;
-  cadr lp_getLabel(f);
-
-% return the evaluation of module element f
-asserted inline procedure lp_eval(f: LabeledPolynomial): Polynomial;
-   lp_getPoly(f);
-
-% multiply signature sgn by monomial ev
-asserted procedure lp_multSignature(sgn: List, ev: List);
-  begin scalar  term;
-        integer idx;
-    idx  := car sgn;
-    term := cadr sgn;
-    return lp_sgnInit(idx, poly_sumExp(term, ev))
-  end;
-
-% compare signatures sgn1 vs. sgn2 with the
-% position over term extension
-asserted procedure lp_potCmpSignature(sgn1: List, sgn2: List);
-  begin integer idx1, idx2;
-        scalar  ev1, ev2;
-    idx1 := car sgn1;
-    ev1  := cadr sgn1;
-    idx2 := car sgn2;
-    ev2  := cadr sgn2;
-    return if idx1 equal idx2 then poly_cmpExp(ev1, ev2)
-      else (idx1 #> idx2)
-  end;
-
-% minimal signature based on the pot comparison strategy
-asserted inline procedure lp_potMinSignature(sgn1: List, sgn2: List): List;
-  if lp_potCmpSignature(sgn1, sgn2) then sgn1 else sgn2;
-
-% maximal signature based on pot comparison strategy
-asserted inline procedure lp_potMaxSignature(sgn1: List, sgn2: List): List;
-  if lp_potCmpSignature(sgn1, sgn2) then sgn2 else sgn1;
-
-% compare LabeledPolynomials as module elems lp1 vs. lp2 with
-% the position over term extension
-asserted procedure lp_potCmpLP(lp1: LabeledPolynomial, lp2: LabeledPolynomial): Boolean;
-  begin scalar sgn1, sgn2;
-    sgn1 := lp_sgn(lp1);
-    sgn2 := lp_sgn(lp2);
-    return lp_potCmpSignature(sgn1, sgn2)
-  end;
-
-% checks if lp represents a syzygy
-asserted inline procedure lp_isSyzygy(lp: LabeledPolynomial): Boolean;
-  poly_iszero!?(lp_eval(lp));
-
-% checks if signature sgn1 divides signature sgn2
-asserted procedure lp_sgnDivides(sgn1, sgn2): Boolean;
-  (car sgn1 equal car sgn2) and poly_divExp!?(cadr sgn1, cadr sgn2);
+%	Possible monomial orderings are
+%     lex, revgradlex
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% constructs the principal syzygy of LabeledPolynomials (fi, fj)
-% as a LabeledPolynomial itself.
-% Assumes i != j.
-% Principal syzygy - a syz of form ej*fi - ei*fj,
-% with the evaluation equal to fj*fi - fi*fj == 0,
-% and the signature = { min(j, i), lt(fi) if j < i else lt(fj) };
-asserted procedure lp_principalSyzygy(fi: LabeledPolynomial,
-                                      fj: LabeledPolynomial): LabeledPolynomial;
-  begin scalar i, j, ei, ej, sgn;
-      i := lp_sgnIndex(fi);
-      j := lp_sgnIndex(fj);
-      ei := poly_leadExp(lp_eval(fi));
-      ej := poly_leadExp(lp_eval(fj));
-      sgn := if i < j then {i, ej} else {j, ei};
+% the current monomial ordering
+poly_ord!* := 'revgradlex;
 
-      % TODO: omit poly_zero ?
-      return lp_LabeledPolynomial2(poly_zero(), sgn)
+% the current number of variables
+poly_nvars!* := 0;
+
+% the current variables
+poly_vars!* := '(list);
+
+% initialize polynomial ring with variables `vars` and monomial ordering `ord`
+asserted procedure poly_initRing(vars, ord);
+  begin;
+    poly_nvars!* := length(vars);
+    poly_ord!*   := ord;
+    poly_vars!*  := vars;
+
+		dip_init(vars, ord, nil)
    end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%% COEFFICIENT MANIPULATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Mainly, these fall back to simple polynomial coefficient operations
+inline procedure poly_getExps(poly: Polynomial): List;
+	cadr poly;
 
-asserted procedure lp_normalize(f: LabeledPolynomial);
-  lp_LabeledPolynomial2(poly_normalize(lp_eval(f)), lp_sgn(f));
+inline procedure poly_getCoeffs(poly: Polynomial): List;
+	caddr poly;
 
-asserted procedure lp_scaleDenominators(f: LabeledPolynomial);
-  lp_LabeledPolynomial2(poly_scaleDenominators(lp_eval(f)), lp_sgn(f));
+% Standard ctor from list of exponent vectors and list of coefficients
+inline procedure poly_init(exps: List, coeffs: List): Polynomial;
+	'p . exps . coeffs . nil;
 
-asserted procedure lp_scaleDenominatorsInplace(f: LabeledPolynomial);
-  lp_LabeledPolynomial2(poly_scaleDenominatorsInplace(lp_eval(f)), lp_sgn(f));
+% Standard form -> Polynomial
+asserted procedure poly_f2poly(f);
+	begin scalar exps, coeffs, ans, dpoly, ev, cf, deg;
+		dpoly := dip_f2dip(f);
+		while dpoly do <<
+			ev . dpoly := dpoly;
+			cf . dpoly := dpoly;
 
-asserted procedure lp_reduceCoeffs(f: LabeledPolynomial, prime);
-  lp_LabeledPolynomial2(poly_reduceCoeffs(lp_eval(f), prime), lp_sgn(f));
+			deg := for each x in ev sum x;
+			ev := deg . ev;
+			exps   := ev . exps;
+			coeffs := cf . coeffs;
+		>>;
+		exps := reversip(exps);
+		coeffs := reversip(coeffs);
+		return poly_init(exps, coeffs)
+	end;
 
-asserted procedure lp_reconstructCoeffs(f: LabeledPolynomial, prime);
-  lp_LabeledPolynomial2(poly_reconstructCoeffs(lp_eval(f), prime), lp_sgn(f));
+% Polynomial -> Standard form
+asserted procedure poly_poly2a(poly);
+	begin scalar ans, exps, coeffs, dpoly,
+                ev, cf;
+		exps := poly_getExps(poly);
+		coeffs := poly_getCoeffs(poly);
+		dpoly := nil;
+		while exps do <<
+			ev . exps   := exps;
+			ev := cdr ev;
+			cf . coeffs := coeffs;
+			dpoly := cf . ev . dpoly;
+		>>;
+		dpoly := reversip(dpoly);
+		return dip_2a(dpoly)
+	end;
 
-asserted procedure lp_crtCoeffs(polyaccum, modulo, polycomp, prime);
-  begin scalar underlyingPoly;
-    underlyingPoly := poly_crtCoeffs(lp_eval(polyaccum), modulo, lp_eval(polycomp), prime);
-    return lp_LabeledPolynomial2(underlyingPoly, lp_sgn(polyaccum))
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% EXPONENT VECTORS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Invariant: the first entry in the vector is the sum of subsequent entries
+
+% return exponent vector of zeros,
+% Ideally this should rarely be called
+inline procedure poly_zeroExp(): List;
+	for x := 0:poly_nvars!* collect 0;
+
+% return sum of exponent vectors e1, e2
+asserted procedure poly_sumExp(e1: List, e2: List): List;
+	if null e1 then
+		nil
+	else
+		(car e1 #+ car e2) . poly_sumExp(cdr e1, cdr e2);
+
+% return difference of exponent vectors e1, e2
+asserted procedure poly_subExp(e1: List, e2: List): List;
+	if null e1 then
+		nil
+	else
+		(car e1 #- car e2) . poly_subExp(cdr e1, cdr e2);
+
+% return elementwise maximum of exponent vectors e1, e2
+asserted procedure poly_lcmExp(e1: List, e2: List): List;
+	begin scalar ans;
+		ans := poly_lcmExp1(e1, e2);
+		car ans := 0;
+		car ans := for each x in ans sum x;
+		return ans
+	end;
+
+asserted procedure poly_lcmExp1(e1: List, e2: List): List;
+	if null e1 then
+		nil
+	else
+		max(car e1, car e2) . poly_lcmExp1(cdr e1, cdr e2);
+
+% check if exponent e1 divides e2
+asserted procedure poly_divExp!?(e1: List, e2: List);
+	if null e1 then
+		t
+	else if car e1 > car e2 then
+		nil
+	else
+		poly_divExp!?(cdr e1, cdr e2);
+
+% check if exponent e1 is disjoint with e2
+asserted procedure poly_disjExp!?(e1: List, e2: List);
+	poly_disjExp1(cdr e1, cdr e2);
+
+asserted procedure poly_disjExp1(e1: List, e2: List);
+	if null e1 then
+		t
+	else if (car e1 #* car e2) > 0 then
+		nil
+	else
+		poly_disjExp1(cdr e1, cdr e2);
+
+% comparator for exponent vectors e1, e2 w.r.t. lex monomial ordering
+% returns e1 <ₗₑₓ e2
+asserted procedure poly_cmpExpLex(e1: List, e2: List);
+	begin integer ep1, ep2;
+        scalar flag;
+		flag := t;
+		e1 := cdr e1;
+		e2 := cdr e2;
+		while e1 and flag do <<
+			ep1 . e1 := e1;
+			ep2 . e2 := e2;
+			flag := (ep1 #= ep2);
+		>>;
+		return if flag then nil else ep1 #< ep2
+	end;
+
+% comparator for exponent vectors e1, e2 w.r.t. gradlex monomial ordering
+asserted procedure poly_cmpExpGradlex(e1: List, e2: List);
+	begin integer ep1, ep2;
+        scalar flag;
+    flag := t;
+    e1 := cdr e1;
+    e2 := cdr e2;
+    while e1 and flag do <<
+      ep1 . e1 := e1;
+      ep2 . e2 := e2;
+      flag := (ep1 #= ep2);
+    >>;
+    return if flag then nil else ep1 #< ep2
+  end;
+
+% comparator for exponent vectors e1, e2 w.r.t. revgradlex monomial ordering
+asserted procedure poly_cmpExpRevgradlex(e1: List, e2: List);
+  begin integer ep1, ep2;
+			ep1 := car e1;
+			ep2 := car e2;
+			return if ep1 #< ep2 then
+				t
+			else if ep1 #= ep2 then
+				poly_cmpExpRevLex(cdr e1, cdr e2)
+			else
+				nil
+  end;
+
+% comparator for exponent vectors e1, e2 w.r.t. revlex monomial ordering
+asserted procedure poly_cmpExpRevLex(e1: List, e2: List);
+  poly_cmpExpRevLexHelper(e1, e2) #= 1;
+
+asserted procedure poly_cmpExpRevLexHelper(e1: List, e2: List);
+  begin integer ep1, ep2, cmp, rec;
+        scalar last;
+    ep1 := car e1;
+    ep2 := car e2;
+    cmp := if ep1 #> ep2 then
+      1
+    else if ep1 #= ep2 then
+      2
+    else
+      3;
+    last := null (cdr e1);
+    if not last then
+      rec := poly_cmpExpRevLexHelper(cdr e1, cdr e2)
+    else
+      rec := 2;
+    return if ((not last) and rec #= 1) or (last and cmp #= 1) then
+      1
+    else if rec #= 2 then
+      cmp
+    else
+      3
+  end;
+
+
+% comparator for exponent vectors e1, e2
+asserted procedure poly_cmpExp(e1: List, e2: List);
+	if poly_ord!* eq 'lex then
+		poly_cmpExpLex(e1, e2)
+	else if poly_ord!* eq 'gradlex then
+		poly_cmpExpGradlex(e1, e2)
+	else
+		poly_cmpExpRevgradlex(e1, e2);
+
+% checks that e1 = e2 elementwise
+asserted procedure poly_eqExp!?(e1: List, e2: List);
+	if null e1 then
+		t
+	else if car e2 equal car e1 then
+		poly_eqExp!?(cdr e1, cdr e2)
+	else
+		nil;
+
+asserted procedure poly_tdegCmp(exp1, exp2);
+	car exp1 #< car exp2;
+
+asserted procedure poly_totalDeg(exp1);
+	car exp1;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% returns zero polynomial, internally represented as
+%   ('p, nil, nil)
+% Ideally this should NEVER be called
+inline procedure poly_zero(): Polynomial;
+	poly_init({}, {});
+
+% if p is zero
+inline procedure poly_iszero!?(p);
+	null poly_getExps(p);
+
+% returns the tail of poly
+% essentially, returns poly-lead(poly)
+asserted procedure poly_tail(poly: Polynomial): Polynomial;
+	poly_init(poly_tailExps(poly), poly_tailCoeffs(poly));
+
+% returns the leading exponent of poly
+inline procedure poly_leadExp(poly: Polynomial): List;
+  car poly_getExps(poly);
+
+% returns the leading coefficient of poly
+asserted procedure poly_leadCoeff(poly: Polynomial);
+	car poly_getCoeffs(poly);
+
+% returns the tail exponents of poly
+inline procedure poly_tailExps(poly: Polynomial): List;
+	cdr poly_getExps(poly);
+
+% returns the tail coefficients of poly
+asserted procedure poly_tailCoeffs(poly: Polynomial);
+	cdr poly_getCoeffs(poly);
+
+% checks if polynomials leading terms are disjoint
+asserted procedure poly_disjLead!?(p1: Polynomial, p2: Polynomial);
+	poly_disjExp!?(poly_leadExp(p1), poly_leadExp(p2));
+
+% returns length of poly, i.e., the number of terms
+asserted procedure poly_length(poly: Polynomial): Integer;
+  length(poly_getExps(poly));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% POLYNOMIAL ARITHMETIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Contract: this is the only section that uses polynomial coefficient arithmetic
+
+% returns s = multf*f - C*multg*g
+% where C is -fcoeff/gcoeff
+asserted procedure poly_paircomb(f, fmult, fcoeff, g, gmult, gcoeff): Polynomial;
+	begin scalar fexps, fcoeffs, gexps, gcoeffs, gmultcoeff, sexps, scoeffs,
+                e1, e2, c1, c2, c;
+    sexps   := {};
+    scoeffs := {};
+
+    fexps   := poly_getExps(f);
+    fcoeffs := poly_getCoeffs(f);
+    gexps   := poly_getExps(g);
+    gcoeffs := poly_getCoeffs(g);
+
+    gmultcoeff := mod_neg(mod_div(fcoeff, gcoeff));
+
+    while fexps and gexps do <<
+      e1 := poly_sumExp(car fexps, fmult);
+      e2 := poly_sumExp(car gexps, gmult);
+
+      c1 := car fcoeffs;
+      c2 := car gcoeffs;
+      c2 := mod_mul(c2, gmultcoeff);
+
+      if poly_cmpExp(e2, e1) then <<
+        sexps   := e1 . sexps;
+        scoeffs := c1 . scoeffs;
+        fexps   := cdr fexps;
+        fcoeffs := cdr fcoeffs
+			>> else if poly_eqExp!?(e1, e2) then <<
+				c := mod_add(c1, c2);
+				if not mod_iszero!?(c) then <<
+          sexps   := e1 . sexps;
+          scoeffs := c . scoeffs
+				>>;
+        fexps   := cdr fexps;
+        fcoeffs := cdr fcoeffs;
+        gexps   := cdr gexps;
+        gcoeffs := cdr gcoeffs
+			>> else <<
+        sexps   := e2 . sexps;
+        scoeffs := c2 . scoeffs;
+        gexps   := cdr gexps;
+        gcoeffs := cdr gcoeffs
+      >>
+    >>;
+
+		while fexps do <<
+		  e1 := poly_sumExp(car fexps, fmult);
+			c1 := car fcoeffs;
+      sexps   := e1 . sexps;
+      scoeffs := c1 . scoeffs;
+      fexps   := cdr fexps;
+      fcoeffs := cdr fcoeffs
+		>>;
+
+		while gexps do <<
+			e2 := poly_sumExp(car gexps, gmult);
+			c2 := car gcoeffs;
+			c2 := mod_mul(c2, gmultcoeff);
+      sexps   := e2 . sexps;
+      scoeffs := c2 . scoeffs;
+      gexps   := cdr gexps;
+      gcoeffs := cdr gcoeffs
+		>>;
+
+    sexps := reversip(sexps);
+    scoeffs := reversip(scoeffs);
+
+    return poly_init(sexps, scoeffs)
+	end;
+
+% divide all coefficients by the leading one
+asserted procedure poly_normalize(poly: Polynomial): Polynomial;
+  begin scalar mult1, sexps, scoeffs, exps, coeffs, ex, cf;
+    mult1 := mod_inv(poly_leadCoeff(poly));
+    sexps   := {};
+    scoeffs := {};
+    exps    := poly_getExps(poly);
+    coeffs  := poly_getCoeffs(poly);
+    while exps do <<
+      ex . exps   := exps;
+      cf . coeffs := coeffs;
+      cf := mod_mul(cf, mult1);
+
+      sexps   := ex . sexps;
+      scoeffs := cf . scoeffs;
+    >>;
+
+    sexps := reversip(sexps);
+    scoeffs := reversip(scoeffs);
+
+    return poly_init(sexps, scoeffs)
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% try to reduce module elem f with module elem g.
-% Returns success flag with the result of reduction
-asserted procedure lp_tryReduce1(f: LabeledPolynomial,
-                                 g: LabeledPolynomial,
-                                 isregular);
-  begin scalar fexps, fcoeffs, fe, fc, zeroexp, gexplead,
-                gcoefflead, flag, fevl, gevl, fsgn, gsgn,
-                ans, zeroexp, gmult;
-
-    % note that isregular=nil breaks the signature invariant
-    % (storage of signature may become garbage as well)
-    fevl := lp_eval(f);
-    gevl := lp_eval(g);
-    fsgn := lp_sgn(f);
-    gsgn := lp_sgn(g);
-
-    zeroexp    := poly_zeroExp();
-    gexplead   := poly_leadExp(gevl);
-    gcoefflead := poly_leadCoeff(gevl);
-
-    fexps   := poly_getExps(fevl);
-    fcoeffs := poly_getCoeffs(fevl);
-
-    ans   := fevl;
-
-    while fexps do <<
-      fe . fexps   := fexps;
-      fc . fcoeffs := fcoeffs;
-      if not flag then <<
-        if poly_divExp!?(gexplead, fe) then <<
-          gmult := poly_subExp(fe, gexplead);
-          if (not isregular) or not (fsgn equal lp_multSignature(gsgn, gmult)) then <<
-            flag := t;
-            ans := poly_paircomb(fevl, zeroexp, fc, gevl, gmult, gcoefflead);
-          >>
-        >>
-      >>
+asserted procedure poly_commonDenominator(f);
+  begin scalar den, coeffs, c;
+    den := 1;
+    coeffs := poly_getCoeffs(f);
+    while coeffs do <<
+      c . coeffs := coeffs;
+      den := lcm(den, denr(c))
     >>;
-
-    return flag . lp_LabeledPolynomial2(ans, fsgn)
+    return den
   end;
 
-% try to reduce module elem f once with each element of module G,
-% returns success flag with the result of reduction
-asserted procedure lp_tryReduce(f: LabeledPolynomial, basis: List, isregular);
-  begin scalar flag1, flag2, reducer;
-    return if null basis then
-      nil . f
-    else <<
-      reducer := car basis;
-      flag1 . f := lp_tryReduce1(f, reducer, isregular);
-      flag2 . f := lp_tryReduce(f, cdr basis, isregular);
-      (flag1 or flag2) . f
-    >>
-  end;
-
-% compute the normal form of f w.r.t. basis and return it
-% If isregular is set, performs only regular reductions,
-% otherwise reductions may corrupt the signature of f
-%
-% Contract: use isregular=nil only in the final interreduction
-%           and in computing non-significant normal forms,
-%           when corrupted signatures are not a problem
-asserted procedure lp_normalForm(
-                              f: LabeledPolynomial,
-                              basis: List,
-                              isregular): LabeledPolynomial;
-  begin scalar state;
-    state := t;
-    if lp_iszero!?(f) then
-      state := nil;
-    while state do <<
-      state . f := lp_tryReduce(f, basis, isregular);
-      state := state and (not lp_iszero!?(f))
+asserted procedure poly_scaleDenominatorsInplace(f);
+  begin scalar den, coeffs, c;
+    den := poly_commonDenominator(f);
+    coeffs := poly_getCoeffs(f);
+    while coeffs do <<
+      c := car coeffs;
+      c := numr(c) * (den / denr(c));
+      car coeffs := c;
+      coeffs := cdr coeffs
     >>;
     return f
   end;
 
+asserted procedure poly_scaleDenominators(f);
+  begin scalar copyf;
+    copyf := copy(f);
+    return poly_scaleDenominatorsInplace(copyf)
+  end;
+
+% reduce coefficients of poly by the given prime and return new polynomial
+asserted procedure poly_reduceCoeffs(poly: Polynomial, prime): Polynomial;
+   begin scalar coeffs, ansCoeffs, c;
+		coeffs := poly_getCoeffs(poly);
+		ansCoeffs := nil;
+      while coeffs do <<
+         c  . coeffs := coeffs;
+
+         % ASSERT(denr(c) = 1);
+
+         c := modular!-number(c);
+         ansCoeffs :=  c . ansCoeffs
+      >>;
+
+      return poly_init(poly_getExps(poly), reversip(ansCoeffs))
+   end;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% l1 = l2 elementwise ?
-asserted procedure lp_eqList(l1, l2);
-  if null l1 then
-    t
-  else
-    car l1 #= car l2 and lp_eqList(cdr l1, cdr l2);
-
-% Checks if f is is singularly-top-reducible by some element of G
-asserted procedure lp_isSingularlyTopReducible(
-                                      f: LabeledPolynomial,
-                                      basis: List);
-  begin scalar g, fevl, gevl, ft, gt, flead, glead, m, ans;
-    fevl  := lp_eval(f);
-    ft    := lp_sgn(f);
-    flead := poly_leadExp(fevl);
-    for each g in basis do <<
-      gevl  := lp_eval(g);
-      gt    := lp_sgn(g);
-      glead := poly_leadExp(gevl);
-      if poly_divExp!?(glead, flead) then <<
-        m := poly_subExp(flead, glead);
-        if lp_eqSignature(ft, lp_multSignature(gt, m)) then
-          ans := t
-      >>
+% reconstruct coefficients of poly by the given prime and return new polynomial
+asserted procedure poly_reconstructCoeffs(poly: Polynomial, prime): Polynomial;
+  begin scalar coeffs, c, ansCoeffs;
+    coeffs := poly_getCoeffs(poly);
+		ansCoeffs := nil;
+    while coeffs do <<
+      c  . coeffs := coeffs;
+      c := mod_reconstruction(c, prime);
+      ansCoeffs := c . ansCoeffs
     >>;
-    return ans
-  end;
 
-% compute cofactors a, b of Spoly of f and g: a*f - b*g
-asserted procedure lp_spolyCofactors(
-                          f: LabeledPolynomial,
-                          g: LabeledPolynomial);
-  begin scalar p1, p2, e1, e2, elcm, mult1, mult2;
-    p1 := lp_eval(f);
-    p2 := lp_eval(g);
-    e1 := poly_leadExp(p1);
-    e2 := poly_leadExp(p2);
+		return poly_init(poly_getExps(poly), reversip(ansCoeffs))
+   end;
 
-    elcm := poly_lcmExp(e1, e2);
-
-    mult1 := poly_subExp(elcm, e2);
-    mult2 := poly_subExp(elcm, e1);
-
-    return mult1 . mult2
-  end;
-
-% compute signatures of p1 and p2
-% after multiplication by cofactors of Spolynomial of p1 and p2
-asserted procedure lp_spolyMultSignatures(
-                                p1: LabeledPolynomial,
-                                p2: LabeledPolynomial): List;
-  begin scalar mi, mj, si, sj;
-    mi . mj := lp_spolyCofactors(p1, p2);
-    si := lp_sgn(p1);
-    sj := lp_sgn(p2);
-
-    return lp_multSignature(si, mj) . lp_multSignature(sj, mi)
-  end;
-
-% compute Spoly of f and g, where f and g are tuples in internal representation
-asserted procedure lp_spoly(
-                    f: LabeledPolynomial,
-                    g: LabeledPolynomial): LabeledPolynomial;
-  begin scalar p1, p2, e1, e2, c1, c2, elcm, mult1, mult2, ans,
-                sgn1, sgn2, sgn11, sgn22, anssgn;
-
-    % here, signatures do not cancel each other,
-    % Maybe write an assert?..
-    % so the updated signature can be computed easily
-
-    p1 := lp_eval(f);
-    p2 := lp_eval(g);
-    e1 := poly_leadExp(p1);
-    e2 := poly_leadExp(p2);
-
-    elcm := poly_lcmExp(e1, e2);
-
-    mult1 := poly_subExp(elcm, e2);
-    mult2 := poly_subExp(elcm, e1);
-
-    ans := poly_paircomb(p1, mult2, poly_leadCoeff(p1), p2, mult1, poly_leadCoeff(p2));
-
-    sgn1 := lp_sgn(f);
-    sgn2 := lp_sgn(g);
-
-    sgn11 := lp_multSignature(sgn1, mult2);
-    sgn22 := lp_multSignature(sgn2, mult1);
-
-    anssgn := lp_potMaxSignature(sgn11, sgn22);
-
-    return lp_LabeledPolynomial2(ans, anssgn)
+% Apply CRT to (polyaccum mod modulo) and (polycomp mod prime)
+% to obtain new polynomial over modulo*prime
+asserted procedure poly_crtCoeffs(polyaccum, modulo, polycomp, prime): Polynomial;
+  begin scalar coeffsaccum, coeffscomp, ansCoeffs, ca, cc, c;
+    coeffsaccum := poly_getCoeffs(polyaccum);
+    coeffscomp  := poly_getCoeffs(polycomp);
+		ansCoeffs := nil;
+    while coeffsaccum do <<
+      ca . coeffsaccum := coeffsaccum;
+      cc . coeffscomp  := coeffscomp;
+      c := mod_crt(ca, modulo, cc, prime);
+      ansCoeffs := c . ansCoeffs
+    >>;
+    return poly_init(poly_getExps(polyaccum), reversip(ansCoeffs))
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% LabeledPolynomial sorting ad-hoc
+% Polynomial sorting ad-hoc
 
 % return true if lead(poly1) < lead(poly2)
-asserted procedure lp_cmpLPLead(lp1, lp2);
-  poly_cmpPolyLead(lp_eval(lp1), lp_eval(lp2));
+asserted inline procedure poly_cmpPolyLead(poly1, poly2);
+ 	poly_cmpExp(poly_leadExp(poly1), poly_leadExp(poly2));
 
-% return true if lead(poly2) < lead(poly1)
-asserted procedure lp_cmpLPLeadRev(lp1, lp2);
-  poly_cmpPolyLead(lp_eval(lp2), lp_eval(lp1));
+asserted procedure poly_leadTotalDegreeCmp(poly1, poly2);
+	begin integer t1, t2;
+		t1 := poly_totalDeg(poly_leadExp(poly1));
+		t2 := poly_totalDeg(poly_leadExp(poly2));
+		return if t1 #= t2 then
+			poly_cmpPolyLead(poly1, poly2)
+		else
+			t1 #< t2
+	end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% trst lp_LabeledPolynomial;
-% trst lp_spoly;
-% trst lp_spolyMultSignatures;
-% trst lp_spolyCofactors;
-% trst lp_multSignature;
+% trst poly_f2poly;
+% trst poly_poly2a;
 
-% trst lp_principalSyzygy;
-% trst lp_tryReduce1;
-% trst lp_tryReduce;
-% trst lp_normalForm;
-% trst lp_isSingularlyTopReducible;
+% trst poly_leadCmp;
+% trst poly_lcmExp;
+% trst poly_normalize;
 
-% trst lp_principalSyzygy;
+% trst poly_paircomb;
+% trst poly_unsafePaircombInplace;
+% trst poly_cmpExpRevgradlex;
+% trst poly_cmpExpRevlex;
+% trst poly_cmpExpLex;
+% trst poly_cmpExpRevLexHelper;
+
+% trst poly_reduceCoeffs;
+% trst poly_crtCoeffs;
+% trst poly_reconstructCoeffs;
+% trst poly_scaleDenominatorsInplace;
 
 endmodule;
-
 
 end;  % of file
