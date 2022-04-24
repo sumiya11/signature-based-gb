@@ -40,6 +40,9 @@ asserted procedure core_pairTotalDegreeCmp(p1, p2);
 asserted procedure core_pairLcmCmp(p1, p2);
   poly_cmpExp(core_getPairLcm(p1), core_getPairLcm(p2));
 
+asserted procedure core_assocSgnCmp(pr1, pr2);
+  lp_sgnCmp(lp_sgn(cdr pr1), lp_sgn(cdr pr2));
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 asserted procedure core_getPairLcm(p);
@@ -358,7 +361,7 @@ asserted procedure core_spoly(f, g);
   end;
 
 asserted procedure core_computeSpolys(pairs, r, Rule);
-  begin scalar S, pairs, p, u, v, lpk, lpl,
+  begin scalar S, pairs, p, u, v, lpk, lpl, alS,
                 evals, sgns, lpnew, localSgnCmp;
         integer l, k;
 
@@ -387,9 +390,11 @@ asserted procedure core_computeSpolys(pairs, r, Rule);
       >>
     >>;
 
-    localSgnCmp := function(lambda (x, y); lp_sgnCmp(lp_sgn(core_getPoly(r, x)), lp_sgn(core_getPoly(r, y))));
+    % Sort indices S w.r.t. values in r
+    alS := for each i in S collect i . core_getPoly(r, i);
+    alS := sort(alS, 'core_assocSgnCmp);
 
-    S := sort(S, localSgnCmp);
+    S := for each pr in alS collect car pr;
 
     return S
   end;
