@@ -22,7 +22,6 @@ module f5;
 
 create!-package('(f5 f5lp f5poly f5core f5primes f5mod), nil);
 
-
 % If f5 should certify the correctness of result.
 % False by default, meaning that the algorithm is randomized
 % and may output incorrect answer with a small probability (~1/2^22)
@@ -37,7 +36,11 @@ off1 'f5modular;
 % If the output basis should be interreduced.
 % If true, the basis is unique.
 switch f5fullreduce;
-on1 'f5fullreduce;
+off1 'f5fullreduce;
+
+% If compute in integers
+switch f5integer;
+on1 'f5integer;
 
 load!-package 'assert;
 off1 'assert;
