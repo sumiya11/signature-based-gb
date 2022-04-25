@@ -43,6 +43,9 @@ asserted procedure core_pairLcmCmp(p1, p2);
 asserted procedure core_assocSgnCmp(pr1, pr2);
   lp_sgnCmp(lp_sgn(cdr pr1), lp_sgn(cdr pr2));
 
+asserted procedure core_assocLeadCmp(pr1, pr2);
+  poly_leadTotalDegreeCmp(lp_eval(cdr pr1), lp_eval(cdr pr2));
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 asserted procedure core_getPairLcm(p);
@@ -75,6 +78,8 @@ asserted procedure core_constructModule(inputBasis: List): List;
     >>;
     return reversip(outputModule)
   end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 asserted procedure core_findReductor(k, Gprev, newGcurr, r, Rule);
   begin scalar tt, rk, rkev, rksgn, rj, ri, u, rjsgn, urjsgn, tj;
@@ -139,22 +144,26 @@ asserted procedure core_topReductionF5(k, Gprev, newGcurr, r, Rule);
     else <<
       newr := lp_LabeledPolynomial2(lp_eval(p), lp_multSgn(lp_sgn(q), u));
       core_addPoly(r, newr);
-      core_addRule(Rule, core_getBasisIdx(r), lp_sgn(newr), r);
+      core_addRule(Rule, lp_sgn(newr), core_getBasisIdx(r));
       nil . k . core_getBasisIdx(r) . nil
     >>
   end;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 asserted procedure core_reducePolyByTop(f, g);
   begin scalar newf, updated, fexps, fcoeffs,
                 glead, gc, fc, flag, fex, fmult, gmult;
+
     newf := f;
-    updated := nil;
-
-    fe := poly_leadExp(f);
-    fc := poly_leadCoeff(f);
-
     ge := poly_leadExp(g);
     gc := poly_leadCoeff(g);
+
+  start:
+    updated := nil;
+
+    fe := poly_leadExp(newf);
+    fc := poly_leadCoeff(newf);
 
     flag := poly_divExp!?(ge, fe);
 
@@ -198,6 +207,8 @@ asserted procedure core_reducePolyBy(f, g);
 
     return updated . newf
   end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 asserted procedure core_normalForm(f, Gprev, r);
   begin scalar newf, updated, reducer, modified,
@@ -245,6 +256,31 @@ asserted procedure core_normalFormTop(f, Gprev, r);
     return updatedToreturn . newf
   end;
 
+asserted procedure core_normalFormTopReducers(f, reducers);
+  begin scalar newf, updated, reducer, modified,
+                updatedToreturn;
+    newf := f;
+    updatedToreturn := nil;
+
+  start:
+    updated := nil;
+    for each reducer in reducers do <<
+      reducer := lp_eval(reducer);
+      if not poly_iszero!?(reducer) and not poly_iszero!?(newf) then <<
+        modified . newf := core_reducePolyByTop(newf, reducer);
+        updated := updated or modified;
+        updatedToreturn := updated or updatedToreturn
+      >>
+    >>;
+
+    if updated then
+      goto start;
+
+    return updatedToreturn . newf
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 asserted procedure core_insertSorted(todo, j, r);
   begin scalar tmp, prev, sj, s;
     if null todo then
@@ -280,7 +316,7 @@ asserted procedure core_reduction(S, Gprev, Gcurr, r, Rule);
       rk := core_getPoly(r, k);
 
       flag . rknfeval := if !*f5fullreduce then
-        core_normalForm(lp_eval(rk), Gprev, r)
+        core_normalFormTop(lp_eval(rk), Gprev, r)
       else
         core_normalFormTop(lp_eval(rk), Gprev, r);
 
@@ -299,19 +335,6 @@ asserted procedure core_reduction(S, Gprev, Gcurr, r, Rule);
     >>;
 
     return completed
-  end;
-
-asserted procedure core_isTopReducible(f, Gprev, r);
-  begin scalar tf, g, gi, ans;
-    ans := nil;
-    tf := poly_leadExp(f);
-    while Gprev and (not ans)  do <<
-      gi := pop(Gprev);
-      g  := core_getPoly(r, gi);
-      if poly_divExp!?(poly_leadExp(lp_eval(g)), tf) then
-        ans := t
-    >>;
-    return ans;
   end;
 
 asserted procedure core_isTopReducibleMonom(m, Gprev, r);
@@ -371,12 +394,11 @@ asserted procedure core_ruleMonom(rr);
 asserted procedure core_ruleIndex(rr);
   car rr;
 
-asserted procedure core_addRule(Rule, k, sgn, r);
-  begin scalar s, srule;
-    s := lp_sgn(core_getPoly(r, k));
-    srule := getv(Rule, lp_sgnIndex(s));
-    srule := core_RewriteRule(k, lp_sgnMonom(s)) . srule;
-    putv(Rule, lp_sgnIndex(s), srule)
+asserted procedure core_addRule(Rule, sgn, k);
+  begin scalar srule;
+    srule := getv(Rule, lp_sgnIndex(sgn));
+    srule := core_RewriteRule(k, lp_sgnMonom(sgn)) . srule;
+    putv(Rule, lp_sgnIndex(sgn), srule)
   end;
 
 asserted procedure core_findRewriting(u, k, r, Rule);
@@ -437,7 +459,7 @@ asserted procedure core_computeSpolys(pairs, r, Rule);
 
         core_addPoly(r, lpnew);
 
-        core_addRule(Rule, core_getBasisIdx(r), sgns, r);
+        core_addRule(Rule, sgns, core_getBasisIdx(r));
 
         if not poly_iszero!?(evals) then
           S := core_getBasisIdx(r) . S
@@ -452,6 +474,8 @@ asserted procedure core_computeSpolys(pairs, r, Rule);
 
     return S
   end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 asserted procedure core_incrementalBasis(i, Gprev, r, Rule);
   begin scalar Gcurr, pairs, p, S, dpairs, reduced, k, tmp;
@@ -474,10 +498,11 @@ asserted procedure core_incrementalBasis(i, Gprev, r, Rule);
 
       p := pop(pairs);
       d := poly_totalDeg(core_getPairLcm(p));
+
       dpairs := p . nil;
       while pairs and (poly_totalDeg(core_getPairLcm(car pairs)) #= d) do <<
-        dpairs := p . dpairs;
-        p := pop(pairs)
+        p := pop(pairs);
+        dpairs := p . dpairs
       >>;
 
       S := core_computeSpolys(dpairs, r, Rule);
@@ -504,6 +529,13 @@ asserted procedure core_incrementalBasis(i, Gprev, r, Rule);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+asserted procedure core_interreduceCali(basis);
+  begin scalar ring;
+    return red_straight(cdr basis)
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 asserted procedure core_getReducers(i, G);
   begin scalar reducers, poly;
         integer j;
@@ -523,8 +555,6 @@ asserted procedure core_interreduceBasis(Gprev, r);
   begin scalar updated, Gfull, newGprev, f, reducers, p;
         integer m, idx, full;
 
-  full := nil;
-
   start:
     m := length(Gprev);
     Gfull := Gprev;
@@ -534,10 +564,7 @@ asserted procedure core_interreduceBasis(Gprev, r);
       f := core_getPoly(r, idx);
       reducers := core_getReducers(i, Gfull);
 
-      updated . p := if full then
-        core_normalForm(lp_eval(f), reducers, r)
-      else
-        core_normalFormTop(lp_eval(f), reducers, r);
+      updated . p := core_normalForm(lp_eval(f), reducers, r);
 
       lp_setEval(f, p);
       core_setPoly(r, idx, f);
@@ -547,16 +574,37 @@ asserted procedure core_interreduceBasis(Gprev, r);
     >>;
     Gprev := newGprev;
 
-    if not full and updated then
+    if updated then
       goto start;
-
-    if not full and !*f5fullreduce then <<
-      full := t;
-      goto start
-    >>;
 
     return Gprev
   end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%
+asserted procedure core_filterRedundant(Gprev, r);
+  begin scalar Gnew, alG, Gsort, reducers, glead, g;
+        integer gi;
+
+    % Sort indices S w.r.t. leading terms in r
+    alG := for each i in Gprev collect i . core_getPoly(r, i);
+    alG := sort(alG, 'core_assocLeadCmp);
+    Gsort := for each pr in alG collect car pr;
+
+    Gnew := nil;
+    while Gsort do <<
+      gi := pop(Gsort);
+      g := lp_eval(core_getPoly(r, gi));
+      glead := poly_leadExp(g);
+      if not core_isTopReducibleMonom(glead, Gnew, r) then
+        Gnew := gi . Gnew
+    >>;
+
+    return Gnew
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % normalize each generator in the given `basis` by the leading coefficient
 asserted procedure core_normalizeBasis(basis: List): List;
@@ -573,6 +621,43 @@ asserted procedure core_standardizeOutput(basis: List): List;
   begin;
     basis := core_normalizeBasis(basis);
     return sort(basis, 'lp_cmpLPLeadReverse)
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Checks if <polys> contains in <basis>,
+% assuming `basis` is a Groebner basis
+asserted procedure core_checkIdealInclusion1(basis: List, polys: List);
+  begin scalar ans, tmp, evals, nf, flag;
+    ans := t;
+    while ans and polys do <<
+      p := pop(polys);
+      evals := lp_eval(p);
+      flag . nf := core_normalFormTopReducers(evals, basis);
+      if not poly_iszero!?(nf) then
+        ans := nil
+    >>;
+    return ans
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Checks if `basis` is a Groebner basis by checking all S-polynomials
+asserted procedure core_isGroebner1(basis: List);
+  begin scalar ans, tmp, evals, nf, flag;
+    ans := t;
+    while basis do <<
+      tmp := cdr basis;
+      while ans and tmp do <<
+        evals := core_spoly(lp_eval(car tmp), lp_eval(car basis));
+        flag . nf := core_normalFormTopReducers(evals, basis);
+        if not poly_iszero!?(nf) then
+          ans := nil;
+        tmp := cdr tmp
+      >>;
+      basis := cdr basis
+    >>;
+    return ans
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -599,9 +684,6 @@ asserted procedure core_groebner1(basis: List): List;
 
     Rule := mkvect(m);
 
-    % % WARN: added !
-    % % core_addRule(Rule, 0, lp_sgn(f1), r);
-
     while i #< m do <<
       fi := pop(basis);
 
@@ -610,9 +692,6 @@ asserted procedure core_groebner1(basis: List): List;
       core_addPoly(r, fi);
       putv(Rule, i, nil);
 
-      % % WARN: added !
-      % % core_addRule(Rule, core_getBasisIdx(), lp_sgn(fi), r);
-
       Gprev := core_incrementalBasis(i, Gprev, r, Rule);
 
       % prin2t {i, getv(Rule, i)};
@@ -620,8 +699,10 @@ asserted procedure core_groebner1(basis: List): List;
       i := i #+ 1
     >>;
 
-    if !*f5fullreduce then
-      Gprev := core_interreduceBasis(Gprev, r);
+    Gprev := core_filterRedundant(Gprev, r);
+
+    % if !*f5fullreduce then
+    %   Gprev := core_interreduceBasis(Gprev, r);
 
     basis := nil;
     while Gprev do <<
@@ -635,21 +716,6 @@ asserted procedure core_groebner1(basis: List): List;
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Checks if <polys> contains in <basis>,
-% assuming `basis` is a Groebner basis
-asserted procedure core_checkIdealInclusion1(basis: List, polys: List);
-  begin;
-    return t
-  end;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Checks if `basis` is a Groebner basis by checking all S-polynomials
-asserted procedure core_isGroebner1(basis: List);
-  begin;
-    return t
-  end;
 
 
 endmodule;
@@ -670,5 +736,9 @@ endmodule;
 % trst core_interreduceBasis;
 % trst core_normalForm2;
 % trst core_insertSorted;
+% trst core_groebner1;
+% trst core_checkIdealInclusion1;
+% trst core_filterRedundant;
+% trst core_criticalPair;
 
 end; % of file

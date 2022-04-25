@@ -20,6 +20,7 @@ module f5;
 %
 % - If using modular computation is not desirable, set `off f5modular`.
 
+
 create!-package('(f5 f5lp f5poly f5core f5primes f5mod), nil);
 
 % If f5 should certify the correctness of result.
@@ -44,6 +45,8 @@ on1 'f5integer;
 
 load!-package 'assert;
 off1 'assert;
+
+load!-package 'cali;
 
 % The only function in the interface
 put('f5, 'psopfn, 'f5_groebner);
@@ -90,8 +93,25 @@ asserted procedure f5_groebner(u: List): List;
 
       outputModule := 'list . for each f in outputModule collect
                         poly_poly2a lp_eval f;
+
+      if !*f5fullreduce then <<
+        % prin2t {"interreduction", length(outputModule)-1};
+        ring := if sortMode = 'lex then
+          ring_define(variables, nil, 'lex, '(1 1))
+        else
+          ring_define(variables, degreeorder!* variables, 'revlex, '(1 1));
+        setring!*(ring)
+        outputModule := core_interreduceCali(outputModule)
+      >>;
+
       return outputModule
    end;
+
+asserted procedure f5_lcDomain(c);
+  if domainp(c) then
+    c
+  else
+    f5_lcDomain(lc c);
 
 % Argument error
 asserted procedure f5_argumentError();

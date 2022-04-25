@@ -230,8 +230,9 @@ asserted procedure mod_groebnerModular1(inputBasis: List): List;
          reconstructedBasis := mod_rationalReconstruction(accumBasis, primetracker);
 
          correctness := mod_correctnessCheck(primetracker,
-                                            integerBasis,
-                                            reconstructedBasis);
+                                             integerBasis,
+                                             reconstructedBasis);
+         % correctness := t;
          iter := iter + 1
       >>;
 
@@ -337,6 +338,8 @@ asserted procedure mod_crt(a1, m1, a2, m2);
 % trst mod_reconstruction;
 % trst mod_crt;
 % trst mod_extendedEuclead;
+trst mod_groebnerModular1;
+trst mod_randomizedCorrectnessCheck;
 
 endmodule;
 

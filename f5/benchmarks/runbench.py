@@ -10,7 +10,7 @@ ARG2 = '-w ~/signature-based-gb/f5/correctness/output.rlg'
 UNDETECTABLE = ["cyclic6", "cyclic7", "cyclic8", "eco5", "noon4",
                 "ojika4", "ku10", "trinks"]
 
-TINY = ["noon5", "noon6", "caprasse", 
+TINY = ["noon5", "noon6", 
         "cyclic9", "cyclic10"]
 
 LARGE = ["eco7", "katsura6", "nbody4sym", "nbody4", 
