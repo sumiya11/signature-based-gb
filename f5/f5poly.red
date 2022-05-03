@@ -16,14 +16,26 @@ fluid '(poly_ord!* poly_nvars!* poly_vars!*);
 % Polynomial `p` is stored internally as a list of 3 items:
 %     {'p, monomials, coeffs}
 % Where `p` is a convenience tag,
-%         `monomials` is an array of monomials stored as exponent vectors,
-%         `coeffs` is an array of coefficients
-% with `monomials` and `coeffs` ordered from lead to tail. Exponent vectors
-% are stored internally as integer lists:
-%		{totaldegree, pow1, pow2, ... pown}
+%       `monomials` is a list of lists of non-negative integers of form
+%              {totaldegree, pow1, pow2, ... pown}
+%       `coeffs` is a list of coefficients, where
+%   f5mod.red defines the following relevant functions on coefficients:
+%     . mod_add(x, y)  -- addition x + y
+%     . mod_div(x, y)  -- division x / y
+%     . mod_inv(x)     -- inverse x^(-1)
+%     . mod_neg(x)
+%     . mod_mul(x, y)  -- product x * y
+%     . mod_iszero
+%
+%   todo: terms <-> monoms
+% `monomials` are ordered according to the current monomial order decreasingly,
+%  and `coeffs` are ordered respectively.
 %
 % For example, xy^2 + 3x is stored as
-%   {'p, {{3, 1, 2}, (1, 1, 0)}, {1, 3}}
+%   {'p, {{3, 1, 2}, {1, 1, 0}}, {1, 3}}
+% if f5modular is on. It is stored as 
+%   {'p, {{3, 1, 2}, {1, 1, 0}}, {1 ./ 1, 3 ./ 1}}
+% if f5modular is off (using SQ).
 %
 %	Possible monomial orderings are
 %     lex, revgradlex
@@ -299,13 +311,14 @@ asserted procedure poly_length(poly: Polynomial): Integer;
 
 % Contract: this is the only section that uses polynomial coefficient arithmetic
 
-% returns s = multf*f - C*multg*g
-% where C is -fcoeff/gcoeff
-asserted procedure poly_paircomb(f, fmult, fcoeff, g, gmult, gcoeff): Polynomial;
+% returns s = fmult*f - C*gmult*g
+% where C is fcoeff/gcoeff
+asserted procedure poly_paircomb(f: Polynomial, fmult: Monomial, fcoeff: Coeff,
+                                 g: Polynomial, gmult: Monomial, gcoeff: Coeff): Polynomial;
 	begin scalar fexps, fcoeffs, gexps, gcoeffs, gmultcoeff, sexps, scoeffs,
                 e1, e2, c1, c2, c;
-    sexps   := {};
-    scoeffs := {};
+    sexps   := nil;
+    scoeffs := nil;
 
     fexps   := poly_getExps(f);
     fcoeffs := poly_getCoeffs(f);
