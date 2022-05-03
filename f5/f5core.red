@@ -1,4 +1,3 @@
-
 module f5core;
 
 % Core module that contains f5 algorithm implementation.
@@ -8,6 +7,10 @@ module f5core;
 %   {vector, filled, capacity}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% fluid '(NREDUCTIONSF5 NNORMALFORMS);
+% NREDUCTIONSF5 := 0;
+% NNORMALFORMS := 0;
 
 asserted procedure core_BasisKeeper(capacity);
   begin scalar v;
@@ -67,7 +70,12 @@ asserted procedure core_constructModule(inputBasis: List): List;
   begin scalar poly, elem, outputModule;
         integer i;
 
+    inputBasis := core_interreduceInput(inputBasis);
+
+
     inputBasis := sort(inputBasis, 'poly_leadTotalDegreeCmp);
+
+    % prin2t {"AFTER SORT", inputBasis};
 
     i := 0;
     while inputBasis do <<
@@ -118,6 +126,8 @@ asserted procedure core_topReductionF5(k, Gprev, newGcurr, r, Rule);
       return nil . nil
     >>;
 
+    % NREDUCTIONSF5 := NREDUCTIONSF5 + 1;
+
     j := core_findReductor(k, Gprev, newGcurr, r, Rule);
     % COEFF
     if j #= 0 then <<
@@ -132,17 +142,21 @@ asserted procedure core_topReductionF5(k, Gprev, newGcurr, r, Rule);
 
     flag . pev := core_reducePolyByTop(lp_eval(p), lp_eval(q));
 
-    lp_setEval(p, pev);
-    core_setPoly(r, k, p);
+    % lp_setEval(p, pev);
+    % core_setPoly(r, k, p);
 
     % COEFF
     if not poly_iszero!?(pev) then
-      p := lp_normalize(p);
+      pev := poly_normalize(pev);
 
-    return if lp_sgnCmp(lp_multSgn(lp_sgn(q), u), lp_sgn(p)) then
+    usgnq := lp_multSgn(lp_sgn(q), u);
+
+    return if lp_sgnCmp(usgnq, lp_sgn(p)) then <<
+      lp_setEval(p, pev);
+      core_setPoly(r, k, p);
       nil . k . nil
-    else <<
-      newr := lp_LabeledPolynomial2(lp_eval(p), lp_multSgn(lp_sgn(q), u));
+    >> else <<
+      newr := lp_LabeledPolynomial2(pev, usgnq);
       core_addPoly(r, newr);
       core_addRule(Rule, lp_sgn(newr), core_getBasisIdx(r));
       nil . k . core_getBasisIdx(r) . nil
@@ -279,6 +293,28 @@ asserted procedure core_normalFormTopReducers(f, reducers);
     return updatedToreturn . newf
   end;
 
+asserted procedure core_normalFormReducers(f, reducers);
+  begin scalar newf, updated, reducer, modified,
+                updatedToreturn;
+    newf := f;
+    updatedToreturn := nil;
+
+  start:
+    updated := nil;
+    for each reducer in reducers do <<
+      if not poly_iszero!?(reducer) and not poly_iszero!?(newf) then <<
+        modified . newf := core_reducePolyBy(newf, reducer);
+        updated := updated or modified;
+        updatedToreturn := updated or updatedToreturn
+      >>
+    >>;
+
+    if updated then
+      goto start;
+
+    return updatedToreturn . newf
+  end;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 asserted procedure core_insertSorted(todo, j, r);
@@ -314,6 +350,8 @@ asserted procedure core_reduction(S, Gprev, Gcurr, r, Rule);
     while todo do <<
       k := pop(todo);
       rk := core_getPoly(r, k);
+
+      % NNORMALFORMS := NNORMALFORMS + 1;
 
       flag . rknfeval := if !*f5fullreduce then
         core_normalFormTop(lp_eval(rk), Gprev, r)
@@ -354,6 +392,8 @@ asserted procedure core_criticalPair(i, k, l, Gprev, r);
                 usgn1, usgn2;
         integer i;
 
+    % prin2t {"i =", i, ", k = ", k, "l = ", l};
+
     rk := core_getPoly(r, k);
     rl := core_getPoly(r, l);
 
@@ -375,6 +415,9 @@ asserted procedure core_criticalPair(i, k, l, Gprev, r);
       return nil;
 
     if (lp_sgnIndex(sgn2) #= i) and core_isTopReducibleMonom(lp_sgnMonom(usgn2), Gprev, r) then
+      return nil;
+
+    if core_isRewritable(u1, k, r, Rule) or core_isRewritable(u2, l, r, Rule) then
       return nil;
 
     if lp_sgnCmp(usgn1, usgn2) then <<
@@ -493,6 +536,8 @@ asserted procedure core_incrementalBasis(i, Gprev, r, Rule);
         pairs := p . pairs
     >>;
 
+    % prin2t {i, "iter, generated ", length(pairs), "pairs"};
+
     while pairs do <<
       pairs := sort(pairs, 'core_pairTotalDegreeCmp);
 
@@ -505,12 +550,24 @@ asserted procedure core_incrementalBasis(i, Gprev, r, Rule);
         dpairs := p . dpairs
       >>;
 
+      % prin2t {"SELECTED", length(dpairs), "pairs of degree", d, "out of", length(dpairs) + length(pairs)};
+
+      % prin2t {dpairs};
+
       S := core_computeSpolys(dpairs, r, Rule);
+
+      % if S then
+      %   prin2t core_getPoly(r, (car S));
 
       reduced := core_reduction(S, Gprev, Gcurr, r, Rule);
 
+      % prin2t {"AFTER reduction ", length(reduced)};
+      % if reduced then
+      %   prin2t core_getPoly(r, (car reduced));
+
       % prin2t r;
 
+      reduced := reversip(reduced);
       while reduced do <<
         k := pop(reduced);
         tmp := Gcurr;
@@ -520,7 +577,9 @@ asserted procedure core_incrementalBasis(i, Gprev, r, Rule);
           if p then
             pairs := p . pairs
         >>;
+        % prin2t {"new # pairs for ", k, " are ", length(pairs)};
         Gcurr := k . Gcurr
+        % prin2t {"new # Gcurr: ", length(Gcurr)}
       >>
     >>;
 
@@ -547,6 +606,34 @@ asserted procedure core_getReducers(i, G);
       j := j #+ 1
     >>;
     return reducers
+  end;
+
+% Given the set of generators `basis` apply the autoreduction algorithm
+% to interreduce generators w.r.t. each other
+asserted procedure core_interreduceInput(input);
+  begin scalar reducers, updated, flag, p, f,
+                newInput, i;
+
+  start:
+    newInput := nil;
+    updated := nil;
+    while input do <<
+      f := pop(input);
+      reducers := append(newInput, input);
+
+      flag . p := core_normalFormReducers(f, reducers);
+      updated := updated or flag;
+
+      if not poly_iszero!?(p) then
+        newInput := p . newInput
+    >>;
+
+    if updated then <<
+      input := newInput;
+      goto start
+    >>;
+
+    return newInput
   end;
 
 % Given the set of generators `basis` apply the autoreduction algorithm
@@ -675,7 +762,7 @@ asserted procedure core_groebner1(basis: List): List;
     % COEFF
     f1 := lp_normalize(f1);
 
-    initialBasisSize := 1000;
+    initialBasisSize := 10000;
     r := core_BasisKeeper(initialBasisSize);
     core_addPoly(r, f1);
 
@@ -695,6 +782,10 @@ asserted procedure core_groebner1(basis: List): List;
       Gprev := core_incrementalBasis(i, Gprev, r, Rule);
 
       % prin2t {i, getv(Rule, i)};
+
+      % prin2t "#####################";
+      % prin2t Rule;
+      % prin2t "#####################";
 
       i := i #+ 1
     >>;
@@ -720,6 +811,7 @@ asserted procedure core_groebner1(basis: List): List;
 
 endmodule;
 
+% trst core_constructModule;
 % trst core_criticalPair;
 % trst core_groebner1;
 % trst core_incrementalBasis;
@@ -740,5 +832,6 @@ endmodule;
 % trst core_checkIdealInclusion1;
 % trst core_filterRedundant;
 % trst core_criticalPair;
+% trst core_interreduceInput;
 
 end; % of file

@@ -94,7 +94,7 @@ asserted procedure f5_groebner(u: List): List;
       outputModule := 'list . for each f in outputModule collect
                         poly_poly2a lp_eval f;
 
-      if !*f5fullreduce then <<
+      if !*f5fullreduce and nil then <<
         % prin2t {"interreduction", length(outputModule)-1};
         ring := if sortMode = 'lex then
           ring_define(variables, nil, 'lex, '(1 1))
