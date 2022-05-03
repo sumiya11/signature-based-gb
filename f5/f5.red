@@ -54,7 +54,11 @@ put('f5, 'psopfn, 'f5_groebner);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % interface implemented in f5poly.red
-struct Polynomial;
+struct Polynomial checked by function(lambda x; eqcar(x, 'p));
+struct Monomials checked by 'listp;
+struct Monomial checked by 'listp;
+struct Coeffs checked by 'listp;
+struct Coeff;
 
 % interface implemented in f5lp.red
 struct LabeledPolynomial;
