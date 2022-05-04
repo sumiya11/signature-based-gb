@@ -24,8 +24,8 @@ module f5lp;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Construct a Signature object from index and term
-asserted inline procedure lp_Signature(index: Integer, st: Term);
-  {'sgn, index, st};
+asserted inline procedure lp_Signature(idx: Integer, st: Term);
+  {'sgn, idx, st};
 
 % Instantiates LabeledPolynomial object from the given Polynomial `poly` and
 % places garbage in the Signature position
@@ -91,12 +91,12 @@ asserted inline procedure lp_iszero!?(lp: LabeledPolynomial);
 
 % multiply signature sgn by the term ev
 asserted inline procedure lp_mulSgn(sgn: Signature, ev: Term);
-  lp_Signature(lp_indexSgn(sgn), poly_mulTerm(lp_termSgn(sgn), ev))
+  lp_Signature(lp_indexSgn(sgn), poly_mulTerm(lp_termSgn(sgn), ev));
 
 % compare signatures s1 and s2 with the
 % (reversed) Position over term order extension
 asserted procedure lp_cmpSgn(s1: Signature, s2: Signature);
-  return if lp_indexSgn(s1) #= lp_indexSgn(s2) then
+  if lp_indexSgn(s1) #= lp_indexSgn(s2) then
     poly_cmpTerm(lp_termSgn(s1), lp_termSgn(s2))
   else
     lp_indexSgn(s1) #< lp_indexSgn(s2);
@@ -121,7 +121,7 @@ asserted inline procedure lp_reduceCoeffs(f: LabeledPolynomial,
   lp_LabeledPolynomial2(poly_reduceCoeffs(lp_eval(f), prime), lp_sgn(f));
 
 % Reconstruct coefficients of the evaluation of `f` modulo `prime`
-asserted inlineprocedure lp_reconstructCoeffs(f: LabeledPolynomial,
+asserted inline procedure lp_reconstructCoeffs(f: LabeledPolynomial,
                                           prime: Integer): LabeledPolynomial;
   lp_LabeledPolynomial2(poly_reconstructCoeffs(lp_eval(f), prime), lp_sgn(f));
 

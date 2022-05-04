@@ -270,6 +270,9 @@ asserted inline procedure poly_mulTerm(a: Term, b: Term): Term;
 asserted inline procedure poly_divTerm(a: Term, b: Term): Term;
   poly_subExp(a, b);
 
+asserted inline procedure poly_dividesTerm!?(a: Term, b: Term): Term;
+  poly_subExp(a, b);
+
 asserted inline procedure poly_lcmTerm(a: Term, b: Term): Term;
   poly_elmaxExp(a, b);
 
@@ -391,7 +394,7 @@ asserted procedure poly_paircomb(f: Polynomial, fmult: Term, fcoeff: Coeff,
 asserted procedure poly_normalize(poly: Polynomial): Polynomial;
   begin scalar newcoeffs, mult1, cf;
     mult1 := mod_inv(poly_leadCoeff(poly));
-    newcoeffs := for each cf in poly
+    newcoeffs := for each cf in poly_getCoeffs(poly)
       collect mod_mul(cf, mult1);
     return poly_Polynomial(poly_getTerms(poly), newcoeffs)
   end;
@@ -420,7 +423,7 @@ asserted procedure poly_tryTopReductionStep(f: Polynomial,
   begin scalar glead, flead, fmult, gmult, updated;
     glead := poly_leadTerm(g);
     flead := poly_leadTerm(f);
-    if poly_divTerm!?(ge, fe) then <<
+    if poly_dividesTerm!?(ge, fe) then <<
       fmult := poly_identityTerm();
       gmult := poly_divTerm(fe, ge);
       f := poly_paircombTail(f, fmult, poly_leadCoeff(f), g, gmult, poly_leadCoeff(g));
@@ -442,12 +445,12 @@ asserted procedure poly_tryReductionStep(f: Polynomial,
     glead := poly_leadTerm(g);
     gcoef := poly_leadCoeff(g);
     while (not updated) and fterms do <<
-      fterm := pop(fexps);
+      fterm := pop(fterms);
       fcoef := pop(fcoeffs);
-      if poly_divTerm!?(glead, fterm) then <<
+      if poly_dividesTerm!?(glead, fterm) then <<
         fmult := poly_identityTerm();
         gmult := poly_divTerm(fterm, glead);
-        f := poly_paircomb(f, fmult, fc, g, gmult, gc);
+        f := poly_paircomb(f, fmult, fcoef, g, gmult, gcoef);
         updated := t
       >>
     >>;
@@ -464,7 +467,7 @@ asserted procedure poly_commonDenominator(f: Polynomial): Integer;
     den := 1;
     fcoeffs := poly_getCoeffs(f);
     while fcoeffs do <<
-      den := lcm(den, denr(pop(fcoeffs))
+      den := lcm(den, denr(pop(fcoeffs)))
     >>;
     return den
   end;

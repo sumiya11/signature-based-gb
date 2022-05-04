@@ -26,7 +26,7 @@ module f5core;
 % It is safe to assume that (k, u) >= (l, v) as Signatures
 %             TODO: or even (k, u) > (l, v)
 
-asserted inline core_criticalPair(tt: Term, k: Integer, u: Term,
+asserted inline procedure core_CriticalPair(tt: Term, k: Integer, u: Term,
                                     l: Integer, v: Term): CriticalPair;
   {'cp, tt, k, u, l, v};
 
@@ -53,8 +53,8 @@ asserted inline procedure core_getPairSecond(p: CriticalPair): DottedPair;
 % Here, index is an Integer, an index of polynomial from the Basistracker structure,
 % and term is a Term, a multiplier of some signature.
 
-asserted inline core_RewriteRule(index: Integer, tt: Term): RewriteRule;
-  {'rr, index, tt};
+asserted inline procedure core_RewriteRule(idx: Integer, tt: Term): RewriteRule;
+  {'rr, idx, tt};
 
 % Return index
 asserted inline procedure core_getRuleIndex(r: RewriteRule): Integer;
@@ -83,7 +83,7 @@ fluid '(core_initialBasisSize!*);
 % We take a big number from the start,
 % so that there is no need to copy the storage vector very often
 % TODO: scale this with the basis growing
-core_initialBasisSize!* := 10000;
+core_initialBasisSize!* := 10;
 
 asserted procedure core_Basistracker(capacity: Integer): Basistracker;
   {'bt, mkvect(capacity), 0, capacity};
@@ -91,21 +91,21 @@ asserted procedure core_Basistracker(capacity: Integer): Basistracker;
 % Adds LabeledPolynomial f to the basis
 asserted procedure core_addPoly(r: Basistracker, f: LabeledPolynomial);
   <<
-    putv(car r, cadr r, f);
-    cadr r := cadr r #+ 1
+    putv(cadr r, caddr r, f);
+    caddr r := caddr r #+ 1
   >>;
 
 % Sets the i'th polynomial in the basis to f
 asserted inline procedure core_setPoly(r: Basistracker, i: Integer, f: Polynomial);
-  putv(car r, i, f);
+  putv(cadr r, i, f);
 
 % Returns the i'th polynomial from the basis
 asserted inline procedure core_getPoly(r: Basistracker, i: Integer): LabeledPolynomial;
-  getv(car r, i);
+  getv(cadr r, i);
 
 % Returns the index of the last polynomial added to the basis
 asserted inline procedure core_getBasisIdx(r: Basistracker): Integer;
-  (cadr r) #- 1;
+  (caddr r) #- 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Additional comparators for sorting
@@ -188,7 +188,7 @@ asserted procedure core_normalFormReducers(f: Polynomial, reducers: List,
     updated := t;
     while updated do <<
       updated := nil;
-      for each reducer in Gprev do <<
+      for each reducer in reducers do <<
         if not poly_iszero!?(reducer) and not poly_iszero!?(f) then <<
           modified . f := if topReduce then
             poly_tryTopReductionStep(f, reducer)
@@ -199,7 +199,7 @@ asserted procedure core_normalFormReducers(f: Polynomial, reducers: List,
         >>
       >>
     >>;
-    return updatedToreturn . newf
+    return updatedToreturn . f
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -232,7 +232,7 @@ asserted procedure core_interreduceInput(input: List): List;
       while input do <<
         f := pop(input);
         reducers := append(newInput, input);
-        reduced . p := core_normalFormReducers(f, reducers);
+        reduced . p := core_normalFormReducers(f, reducers, nil);
         updated := updated or reduced;
         if not poly_iszero!?(p) then
           push(p, newInput)
@@ -280,7 +280,7 @@ asserted procedure core_findRewriting(u: Term, k: Integer,
         integer rewriter;
     rewriter := k;
     sgn      := lp_sgn(core_getPoly(r, k));
-    usgnt    := lp_sgnTerm(lp_mulSgn(sgn, u);
+    usgnt    := lp_termSgn(lp_mulSgn(sgn, u));
     rulesAtK := getv(Rule, lp_sgnIndex(sgn));
     % Be careful with order in rulesAtK:
     % we want to traverse rewrite rules at index k
@@ -313,7 +313,7 @@ asserted procedure core_filterRedundant(Gprev: List, r: Basistracker): List;
     while Gsort do <<
       gi := pop(Gsort);
       g := lp_eval(core_getPoly(r, gi));
-      glead := poly_leadExp(g);
+      glead := poly_leadTerm(g);
       if not core_isTopReducibleTerm(glead, Gnew, r) then
         push(gi, Gnew)
     >>;
@@ -348,7 +348,7 @@ asserted procedure core_checkIdealInclusion1(basis: List, polys: List);
     while ans and polys do <<
       p := pop(polys);
       evals := lp_eval(p);
-      _ . nf := core_normalFormTopReducers(evals, basis);
+      _ . nf := core_normalFormTopReducers(evals, basis, t);
       if not poly_iszero!?(nf) then
         ans := nil
     >>;
@@ -366,7 +366,7 @@ asserted procedure core_isGroebner1(basis: List);
       tmp := cdr basis;
       while ans and tmp do <<
         evals := poly_spoly(lp_eval(car tmp), lp_eval(car basis));
-        _ . nf := core_normalFormTopReducers(evals, basis);
+        _ . nf := core_normalFormTopReducers(evals, basis, t);
         if not poly_iszero!?(nf) then
           ans := nil;
         tmp := cdr tmp
@@ -524,9 +524,9 @@ asserted procedure core_reduction(S: List, Gprev: List, Gcurr: List,
       % If full reduction is not needed, compute only top normal form.
       % Otherwise, also reduce the polynomial tail.
       _ . rknfeval := if !*f5fullreduce then
-        core_normalForm(lp_eval(rk), Gprev, r)
+        core_normalForm(lp_eval(rk), Gprev, r, t)
       else
-        core_normalFormTop(lp_eval(rk), Gprev, r);
+        core_normalForm(lp_eval(rk), Gprev, r, t);
       lp_setEval(rk, rknfeval);
       core_setPoly(r, k, rk);
       % Compute the F5-style top-reduction;
@@ -650,7 +650,7 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
         tmp := Gcurr;
         while tmp do <<
           j := pop(tmp);
-          p := core_criticalPair(i, j, k, Gprev, r);
+          p := core_makeCriticalPair(i, j, k, Gprev, r);
           if p then
             push(p, pairs)
         >>;
@@ -678,7 +678,7 @@ asserted procedure core_groebner1(basis: List): List;
     % f1 - first polynomial added to the basis
     f1 := pop(basis);
     f1 := lp_normalize(f1);
-    r := core_BasisKeeper(core_initialBasisSize!*);
+    r := core_Basistracker(core_initialBasisSize!*);
     core_addPoly(r, f1);
     % Gprev indexes generators of the current basis in the Basistracker `r`,
     % So, Gprev := {0} indexes the basis of {f1}
@@ -705,6 +705,9 @@ asserted procedure core_groebner1(basis: List): List;
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+trst core_groebner1;
+trst core_constructModule;
 
 endmodule;
 

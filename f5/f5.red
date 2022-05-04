@@ -63,23 +63,24 @@ put('f5, 'psopfn, 'f5_groebner);
 %%%%%%%% STRUCTS DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % interface implemented in f5poly.red
-struct Polynomial checked by function(lambda x; eqcar(x, 'p));
+% asserted inline procedure f5_isPolynomial
+struct Polynomial; % checked by function(lambda x; eqcar(x, 'p));
 struct Terms checked by 'listp;
 struct Term checked by 'listp;
 struct Coeffs checked by 'listp;
 struct Coeff;
 
 % interface implemented in f5lp.red
-struct LabeledPolynomial checked by function(lambda x; eqcar(x, 'lp));
-struct Signature checked checked by function(lambda x; eqcar(x, 'sgn));
+struct LabeledPolynomial; % checked by function(lambda x; eqcar(x, 'lp));
+struct Signature; % checked by function(lambda x; eqcar(x, 'sgn));
 
 % interface implemented in f5primes.red
-struct Primetracker checked by function(lambda x; eqcar(x, 'pt));
+struct Primetracker; % checked by function(lambda x; eqcar(x, 'pt));
 
 % interface implemented in f5core.red
-struct Basistracker checked by function(lambda x; eqcar(x, 'bt));
-struct CriticalPair checked by function(lambda x; eqcar(x, 'cp));
-struct RewriteRule checked by function(lambda x; eqcar(x, 'rr));
+struct Basistracker; % checked by function(lambda x; eqcar(x, 'bt));
+struct CriticalPair; % checked by function(lambda x; eqcar(x, 'cp));
+struct RewriteRule; % checked by function(lambda x; eqcar(x, 'rr));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
