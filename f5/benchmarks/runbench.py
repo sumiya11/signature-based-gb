@@ -10,10 +10,12 @@ ARG2 = '-w ~/signature-based-gb/f5/correctness/output.rlg'
 UNDETECTABLE = ["cyclic6", "cyclic7", "cyclic8", "eco5", "noon4",
                 "ojika4", "ku10", "trinks"]
 
-TINY = ["noon5", "noon6", "katsura6", "katsura7", 
+TINY = ["noon5", "noon6", "katsura6",  
         "cyclic9", "cyclic10", "henrion5", "eco7"]
 
 LARGE = ["cyclic11", "noon7", "nbody4"]
+
+LARGE = ["noon6", "cyclic10", "cyclic11", "henrion5"]
 
 ENORMOUS = ["nbody4", "nbody4sym"]
 
@@ -91,6 +93,7 @@ def runbench_small(cmp):
                 print(msg)
 
     return totaltime
+
 
 def runbench_large(cmp):
     samples = 1
