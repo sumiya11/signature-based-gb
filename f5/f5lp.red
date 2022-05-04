@@ -1,200 +1,158 @@
-
 module f5lp;
+% The module implements LabeledPolynomial
 
 % The lp module provides the Labeled Polynomial interface --
 % a special polynomial type to be used in the f5-style algorithms.
-% The LabeledPolynomial object `p` is stored internally as a 4-item list:
-%   {'lp, evaluation of `p`, signature index of `p`, signature monomial of `p`}
+% The LabeledPolynomial object `p` is represented as a 3-item list:
+%   {'lp, evaluation of `p`, signature `p`}
+% Where Evaluation of `p` is a `Polynomial` object (defined in f5poly file),
+%        Signature of `p` if a `Signature` object.
+% The `Signature` struct is described in the following.
 %
-% The interface provides, in particular,
-% functions `lp_eval` and `lp_sgn`, that return
-% second and {third, fouth} items of the internal list respectively
+% The LabeledPolynomial interface provides, in particular, procedures
+%   . lp_eval(x) - returns evaluation of LabeledPolynomial x, a Polynomial
+%   . lp_sgn(x)  - returns signature of LabeledPolynomial x, a Signature
+
+% The Signature object `sgn` is a 3-item list:
+%   {'sgn, index of `sgn`, term of `sgn`}
+% Where index of `sgn` is an Integer,
+%       term of `sgn` is a Term (defined in f5poly file)
+%
+% The signature interface has procedures for accessing the index and the term:
+%   lp_indexSgn and lp_termSgn
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% instantiates LabeledPolynomial from the given Polynomial `poly` and
-% places garbage in the signature position
+% Construct a Signature object from index and term
+asserted inline procedure lp_Signature(index: Integer, st: Term);
+  {'sgn, index, st};
+
+% Instantiates LabeledPolynomial object from the given Polynomial `poly` and
+% places garbage in the Signature position
 %
+% TODO: this should not be used
 % Currently, used only in computing plain polynomial normal form
 asserted inline procedure lp_LabeledPolynomial0(
                               poly: Polynomial): LabeledPolynomial;
-  lp_LabeledPolynomial2(poly, {0, poly_zeroExp()});
+  lp_LabeledPolynomial1(poly, 0);
 
-% instantiates LabeledPolynomial from Polynomial and the leading index
+% instantiates LabeledPolynomial from Polynomial and the Signature index
 asserted inline procedure lp_LabeledPolynomial1(
                               poly: Polynomial,
                               idx: Integer): LabeledPolynomial;
-  lp_LabeledPolynomial2(poly, {idx, poly_zeroExp()});
+  lp_LabeledPolynomial2(poly, lp_Signature(idx, poly_identityTerm()));
 
 % instantiates LabeledPolynomial from Polynomial and its signature
 asserted inline procedure lp_LabeledPolynomial2(
                               poly: Polynomial,
-                              sgn: List): LabeledPolynomial;
-  'lbl . poly . sgn;
-
-asserted inline procedure lp_getPoly(lp: LabeledPolynomial): Polynomial;
-  cadr lp;
-
-asserted inline procedure lp_getLabel(lp: LabeledPolynomial): List;
-  cddr lp;
-
-% Checks if LP is zero
-%
-% Zero LabeledPolynomial is represented as
-%   ('lp, zero Polynomial, smth, smth)
-%
-% Same as lp_isSyzygy!?, in fact
-asserted inline procedure lp_iszero!?(lp);
-  poly_iszero!?(lp_eval(lp));
-
-% return the evaluation of module element f
-asserted inline procedure lp_setEval(f, ev): Polynomial;
-  cadr f := ev;
+                              sgn: Signature): LabeledPolynomial;
+  {'lp, poly, sgn};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%% SIGNATURE MANIPULATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% LP & SIGNATURE INTERFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% return the signature {i, m}
-asserted inline procedure lp_sgnInit(i: Integer, m: List): List;
-  {i, m};
+% Return the signature of f
+asserted inline procedure lp_sgn(f: LabeledPolynomial): Signature;
+  caddr f;
 
-% return the signature of module element f
-asserted inline procedure lp_sgn(f: LabeledPolynomial): List;
-  lp_getLabel(f);
-
-% sgn1 == sgn2 ?
-asserted procedure lp_eqSignature(sgn1: List, sgn2: List);
-  car sgn1 #= car sgn2 and lp_eqList(cdr sgn1, cdr sgn2);
-
-% return the index of the signature of module element f
-asserted inline procedure lp_index(f: LabeledPolynomial): Integer;
-  car lp_getLabel(f);
-
-% return the monom of the signature of module element f
-asserted inline procedure lp_monom(f: LabeledPolynomial): Integer;
-  cadr lp_getLabel(f);
-
-% return the evaluation of module element f
+% Return the evaluation of f
 asserted inline procedure lp_eval(f: LabeledPolynomial): Polynomial;
-   lp_getPoly(f);
+  cadr f;
 
-% multiply signature sgn by monomial ev
-asserted procedure lp_multSignature(sgn: List, ev: List);
-  begin scalar  term;
-        integer idx;
-    idx  := car sgn;
-    term := cadr sgn;
-    return lp_sgnInit(idx, poly_sumExp(term, ev))
-  end;
+% set the evaluation of lp to Polynomial ev
+asserted inline procedure lp_setEval(lp: LabeledPolynomial, ev: Polynomial);
+  cadr lp := ev;
 
-% multiply signature sgn by monomial ev
-asserted procedure lp_sgnMonom(sgn);
-  cadr sgn;
+% set the signature of lp to Signature ev
+asserted inline procedure lp_setEval(lp: LabeledPolynomial, s: Signature);
+  caddr lp := s;
 
-% multiply signature sgn by monomial ev
-asserted procedure lp_sgnIndex(sgn);
-  car sgn;
+% return the index of signature s
+asserted inline procedure lp_indexSgn(s: Signature): Integer;
+  cadr s;
 
-% multiply signature sgn by monomial ev
-asserted procedure lp_multSgn(sgn: List, ev: List);
-  begin scalar  term;
-        integer idx;
-    idx  := car sgn;
-    term := cadr sgn;
-    return {idx, poly_sumExp(term, ev)}
-  end;
+% return the term of signature s
+asserted inline procedure lp_termSgn(s: Signature): Term;
+  caddr s;
 
-% compare signatures sgn1 vs. sgn2 with the
-% position over term extension
-asserted procedure lp_sgnCmp(sgn1, sgn2);
-  begin integer idx1, idx2;
-        scalar  ev1, ev2;
-    idx1 := car sgn1;
-    ev1  := cadr sgn1;
-    idx2 := car sgn2;
-    ev2  := cadr sgn2;
-    return if idx1 #= idx2 then poly_cmpExp(ev1, ev2)
-      else (idx1 #< idx2)
-  end;
+% Signatures s1 == s2 ?
+asserted inline procedure lp_eqSgn(s1: Signature, s2: Signature);
+  lp_indexSgn(s1) #= lp_indexSgn(s2) and
+    poly_eqTerm(lp_termSgn(s1), lp_termSgn(s2));
 
-% checks if lp represents a syzygy
-asserted inline procedure lp_isSyzygy(lp: LabeledPolynomial): Boolean;
+% Zero LabeledPolynomial is represented as
+%   {'lp, zero Polynomial, any Signature}
+% Check if LabeledPolynomial is zero
+asserted inline procedure lp_iszero!?(lp: LabeledPolynomial);
   poly_iszero!?(lp_eval(lp));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%% COEFFICIENT MANIPULATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% SIGNATURE MANIPULATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Mainly, these fall back to simple polynomial coefficient operations
+% multiply signature sgn by the term ev
+asserted inline procedure lp_mulSgn(sgn: Signature, ev: Term);
+  lp_Signature(lp_indexSgn(sgn), poly_mulTerm(lp_termSgn(sgn), ev))
 
-% asserted procedure lp_normalizeInplace(f: LabeledPolynomial);
-%  poly_normalizeInplace(lp_eval(f));
+% compare signatures s1 and s2 with the
+% (reversed) Position over term order extension
+asserted procedure lp_cmpSgn(s1: Signature, s2: Signature);
+  return if lp_indexSgn(s1) #= lp_indexSgn(s2) then
+    poly_cmpTerm(lp_termSgn(s1), lp_termSgn(s2))
+  else
+    lp_indexSgn(s1) #< lp_indexSgn(s2);
 
-asserted procedure lp_normalize(f: LabeledPolynomial);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% LP COEFFICIENTS MANIPULATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Mainly, these fall back to simple polynomial coefficients operations
+% from f5poly
+
+% Normalize the evaluation of `f`
+asserted inline procedure lp_normalize(f: LabeledPolynomial): LabeledPolynomial;
   lp_LabeledPolynomial2(poly_normalize(lp_eval(f)), lp_sgn(f));
 
-asserted procedure lp_scaleDenominators(f: LabeledPolynomial);
+% Scale denominators of the evaluation of `f`
+asserted inline procedure lp_scaleDenominators(f: LabeledPolynomial): LabeledPolynomial;
   lp_LabeledPolynomial2(poly_scaleDenominators(lp_eval(f)), lp_sgn(f));
 
-asserted procedure lp_scaleDenominatorsInplace(f: LabeledPolynomial);
-  lp_LabeledPolynomial2(poly_scaleDenominatorsInplace(lp_eval(f)), lp_sgn(f));
-
-asserted procedure lp_reduceCoeffs(f: LabeledPolynomial, prime);
+% Reduce coefficients of the evaluation of `f` modulo `prime`
+asserted inline procedure lp_reduceCoeffs(f: LabeledPolynomial,
+                                          prime: Integer): LabeledPolynomial;
   lp_LabeledPolynomial2(poly_reduceCoeffs(lp_eval(f), prime), lp_sgn(f));
 
-asserted procedure lp_reconstructCoeffs(f: LabeledPolynomial, prime);
+% Reconstruct coefficients of the evaluation of `f` modulo `prime`
+asserted inlineprocedure lp_reconstructCoeffs(f: LabeledPolynomial,
+                                          prime: Integer): LabeledPolynomial;
   lp_LabeledPolynomial2(poly_reconstructCoeffs(lp_eval(f), prime), lp_sgn(f));
 
-asserted procedure lp_crtCoeffs(polyaccum, modulo, polycomp, prime);
-  begin scalar underlyingPoly;
-    underlyingPoly := poly_crtCoeffs(lp_eval(polyaccum), modulo, lp_eval(polycomp), prime);
-    return lp_LabeledPolynomial2(underlyingPoly, lp_sgn(polyaccum))
-  end;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% l1 = l2 elementwise ?
-asserted procedure lp_eqList(l1, l2);
-  if null l1 then
-    t
-  else
-    car l1 #= car l2 and lp_eqList(cdr l1, cdr l2);
+% Given LPs (polyaccum mod modulo) and (polycomp mod prime)
+% construct a new LP with the evaluation equal
+% to the modular reconstruction of evaluations of polyaccum and polycomp
+asserted inline procedure lp_crtCoeffs(polyaccum: Polynomial, modulo: Integer,
+                      polycomp: Polynomial, prime: Integer): LabeledPolynomial;
+  lp_LabeledPolynomial2(
+      poly_crtCoeffs(lp_eval(polyaccum), modulo, lp_eval(polycomp), prime),
+      lp_sgn(polyaccum)
+  );
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % LabeledPolynomial sorting ad-hoc
 
-% return true if lead(poly1) < lead(poly2)
-asserted procedure lp_cmpLPLead(lp1, lp2);
+% return true if lead(eval(lp1)) < lead(eval(lp2))
+asserted procedure lp_cmpLPLead(lp1: LabeledPolynomial, lp2: LabeledPolynomial);
   poly_cmpPolyLead(lp_eval(lp1), lp_eval(lp2));
 
-% return true if lead(poly1) > lead(poly2)
+% return true if lead(eval(lp2)) < lead(eval(lp1))
 asserted procedure lp_cmpLPLeadReverse(lp1, lp2);
-  poly_cmpPolyLead(lp_eval(lp2), lp_eval(lp1));
-
-% return true if lead(poly2) < lead(poly1)
-% asserted procedure lp_leadTotalDegreeCmp(lp1, lp2);
-%  poly_cmpPolyLead(lp_eval(lp2), lp_eval(lp1));
+  lp_cmpLPLead(lp2, lp1);
 
 % return true if total_degree(lead(lp1)) < total_degree(lead(lp2))
-asserted procedure lp_leadTotalDegreeCmp(lp1, lp2);
-  poly_tdegCmp(poly_leadExp(lp_eval(lp1)), poly_leadExp(lp_eval(lp2)));
+asserted procedure lp_leadTotalDegreeCmp(lp1: LabeledPolynomial,
+                                          lp2: LabeledPolynomial);
+  poly_leadTotalDegreeCmp(lp_eval(lp1), lp_eval(lp2));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% trst lp_LabeledPolynomial;
-% trst lp_spoly;
-% trst lp_spolyMultSignatures;
-% trst lp_spolyCofactors;
-% trst lp_multSignature;
-
-% trst lp_principalSyzygy;
-% trst lp_tryReduce1;
-% trst lp_tryReduce;
-% trst lp_normalForm;
-% trst lp_isSingularlyTopReducible;
-
-% trst lp_principalSyzygy;
-
 endmodule;
-
 
 end;  % of file

@@ -1,52 +1,12 @@
-
 module f5mod;
-
-% Modular computationы for Groebner bases.
-% The module also provides rational reconstruction
-% and Chinese reminder theorem routines
-% together with generic number arithmetic interface
+% Modular computations for Groebner bases.
+%
+% The module provides rational reconstruction
+% and Chinese reminder theorem implementations
+% together with main modular Groebner bases procedure `mod_groebnerModular1`
 
 % Using modular arithmetic backend from smallmod
 load!-package 'smallmod;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%% ADAPTIVE ARITHMETIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-inline procedure mod_iszero!?(a);
-  if !*f5modular then
-    a = 0
-  else
-    numr(a) = nil;
-
-inline procedure mod_add(a, b);
-    if !*f5modular then
-        modular!-plus(a, b)
-    else
-        addsq(a, b);
-
-inline procedure mod_mul(a, b);
-    if !*f5modular then
-        modular!-times(a, b)
-    else
-        multsq(a, b);
-
-inline procedure mod_neg(a);
-    if !*f5modular then
-        modular!-minus(a)
-    else
-        negsq(a);
-
-inline procedure mod_div(a, b);
-    if !*f5modular then
-        modular!-quotient(a, b)
-    else
-        quotsq(a, b);
-
-inline procedure mod_inv(a);
-    if !*f5modular then
-        modular!-reciprocal(a)
-    else
-        denr(a) . numr(a);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%% MODULAR CORRECTNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,8 +14,9 @@ inline procedure mod_inv(a);
 % Verify that the given `recBasis` is indeed the Groebner basis
 % of the original input set `intBasis`
 % By default, probabilistic correctness check is used
-asserted procedure mod_correctnessCheck(pt, intBasis, recBasis);
-   if not mod_heuristicCorrectnessCheck(recBasis) then
+asserted procedure mod_correctnessCheck(pt: Primetracker,
+                                        intBasis: List, recBasis: List);
+  if not mod_heuristicCorrectnessCheck(recBasis) then
     nil
   else if not mod_randomizedCorrectnessCheck(pt, intBasis, recBasis) then
     nil
@@ -64,8 +25,8 @@ asserted procedure mod_correctnessCheck(pt, intBasis, recBasis);
   else
     t;
 
-% Heuristic correctness check based on the bitsize of coefficients
-% NOT TODO
+% Heuristic correctness check based on the bitsize of coefficients,
+% not needed currently
 asserted procedure mod_heuristicCorrectnessCheck(reconstructedBasis: List);
   t;
 
@@ -73,53 +34,46 @@ asserted procedure mod_heuristicCorrectnessCheck(reconstructedBasis: List);
 %   . <intBasis> in <recBasis> as ideals
 %   . recBasis is a Groebner basis
 % modulo chosen `reliablePrime`
-asserted procedure mod_randomizedCorrectnessCheck(pt, intBasis, recBasis);
+asserted procedure mod_randomizedCorrectnessCheck(pt: Primetracker,
+                                                  intBasis: List, recBasis: List);
   begin integer reliablePrime;
-        scalar intBasisReduced, recBasisScaled, recBasisReduced,
-                isgroebner;
+        scalar intBasisReduced, recBasisScaled, recBasisReduced;
     reliablePrime := primes_nextReliablePrime(pt, intBasis);
-
+    % reduce coefficients in the integer basis intBasis modulo reliablePrime..
     intBasisReduced := mod_modularReduction(intBasis, reliablePrime);
-
+    % ..and do the same for recBasis
     recBasisScaled := mod_scaleDenominators(recBasis);
     recBasisReduced := mod_modularReduction(recBasisScaled, reliablePrime);
-
-    isgroebner := core_isGroebner1(recBasisReduced);
-
-    return if isgroebner then
+    % all S-polys reduce to zero ?
+    return if core_isGroebner1(recBasisReduced) then
+      % ideal inclusion ?
       core_checkIdealInclusion1(recBasisReduced, intBasisReduced)
     else
       nil
   end;
 
 % Guaranteed correctness check. Same as mod_randomizedCorrectnessCheck,
-% but all computations are carried in the original ground ring
-% NOT TODO
+% but all computations are carried in the original ground ring,
+% not needed currently
 asserted procedure mod_guaranteedCorrectnessCheck(reconstructedBasis: List);
   t;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%% MODULAR F5 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% All functions below that take a basis and transform its coefficients
-% preserve the order of generators in the original basis
+% All functions below that take a list on generators as an input
+% should preserve the original order of generators in the output
 
-% Given the set of generators `inputBasis` with integer coefficients construct
+% Given a list of generators `inputBasis` with integer coefficients construct
 % a new basis with coefficients reduced modulo `prime`
 asserted procedure mod_modularReduction(inputBasis: List, prime: Integer): List;
-  begin scalar prime, ans, poly;
-    while inputBasis do <<
-      poly . inputBasis := inputBasis;
-      ans := lp_reduceCoeffs(poly, prime) . ans
-    >>;
-    return reversip(ans)
-  end;
+  for each poly in inputBasis collect lp_reduceCoeffs(poly, prime);
 
-% Given the basis `inputBasis` computed modulo some prime,
+% Given the basis `inputBasis` with generators coefficients modulo some prime,
 % reconstructs each coefficient into the rational field.
-% Rationals are represented as Standard Quotients (pairs) of integers
-% This function is assumed to be called only
-% when coeffs of `inputBasis` basis are integers
+% Rationals are represented as Standard Quotients (pairs) of integers.
+% This function is assumed to be called only when
+% coefficients of `inputBasis` basis are integers
 asserted procedure mod_rationalReconstruction(
                                       inputBasis: List,
                                       pt: Primetracker): List;
@@ -127,8 +81,8 @@ asserted procedure mod_rationalReconstruction(
           integer prime;
       prime := primes_getAccumModulo(pt);
       while inputBasis do <<
-         poly . inputBasis := inputBasis;
-         ans := lp_reconstructCoeffs(poly, prime) . ans
+         poly := pop(inputBasis);
+         ans  := push(lp_reconstructCoeffs(poly, prime), ans)
       >>;
       return reversip(ans)
    end;
@@ -137,106 +91,78 @@ asserted procedure mod_rationalReconstruction(
 % and the basis `computedBasis` computed modulo some `prime`,
 % constructs a new basis modulo `modulo × prime`.
 % This function is assumed to be called only
-% when coeffs of input bases are integers
+% when coefficients of input bases are integers
 asserted procedure mod_crtReconstruction(
                                   accumBasis: List,
                                   computedBasis: List,
                                   pt: Primetracker);
-   begin scalar ans, polyaccum, polycomp;
-          integer modulo, prime;
-      modulo := primes_getAccumModulo(pt);
-      prime  := primes_getLuckyPrime(pt);
-      if modulo #= 1 then
-        % essentially, accumBasis is garbage here
-        ans := computedBasis
-      else <<
-        while accumBasis do <<
-          polyaccum . accumBasis := accumBasis;
-          polycomp  . computedBasis := computedBasis;
-          ans := lp_crtCoeffs(polyaccum, modulo, polycomp, prime) . ans
-        >>;
-        ans := reversip(ans)
+  begin scalar ans, polyaccum, polycomp;
+        integer modulo, prime;
+    modulo := primes_getAccumModulo(pt);
+    prime  := primes_getLuckyPrime(pt);
+    if modulo = 1 then
+      % essentially, accumBasis is garbage here,
+      % and we return computedBasis
+      ans := computedBasis
+    else <<
+      while accumBasis do <<
+        polyaccum := pop(accumBasis);
+        polycomp  := pop(computedBasis);
+        ans := push(lp_crtCoeffs(polyaccum, modulo, polycomp, prime), ans)
       >>;
-      primes_setAccumModulo(primetracker, modulo * prime);
-      return ans
-   end;
-
-% Given the set of generators `inputBasis` with rational numbers
-% as polynomial coefficients, scale INPLACE
-% each generator by the common denominator to obtain integer coefficients.
-% Assumed to be called only for numeric rational number input.
-asserted procedure mod_scaleDenominatorsInplace(inputBasis: List): List;
-   begin scalar tmp, poly;
-      tmp := inputBasis;
-      while tmp do <<
-         poly := car tmp;
-         car tmp := lp_scaleDenominatorsInplace(poly);
-         tmp := cdr tmp
-      >>;
-      return inputBasis
-   end;
-
-% Given the set of generators `inputBasis` with rational numbers
-% as polynomial coefficients, scale
-% each generator by the common denominator to obtain integer coefficients.
-% Assumed to be called only for numeric rational number input.
-asserted procedure mod_scaleDenominators(inputBasis: List): List;
-  begin scalar ans, poly;
-    while inputBasis do <<
-      poly . inputBasis := inputBasis;
-      ans := lp_scaleDenominators(poly) . ans
+      ans := reversip(ans)
     >>;
-    return reversip(ans)
+    primes_setAccumModulo(primetracker, modulo * prime);
+    return ans
   end;
 
-% Main function for modular F5 Groebner basis computation
-%
-% !! Takes module elements in input and returns module elements in output
+% Given the set of generators `inputBasis` with SQ
+% as coefficients, multiply each generator by the common denominator
+% of its coefficients to obtain integer coefficients.
+% Assumed to be called only for numeric rational number input.
+asserted procedure mod_scaleDenominators(inputBasis: List): List;
+  for each poly in inputBasis collect lp_scaleDenominators(poly);
+
+% Main procedure for modular F5 Groebner basis computation,
+% !! Takes list of module elements as input and returns a list of module elements as output
 asserted procedure mod_groebnerModular1(inputBasis: List): List;
   begin scalar integerBasis, reducedBasis, computedBasis,
                 reconstructedBasis, accumBasis,
                 correctness, primetracker;
-        integer iter, prime;
+        integer prime;
+    % contains current lucky prime for reduction and accumulates
+    % the product of all previous ones
+    primetracker := primes_Primetracker();
+    % scale coefficients to integers
+    integerBasis := mod_scaleDenominators(inputBasis);
+    % now all denominators are 1 and coefficients are actually "big" integers
+    % in a sense that it's not safe to use machine arithmetic
 
-      % contains current lucky prime for reduction and accumulates
-      % the product of all previous ones
-      primetracker := primes_Primetracker();
+    % this basis will store accumulated coefficients
+    % from all previous CRT calls
+    accumBasis := nil;
 
-      % scale coefficients to integers
-      integerBasis := mod_scaleDenominators(inputBasis);
-      % now all denominators are 1 and coefficients are actually "big" integers
+    % so, while the correctness check failes
+    while not correctness do <<
+      % select the next lucky prime
+      prime := primes_nextLuckyPrime(primetracker, integerBasis);
+      ASSERT(primep prime);
+      % reduce the basis w.r.t the prime
+      reducedBasis := mod_modularReduction(integerBasis, prime);
+      % now all coefficients in reducedBasis should be small integers
 
-      % this basis will store accumulated coefficients
-      % from all previous CRT calls
-      accumBasis := nil;
+      % compute the basis in the finite field
+      computedBasis := core_groebner1(reducedBasis);
 
-      % so, while the correctness check failes
-      while not correctness do <<
-         % select next lucky prime
-         prime := primes_nextLuckyPrime(primetracker, integerBasis);
-         ASSERT(primep prime);
-
-         % reduce the basis w.r.t the prime
-         reducedBasis := mod_modularReduction(integerBasis, prime);
-         % now all coefficients in reducedBasis should be small integers
-
-         % compute the basis in the finite field
-         computedBasis := core_groebner1(reducedBasis);
-
-         % CRT (prevprime, prime) --> (prevprime*prime)
-         accumBasis := mod_crtReconstruction(accumBasis, computedBasis, primetracker);
-
-         % reconstruct modulo modulo
-         reconstructedBasis := mod_rationalReconstruction(accumBasis, primetracker);
-
-         correctness := mod_correctnessCheck(primetracker,
-                                             integerBasis,
-                                             reconstructedBasis);
-         % correctness := t;
-         iter := iter + 1
-      >>;
-
-      return reconstructedBasis
+      % CRT (prevprime, prime) --> (prevprime*prime)
+      accumBasis := mod_crtReconstruction(accumBasis, computedBasis, primetracker);
+      % reconstruct modulo modulo
+      reconstructedBasis := mod_rationalReconstruction(accumBasis, primetracker);
+      correctness := mod_correctnessCheck(primetracker,
+                                            integerBasis,
+                                            reconstructedBasis)
+    >>;
+    return reconstructedBasis
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -249,20 +175,18 @@ asserted procedure mod_groebnerModular1(inputBasis: List): List;
 %   r // h ≡ a (mod m)
 %
 % Here, a and m can be *arbitrary large* integers
-asserted procedure mod_reconstruction(a: Integer, m: Integer);
+asserted procedure mod_reconstruction(a: Integer, m: Integer): DottedPair;
   begin integer ans, x, com, u1, u2, u3, q, bnd,
                 v1, v2, v3, t1, t2, t3, tt, r;
-    if a #= 0 then
+    if a = 0 then
         ans := 0 . 1
-    else if a #= 1 then
+    else if a = 1 then
         ans := 1 . 1
     else <<
         bnd := isqrt(m / 2);
-
         u1 := 1;
         u2 := 0;
         u3 := m;
-
         v1 := 0;
         v2 := 1;
         v3 := a;
@@ -271,28 +195,22 @@ asserted procedure mod_reconstruction(a: Integer, m: Integer);
             t1 := u1 - q * v1;
             t2 := u2 - q * v2;
             t3 := u3 - q * v3;
-
             u1 := v1;
             u2 := v2;
             u3 := v3;
-
             v1 := t1;
             v2 := t2;
             v3 := t3
         >>;
-
         tt := abs(v2);
         r := v3 * sgn(v2);
-
         if tt < 0 then <<
           tt := - tt;
           r  := - r
         >>;
-
         com := mod_euclid(abs(r), tt);
         ans := (r / com) . (tt / com)
     >>;
-
     return ans
   end;
 
@@ -301,8 +219,8 @@ asserted procedure mod_reconstruction(a: Integer, m: Integer);
 % Standard Euclidean algorithm
 %
 % Here, a and b can be *arbitrary large* integers
-asserted procedure mod_euclid(a: Integer, b: Integer);
-  if b #= 0 then
+asserted procedure mod_euclid(a: Integer, b: Integer): Integer;
+  if b = 0 then
       a
   else
     mod_euclid(b, a mod b);
@@ -310,9 +228,9 @@ asserted procedure mod_euclid(a: Integer, b: Integer);
 % Standard Extended Euclidean algorithm,
 % Returns x and y such that a*x + b*y = 1.
 % Assumes that a and b are coprime and *arbitrary large* integers
-asserted procedure mod_extendedEuclid(a, b);
+asserted procedure mod_extendedEuclid(a: Integer, b: Integer): DottedPair;
   begin integer x, y, k;
-    return if b #= 0 then
+    return if b = 0 then
       1 . 0
     else <<
       x . y := mod_extendedEuclid(b, a mod b);
@@ -325,7 +243,8 @@ asserted procedure mod_extendedEuclid(a, b);
 % Returns integer x such that
 %   x ≡ a1 (mod m1)
 %   x ≡ a2 (mod m2)
-asserted procedure mod_crt(a1, m1, a2, m2);
+asserted procedure mod_crt(a1: Integer, m1: Integer,
+                            a2: Integer, m2: Integer): Integer;
   begin integer x, y, n, m;
     m := m1 * m2;
     x . y := mod_extendedEuclid(m1, m2);
@@ -334,12 +253,6 @@ asserted procedure mod_crt(a1, m1, a2, m2);
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% trst mod_reconstruction;
-% trst mod_crt;
-% trst mod_extendedEuclead;
-trst mod_groebnerModular1;
-trst mod_randomizedCorrectnessCheck;
 
 endmodule;
 

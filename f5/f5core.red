@@ -1,87 +1,148 @@
 module f5core;
-
-% Core module that contains f5 algorithm implementation.
-%
-% BasisKeeper is a structure that stores all emerging polynomials in a vector.
-% More precicely, the structure of BasisKeeper is the following
-%   {vector, filled, capacity}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The main module with the f5 algorithm implementation.
 
 % fluid '(NREDUCTIONSF5 NNORMALFORMS);
 % NREDUCTIONSF5 := 0;
 % NNORMALFORMS := 0;
 
-asserted procedure core_BasisKeeper(capacity);
-  begin scalar v;
-        integer filled;
-    filled := 0;
-    v := mkvect(capacity);
-    return {v, filled, capacity}
-  end;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CriticalPair
 
-asserted procedure core_addPoly(r, f);
-  begin;
+% The struct implements the usual Critical Pair interface:
+% the pair stores information about two polynomials to construct
+% an S-polynomial from it later.
+% Assuming there exist two polynomials `f1` and `f2` and their S-polynomial is
+%   u*f1 - v*f2
+% Then CriticalPair objects are represented with a 6-item list
+%   {'cp, tt, k, u, l, v}
+%
+% Where
+%   tt is a Term for the lcm(leadTerm(f1), leadTerm(f2)),
+%   k is an Integer for the index of `f1` in the current Basistracker,
+%   u is a Term for the multiplier of `f1`,
+%   l is an Integer for the index of `f2` in the current Basistracker,
+%   v is a Term for the multiplier of `f2`
+%
+% It is safe to assume that (k, u) >= (l, v) as Signatures
+%             TODO: or even (k, u) > (l, v)
+
+asserted inline core_criticalPair(tt: Term, k: Integer, u: Term,
+                                    l: Integer, v: Term): CriticalPair;
+  {'cp, tt, k, u, l, v};
+
+% Return tt
+asserted inline procedure core_getPairLcm(p: CriticalPair): Term;
+  car p;
+
+% Return k . u1
+asserted inline procedure core_getPairFirst(p: CriticalPair): DottedPair;
+  (cadr p) . (caddr p);
+
+% Return l . u2
+asserted inline procedure core_getPairSecond(p: CriticalPair): DottedPair;
+  (cadddr p) . (car cddddr p);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% RewriteRule
+
+% The struct implements Rewrite Rule interface to keep track of signatures
+% that were already produced during execution before.
+%
+% The RewriteRule object is a list
+%   {'rr, index, term}
+% Here, index is an Integer, an index of polynomial from the Basistracker structure,
+% and term is a Term, a multiplier of some signature.
+
+asserted inline core_RewriteRule(index: Integer, tt: Term): RewriteRule;
+  {'rr, index, tt};
+
+% Return index
+asserted inline procedure core_getRuleIndex(r: RewriteRule): Integer;
+  car r;
+
+% Return multiplier
+asserted inline procedure core_getRuleTerm(r: RewriteRule): Term;
+  cadr r;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Basistracker
+
+% Implements the Basistracker struct. Basistracker instance is an object
+% that stores all polynomials produced during f5 execution in a single vector.
+% More precicely, the structure of Basistracker instance is represented as
+%   {'bt, polys, filled, capacity}
+% Where
+%   polys is a Vector of `Polynomial`s,
+%   filled is an Integer equal to the number of elements filled in `polys`,
+%   capacity is an Integer equal to the length of `polys`
+%
+% It safe to assume that polynomials added to the current Basistracker
+% are normalized.
+
+fluid '(core_initialBasisSize!*);
+% We take a big number from the start,
+% so that there is no need to copy the storage vector very often
+% TODO: scale this with the basis growing
+core_initialBasisSize!* := 10000;
+
+asserted procedure core_Basistracker(capacity: Integer): Basistracker;
+  {'bt, mkvect(capacity), 0, capacity};
+
+% Adds LabeledPolynomial f to the basis
+asserted procedure core_addPoly(r: Basistracker, f: LabeledPolynomial);
+  <<
     putv(car r, cadr r, f);
     cadr r := cadr r #+ 1
-  end;
+  >>;
 
-asserted procedure core_setPoly(r, i, f);
+% Sets the i'th polynomial in the basis to f
+asserted inline procedure core_setPoly(r: Basistracker, i: Integer, f: Polynomial);
   putv(car r, i, f);
 
-asserted procedure core_getPoly(r, i);
+% Returns the i'th polynomial from the basis
+asserted inline procedure core_getPoly(r: Basistracker, i: Integer): LabeledPolynomial;
   getv(car r, i);
 
-asserted procedure core_getBasisIdx(r);
+% Returns the index of the last polynomial added to the basis
+asserted inline procedure core_getBasisIdx(r: Basistracker): Integer;
   (cadr r) #- 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Additional comparators for sorting
 
-asserted procedure core_pairTotalDegreeCmp(p1, p2);
-  poly_totalDeg(core_getPairLcm(p1)) #< poly_totalDeg(core_getPairLcm(p2));
+% TODO: add the current term order cmp as a tie-breaker
+asserted procedure core_pairTotalDegreeCmp(p1: CriticalPair, p2: CriticalPair);
+  poly_totalDegTerm(core_getPairLcm(p1)) #< poly_totalDegTerm(core_getPairLcm(p2));
 
-asserted procedure core_pairLcmCmp(p1, p2);
-  poly_cmpExp(core_getPairLcm(p1), core_getPairLcm(p2));
+% compare critical pairs by lcm term according to the current term order
+asserted procedure core_pairLcmCmp(p1: CriticalPair, p2: CriticalPair);
+  poly_cmpTerm(core_getPairLcm(p1), core_getPairLcm(p2));
 
-asserted procedure core_assocSgnCmp(pr1, pr2);
-  lp_sgnCmp(lp_sgn(cdr pr1), lp_sgn(cdr pr2));
+% compare associative list elements by their signature
+asserted procedure core_assocSgnCmp(pr1: DottedPair, pr2: DottedPair);
+  lp_cmpSgn(lp_sgn(cdr pr1), lp_sgn(cdr pr2));
 
-asserted procedure core_assocLeadCmp(pr1, pr2);
+% compare associative list elements by their leading term
+% in the current term order
+asserted procedure core_assocLeadCmp(pr1: DottedPair, pr2: DottedPair);
   poly_leadTotalDegreeCmp(lp_eval(cdr pr1), lp_eval(cdr pr2));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-asserted procedure core_getPairLcm(p);
-  car p;
-
-asserted procedure core_getPairFirst(p);
-  (cadr p) . (caddr p);
-
-asserted procedure core_getPairSecond(p);
-  (cadddr p) . (car cddddr p);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% for the given set of polynomials `inputBasis` construct
-% the standard basis of unit vectors corresponding to F
-% , i.e.,
-% {f, g}  --> {(1, 0), (0, 1)}
+% for the given set of polynomials `inputBasis` first
+%   . interreduce input polynomials
+%   . sort them by the leading term increasing
+% and then construct the standard basis of unit vectors corresponding to F, i.e.,
+%   {f, g}  --> {(1, 0), (0, 1)}
+% where each basis vector is represented as a LabeledPolynomial
 asserted procedure core_constructModule(inputBasis: List): List;
-  begin scalar poly, elem, outputModule;
+  begin scalar outputModule;
         integer i;
-
     inputBasis := core_interreduceInput(inputBasis);
-
-
     inputBasis := sort(inputBasis, 'poly_leadTotalDegreeCmp);
-
-    % prin2t {"AFTER SORT", inputBasis};
-
     i := 0;
     while inputBasis do <<
-      poly . inputBasis := inputBasis;
-      elem := lp_LabeledPolynomial1(poly, i);
-      outputModule := elem . outputModule;
+      push(lp_LabeledPolynomial1(pop(inputBasis), i), outputModule);
       i := i + 1
     >>;
     return reversip(outputModule)
@@ -89,611 +150,178 @@ asserted procedure core_constructModule(inputBasis: List): List;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-asserted procedure core_findReductor(k, Gprev, newGcurr, r, Rule);
-  begin scalar tt, rk, rkev, rksgn, rj, ri, u, rjsgn, urjsgn, tj;
-        integer j, ans;
-
-    ans := 0;
-    rk := core_getPoly(r, k);
-    rkev := lp_eval(rk);
-    rksgn := lp_sgn(rk);
-
-    tt := poly_leadExp(lp_eval(rk));
-    for each j in newGcurr do <<
-      rj := core_getPoly(r, j);
-      tj := poly_leadExp(lp_eval(rj));
-      if (ans = 0) and poly_divExp!?(tj, tt) then <<
-        u := poly_subExp(tt, tj);
-        rjsgn := lp_sgn(rj);
-        urjsgn := lp_multSgn(rjsgn, u);
-        if not lp_eqSignature(urjsgn, rksgn) then
-          if not core_isRewritable(u, j, r, Rule) then
-            if not core_isTopReducibleMonom(lp_sgnMonom(urjsgn), Gprev, r) then
-              ans := j
+% Compute the normal form of f w.r.t. polynomials r_i where i ∈ Gprev
+%
+% Two cases are possible:
+%  1. At least one reduction step happened,
+%     then we return the true flag together with the result of all reductions.
+%  2. No reductions where performed, then nil flag and f itself are returned
+%
+% During reductions, the topReduce flag controls desired reduction type.
+% If topReduce is set, only top-reductions happen.
+asserted procedure core_normalForm(f: Polynomial, Gprev: List,
+                                      r: Basistracker, topReduce): DottedPair;
+  begin scalar updated, reducer, modified, updatedToreturn;
+    updated := t;
+    while updated do <<
+      updated := nil;
+      for each g in Gprev do <<
+        reducer := lp_eval(core_getPoly(r, g));
+        if not poly_iszero!?(reducer) and not poly_iszero!?(f) then <<
+          modified . f := if topReduce then
+            poly_tryTopReductionStep(f, reducer)
+          else
+            poly_tryReductionStep(f, reducer);
+          updated := updated or modified;
+          updatedToreturn := updated or updatedToreturn
+        >>
       >>
     >>;
-
-    return ans
-  end;
-
-asserted procedure core_topReductionF5(k, Gprev, newGcurr, r, Rule);
-  begin scalar rk, p, q, u, newr, flag, pev;
-        integer j;
-
-    rk := core_getPoly(r, k);
-    if lp_iszero!?(rk) then <<
-      prin2t "Reduction to zero!";
-      return nil . nil
-    >>;
-
-    % NREDUCTIONSF5 := NREDUCTIONSF5 + 1;
-
-    j := core_findReductor(k, Gprev, newGcurr, r, Rule);
-    % COEFF
-    if j #= 0 then <<
-      core_setPoly(r, k, lp_normalize(rk));
-      return k . nil
-    >>;
-
-    p := rk;
-    q := core_getPoly(r, j);
-    u := poly_subExp(poly_leadExp(lp_eval(p)), poly_leadExp(lp_eval(q)));
-    % c := mod_div(poly_leadCoeff(lp_eval(p)), poly_leadCoeff(lp_eval(q)));
-
-    flag . pev := core_reducePolyByTop(lp_eval(p), lp_eval(q));
-
-    % lp_setEval(p, pev);
-    % core_setPoly(r, k, p);
-
-    % COEFF
-    if not poly_iszero!?(pev) then
-      pev := poly_normalize(pev);
-
-    usgnq := lp_multSgn(lp_sgn(q), u);
-
-    return if lp_sgnCmp(usgnq, lp_sgn(p)) then <<
-      lp_setEval(p, pev);
-      core_setPoly(r, k, p);
-      nil . k . nil
-    >> else <<
-      newr := lp_LabeledPolynomial2(pev, usgnq);
-      core_addPoly(r, newr);
-      core_addRule(Rule, lp_sgn(newr), core_getBasisIdx(r));
-      nil . k . core_getBasisIdx(r) . nil
-    >>
-  end;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-asserted procedure core_reducePolyByTop(f, g);
-  begin scalar newf, updated, fexps, fcoeffs,
-                glead, gc, fc, flag, fex, fmult, gmult;
-
-    newf := f;
-    ge := poly_leadExp(g);
-    gc := poly_leadCoeff(g);
-
-  start:
-    updated := nil;
-
-    fe := poly_leadExp(newf);
-    fc := poly_leadCoeff(newf);
-
-    flag := poly_divExp!?(ge, fe);
-
-    if flag then <<
-      fmult := poly_zeroExp();
-      gmult := poly_subExp(fe, ge);
-      % f*mult - g*mult
-      % COEFF
-      newf := poly_paircomb(f, fmult, fc, g, gmult, gc);
-      updated := t;
-    >>;
-
-    return updated . newf
-  end;
-
-asserted procedure core_reducePolyBy(f, g);
-  begin scalar newf, updated, fexps, fcoeffs,
-                glead, gc, fc, flag, fex, fmult, gmult;
-    newf := f;
-
-    updated := nil;
-
-    fexps := poly_getExps(f);
-    fcoeffs := poly_getCoeffs(f);
-    glead := poly_leadExp(g);
-    gc := poly_leadCoeff(g);
-
-    while (not updated) and fexps do <<
-      fex := pop(fexps);
-      fc  := pop(fcoeffs);
-      flag := poly_divExp!?(glead, fex);
-      if flag then <<
-        fmult := poly_zeroExp();
-        gmult := poly_subExp(fex, glead);
-        % f*mult - g*mult
-        % COEFF
-        newf := poly_paircomb(f, fmult, fc, g, gmult, gc);
-        updated := t;
-      >>;
-    >>;
-
-    return updated . newf
-  end;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-asserted procedure core_normalForm(f, Gprev, r);
-  begin scalar newf, updated, reducer, modified,
-                updatedToreturn;
-    newf := f;
-    updatedToreturn := nil;
-
-  start:
-    updated := nil;
-    for each g in Gprev do <<
-      reducer := lp_eval(core_getPoly(r, g));
-      if not poly_iszero!?(reducer) and not poly_iszero!?(newf) then <<
-        modified . newf := core_reducePolyBy(newf, reducer);
-        updated := updated or modified;
-        updatedToreturn := updated or updatedToreturn
-      >>
-    >>;
-
-    if updated then
-      goto start;
-
     return updatedToreturn . newf
   end;
 
-asserted procedure core_normalFormTop(f, Gprev, r);
-  begin scalar newf, updated, reducer, modified,
-                updatedToreturn;
-    newf := f;
-    updatedToreturn := nil;
-
-  start:
-    updated := nil;
-    for each g in Gprev do <<
-      reducer := lp_eval(core_getPoly(r, g));
-      if not poly_iszero!?(reducer) and not poly_iszero!?(newf) then <<
-        modified . newf := core_reducePolyByTop(newf, reducer);
-        updated := updated or modified;
-        updatedToreturn := updated or updatedToreturn
+% Same as the above, but all possible reducers are
+% already stored in `reducers` as polynomials.
+asserted procedure core_normalFormReducers(f: Polynomial, reducers: List,
+                                              topReduce): DottedPair;
+  begin scalar updated, reducer, modified, updatedToreturn;
+    updated := t;
+    while updated do <<
+      updated := nil;
+      for each reducer in Gprev do <<
+        if not poly_iszero!?(reducer) and not poly_iszero!?(f) then <<
+          modified . f := if topReduce then
+            poly_tryTopReductionStep(f, reducer)
+          else
+            poly_tryReductionStep(f, reducer);
+          updated := updated or modified;
+          updatedToreturn := updated or updatedToreturn
+        >>
       >>
     >>;
-
-    if updated then
-      goto start;
-
-    return updatedToreturn . newf
-  end;
-
-asserted procedure core_normalFormTopReducers(f, reducers);
-  begin scalar newf, updated, reducer, modified,
-                updatedToreturn;
-    newf := f;
-    updatedToreturn := nil;
-
-  start:
-    updated := nil;
-    for each reducer in reducers do <<
-      reducer := lp_eval(reducer);
-      if not poly_iszero!?(reducer) and not poly_iszero!?(newf) then <<
-        modified . newf := core_reducePolyByTop(newf, reducer);
-        updated := updated or modified;
-        updatedToreturn := updated or updatedToreturn
-      >>
-    >>;
-
-    if updated then
-      goto start;
-
-    return updatedToreturn . newf
-  end;
-
-asserted procedure core_normalFormReducers(f, reducers);
-  begin scalar newf, updated, reducer, modified,
-                updatedToreturn;
-    newf := f;
-    updatedToreturn := nil;
-
-  start:
-    updated := nil;
-    for each reducer in reducers do <<
-      if not poly_iszero!?(reducer) and not poly_iszero!?(newf) then <<
-        modified . newf := core_reducePolyBy(newf, reducer);
-        updated := updated or modified;
-        updatedToreturn := updated or updatedToreturn
-      >>
-    >>;
-
-    if updated then
-      goto start;
-
     return updatedToreturn . newf
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-asserted procedure core_insertSorted(todo, j, r);
-  begin scalar tmp, prev, sj, s;
-    if null todo then
-      return j . nil;
-
-    sj  := lp_sgn(core_getPoly(r, j));
-    s   := lp_sgn(core_getPoly(r, car todo));
-    if lp_sgnCmp(sj, s) then
-      return j . todo;
-
-    tmp := todo;
-    while cdr todo and lp_sgnCmp(sj, lp_sgn(core_getPoly(r, cadr todo))) do <<
-      todo := cdr todo
-    >>;
-
-    cdr todo := j . cdr todo;
-
-    return tmp
-  end;
-
-asserted procedure core_reduction(S, Gprev, Gcurr, r, Rule);
-  begin scalar todo, S, completed, newGcurr, rk, rknfeval,
-                newcompleted, redo, flag;
-        integer k, j;
-
-    todo := S;
-    completed := nil;
-
-    newGcurr := copy(Gcurr);
-
-    while todo do <<
-      k := pop(todo);
-      rk := core_getPoly(r, k);
-
-      % NNORMALFORMS := NNORMALFORMS + 1;
-
-      flag . rknfeval := if !*f5fullreduce then
-        core_normalFormTop(lp_eval(rk), Gprev, r)
-      else
-        core_normalFormTop(lp_eval(rk), Gprev, r);
-
-      lp_setEval(rk, rknfeval);
-      core_setPoly(r, k, rk);
-
-      newcompleted . redo := core_topReductionF5(k, Gprev, newGcurr, r, Rule);
-
-      if newcompleted then <<
-        completed := newcompleted . completed;
-        newGcurr := newcompleted . newGcurr
-      >>;
-
-      for each j in redo do
-        todo := core_insertSorted(todo, j, r);
-    >>;
-
-    return completed
-  end;
-
-asserted procedure core_isTopReducibleMonom(m, Gprev, r);
-  begin scalar tf, g, gi, ans;
-    ans := nil;
-    while Gprev and (not ans) do <<
-      gi := pop(Gprev);
-      g  := core_getPoly(r, gi);
-      if poly_divExp!?(poly_leadExp(lp_eval(g)), m) then
-        ans := t
-    >>;
-    return ans;
-  end;
-
-asserted procedure core_criticalPair(i, k, l, Gprev, r);
-  begin scalar rk, rl, tk, tl, tt, u1, u2, sgn1, sgn2,
-                usgn1, usgn2;
-        integer i;
-
-    % prin2t {"i =", i, ", k = ", k, "l = ", l};
-
-    rk := core_getPoly(r, k);
-    rl := core_getPoly(r, l);
-
-    tk := poly_leadExp(lp_eval(rk));
-    tl := poly_leadExp(lp_eval(rl));
-
-    tt := poly_lcmExp(tk, tl);
-
-    u1 := poly_subExp(tt, tk);
-    u2 := poly_subExp(tt, tl);
-
-    sgn1 := lp_sgn(rk);
-    sgn2 := lp_sgn(rl);
-
-    usgn1 := lp_multSgn(sgn1, u1);
-    usgn2 := lp_multSgn(sgn2, u2);
-
-    if (lp_sgnIndex(sgn1) #= i) and core_isTopReducibleMonom(lp_sgnMonom(usgn1), Gprev, r) then
-      return nil;
-
-    if (lp_sgnIndex(sgn2) #= i) and core_isTopReducibleMonom(lp_sgnMonom(usgn2), Gprev, r) then
-      return nil;
-
-    if core_isRewritable(u1, k, r, Rule) or core_isRewritable(u2, l, r, Rule) then
-      return nil;
-
-    if lp_sgnCmp(usgn1, usgn2) then <<
-      u1 . u2 := u2 . u1;
-      k . l := l . k
-    >>;
-
-    return {tt, k, u1, l, u2}
-  end;
-
-asserted procedure core_RewriteRule(idx, monom);
-  {idx, monom};
-
-asserted procedure core_ruleMonom(rr);
-  cadr rr;
-
-asserted procedure core_ruleIndex(rr);
-  car rr;
-
-asserted procedure core_addRule(Rule, sgn, k);
-  begin scalar srule;
-    srule := getv(Rule, lp_sgnIndex(sgn));
-    srule := core_RewriteRule(k, lp_sgnMonom(sgn)) . srule;
-    putv(Rule, lp_sgnIndex(sgn), srule)
-  end;
-
-asserted procedure core_findRewriting(u, k, r, Rule);
-  begin scalar sgn, flag, krules, krule;
-        integer ans;
-
-    sgn := lp_sgn(core_getPoly(r, k));
-    krules := getv(Rule, lp_sgnIndex(sgn));
-    ans := k;
-
-    % be careful with order in krules
-    while krules and (not flag) do <<
-      krule := pop(krules);
-      flag := poly_divExp!?(core_ruleMonom(krule), lp_sgnMonom(lp_multSgn(sgn, u)));
-      if flag then
-        ans := core_ruleIndex(krule)
-    >>;
-
-    return ans
-  end;
-
-asserted procedure core_isRewritable(u, k, r, Rule);
-  not (core_findRewriting(u, k, r, Rule) #= k);
-
-asserted procedure core_spoly(f, g);
-  begin scalar e1, e2, elcm, mult1, mult2;
-    e1 := poly_leadExp(f);
-    e2 := poly_leadExp(g);
-
-    elcm := poly_lcmExp(e1, e2);
-
-    mult1 := poly_subExp(elcm, e2);
-    mult2 := poly_subExp(elcm, e1);
-
-    return poly_paircomb(f, mult2, poly_leadCoeff(f), g, mult1, poly_leadCoeff(g))
-  end;
-
-asserted procedure core_computeSpolys(pairs, r, Rule);
-  begin scalar S, pairs, p, u, v, lpk, lpl, alS,
-                evals, sgns, lpnew, localSgnCmp;
-        integer l, k;
-
-    S := nil;
-    pairs := sort(pairs, 'core_pairLcmCmp);
-
-    while pairs do <<
-      p := pop(pairs);
-      k . u := core_getPairFirst(p);
-      l . v := core_getPairSecond(p);
-      if (not core_isRewritable(u, k, r, Rule)) and (not core_isRewritable(v, l, r, Rule)) then <<
-        lpk := core_getPoly(r, k);
-        lpl := core_getPoly(r, l);
-
-        evals := core_spoly(lp_eval(lpk), lp_eval(lpl));
-        sgns := lp_multSgn(lp_sgn(lpk), u);
-
-        lpnew := lp_LabeledPolynomial2(evals, sgns);
-
-        core_addPoly(r, lpnew);
-
-        core_addRule(Rule, sgns, core_getBasisIdx(r));
-
-        if not poly_iszero!?(evals) then
-          S := core_getBasisIdx(r) . S
-      >>
-    >>;
-
-    % Sort indices S w.r.t. values in r
-    alS := for each i in S collect i . core_getPoly(r, i);
-    alS := sort(alS, 'core_assocSgnCmp);
-
-    S := for each pr in alS collect car pr;
-
-    return S
-  end;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-asserted procedure core_incrementalBasis(i, Gprev, r, Rule);
-  begin scalar Gcurr, pairs, p, S, dpairs, reduced, k, tmp;
-        integer i, j, d, currIdx;
-
-    currIdx := core_getBasisIdx(r);
-
-    Gcurr := copy(Gprev);
-    Gcurr := currIdx . Gcurr;
-
-    pairs = nil;
-    for each j in Gprev do <<
-      p := core_criticalPair(i, currIdx, j, Gprev, r);
-      if p then
-        pairs := p . pairs
-    >>;
-
-    % prin2t {i, "iter, generated ", length(pairs), "pairs"};
-
-    while pairs do <<
-      pairs := sort(pairs, 'core_pairTotalDegreeCmp);
-
-      p := pop(pairs);
-      d := poly_totalDeg(core_getPairLcm(p));
-
-      dpairs := p . nil;
-      while pairs and (poly_totalDeg(core_getPairLcm(car pairs)) #= d) do <<
-        p := pop(pairs);
-        dpairs := p . dpairs
-      >>;
-
-      % prin2t {"SELECTED", length(dpairs), "pairs of degree", d, "out of", length(dpairs) + length(pairs)};
-
-      % prin2t {dpairs};
-
-      S := core_computeSpolys(dpairs, r, Rule);
-
-      % if S then
-      %   prin2t core_getPoly(r, (car S));
-
-      reduced := core_reduction(S, Gprev, Gcurr, r, Rule);
-
-      % prin2t {"AFTER reduction ", length(reduced)};
-      % if reduced then
-      %   prin2t core_getPoly(r, (car reduced));
-
-      % prin2t r;
-
-      reduced := reversip(reduced);
-      while reduced do <<
-        k := pop(reduced);
-        tmp := Gcurr;
-        while tmp do <<
-          j := pop(tmp);
-          p := core_criticalPair(i, j, k, Gprev, r);
-          if p then
-            pairs := p . pairs
-        >>;
-        % prin2t {"new # pairs for ", k, " are ", length(pairs)};
-        Gcurr := k . Gcurr
-        % prin2t {"new # Gcurr: ", length(Gcurr)}
-      >>
-    >>;
-
-    return Gcurr
-  end;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-asserted procedure core_interreduceCali(basis);
-  begin scalar ring;
-    return red_straight(cdr basis)
-  end;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-asserted procedure core_getReducers(i, G);
+% return G without the i-th element, e.g.,
+% for G = {8, 4, 5} and i = 2 return {8, 5}
+asserted procedure core_getReducers(i: Integer, G: List): List;
   begin scalar reducers, poly;
         integer j;
     j := 1;
     while G do <<
       poly := pop(G);
       if not (j #= i) then
-        reducers := poly . reducers;
+        push(poly, reducers);
       j := j #+ 1
     >>;
     return reducers
   end;
 
-% Given the set of generators `basis` apply the autoreduction algorithm
-% to interreduce generators w.r.t. each other
-asserted procedure core_interreduceInput(input);
-  begin scalar reducers, updated, flag, p, f,
+% Given the set of basis generators `input`
+% apply passes of the Autoreduction algorithm
+% until no further reductions happen
+asserted procedure core_interreduceInput(input: List): List;
+  begin scalar reducers, updated, reduced, p, f,
                 newInput, i;
-
-  start:
-    newInput := nil;
-    updated := nil;
-    while input do <<
-      f := pop(input);
-      reducers := append(newInput, input);
-
-      flag . p := core_normalFormReducers(f, reducers);
-      updated := updated or flag;
-
-      if not poly_iszero!?(p) then
-        newInput := p . newInput
+    updated := t;
+    while updated do <<
+      updated := nil;
+      newInput := nil;
+      while input do <<
+        f := pop(input);
+        reducers := append(newInput, input);
+        reduced . p := core_normalFormReducers(f, reducers);
+        updated := updated or reduced;
+        if not poly_iszero!?(p) then
+          push(p, newInput)
+      >>;
+      input := newInput
     >>;
-
-    if updated then <<
-      input := newInput;
-      goto start
-    >>;
-
     return newInput
   end;
 
-% Given the set of generators `basis` apply the autoreduction algorithm
-% to interreduce generators w.r.t. each other
-asserted procedure core_interreduceBasis(Gprev, r);
-  begin scalar updated, Gfull, newGprev, f, reducers, p;
-        integer m, idx, full;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  start:
-    m := length(Gprev);
-    Gfull := Gprev;
-    newGprev := nil;
-    for i := 1:m do <<
-      idx := pop(Gprev);
-      f := core_getPoly(r, idx);
-      reducers := core_getReducers(i, Gfull);
-
-      updated . p := core_normalForm(lp_eval(f), reducers, r);
-
-      lp_setEval(f, p);
-      core_setPoly(r, idx, f);
-
-      if not poly_iszero!?(p) then
-        newGprev := idx . newGprev
+% Part of the main F5 criterion:
+%   checks if m is top reducible by the previous Groebner basis;
+%   If it is, returns t;
+%   Otherwise, return nil
+asserted procedure core_isTopReducibleTerm(m: Term, Gprev: List,
+                                            r: Basistracker);
+  begin scalar tf, glead, gi, isReducible;
+    while Gprev and (not isReducible) do <<
+      gi := pop(Gprev);
+      glead := oly_leadTerm(lp_eval(core_getPoly(r, gi)));
+      if poly_divTerm!?(glead, m) then
+        isReducible := t
     >>;
-    Gprev := newGprev;
-
-    if updated then
-      goto start;
-
-    return Gprev
+    return isReducible;
   end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Add rewrite rule with index k and term term(sgn) to the set
+% of rewrite rules at position index(sgn)
+asserted procedure core_addRule(Rule: Vector, sgn: Signature, k: Integer);
+  begin scalar ruleS;
+    ruleS := getv(Rule, lp_indexSgn(sgn));
+    push(core_RewriteRule(k, lp_termSgn(sgn)), ruleS);
+    putv(Rule, lp_indexSgn(sgn), ruleS)
+  end;
+
+% Searches for the first rewriter for signature u*sgn(r_k)
+% and returns the index of it.
+% If there are no proper rewriters other than self, returns k
+asserted procedure core_findRewriting(u: Term, k: Integer,
+                                r: Basistracker, Rule: Vector): Integer;
+  begin scalar sgn, usgnt, foundRewriter, rulesAtK, ruleK;
+        integer rewriter;
+    rewriter := k;
+    sgn      := lp_sgn(core_getPoly(r, k));
+    usgnt    := lp_sgnTerm(lp_mulSgn(sgn, u);
+    rulesAtK := getv(Rule, lp_sgnIndex(sgn));
+    % Be careful with order in rulesAtK:
+    % we want to traverse rewrite rules at index k
+    % from the last to the first added ones,
+    % and terminate as soon as the first matching rule is found
+    while rulesAtK and (not foundRewriter) do <<
+      ruleK := core_getRuleTerm(pop(rulesAtK));
+      foundRewriter := poly_divTerm!?(ruleK, usgnt);
+      if foundRewriter then
+        rewriter := core_getRuleIndex(ruleK)
+    >>;
+    return rewriter
+  end;
+
+% Main Rewrite Criterion: Is signature u*sgn(r_k) rewritable?
+asserted inline procedure core_isRewritable(u: Term, k: Integer,
+                                        r: Basistracker, Rule: Vector);
+  not (core_findRewriting(u, k, r, Rule) #= k);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %
-asserted procedure core_filterRedundant(Gprev, r);
+asserted procedure core_filterRedundant(Gprev: List, r: Basistracker): List;
   begin scalar Gnew, alG, Gsort, reducers, glead, g;
         integer gi;
-
     % Sort indices S w.r.t. leading terms in r
     alG := for each i in Gprev collect i . core_getPoly(r, i);
     alG := sort(alG, 'core_assocLeadCmp);
     Gsort := for each pr in alG collect car pr;
-
-    Gnew := nil;
     while Gsort do <<
       gi := pop(Gsort);
       g := lp_eval(core_getPoly(r, gi));
       glead := poly_leadExp(g);
-      if not core_isTopReducibleMonom(glead, Gnew, r) then
-        Gnew := gi . Gnew
+      if not core_isTopReducibleTerm(glead, Gnew, r) then
+        push(gi, Gnew)
     >>;
-
     return Gnew
   end;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% normalize each generator in the given `basis` by the leading coefficient
+% normalize each generator in the given `basis`
+% by dividing it by the leading coefficient
 asserted procedure core_normalizeBasis(basis: List): List;
   for each x in basis collect lp_normalize(x);
 
@@ -701,26 +329,26 @@ asserted procedure core_normalizeBasis(basis: List): List;
 % returns the unique Groebner basis of the corresponding ideal <basis>
 %
 % Output invariants:
-%  . the basis is interreduced
+%  . the basis is interreduced (if f5fullreduce if off, only top-reductions are performed)
 %  . the basis is normalized by leading coefficients
 %  . the basis is sorted by leading terms increasingly
 asserted procedure core_standardizeOutput(basis: List): List;
-  begin;
-    basis := core_normalizeBasis(basis);
-    return sort(basis, 'lp_cmpLPLeadReverse)
+  begin scalar normalizedBasis;
+    normalizedBasis := core_normalizeBasis(basis);
+    return sort(normalizedBasis, 'lp_cmpLPLeadReverse)
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Checks if <polys> contains in <basis>,
+% Checks if <polys> contains in <basis> as ideals,
 % assuming `basis` is a Groebner basis
 asserted procedure core_checkIdealInclusion1(basis: List, polys: List);
-  begin scalar ans, tmp, evals, nf, flag;
+  begin scalar ans, tmp, evals, nf;
     ans := t;
     while ans and polys do <<
       p := pop(polys);
       evals := lp_eval(p);
-      flag . nf := core_normalFormTopReducers(evals, basis);
+      _ . nf := core_normalFormTopReducers(evals, basis);
       if not poly_iszero!?(nf) then
         ans := nil
     >>;
@@ -729,15 +357,16 @@ asserted procedure core_checkIdealInclusion1(basis: List, polys: List);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Checks if `basis` is a Groebner basis by checking all S-polynomials
+% Checks if `basis` is a Groebner basis by checking that
+% all S-polynomials reduce to zero
 asserted procedure core_isGroebner1(basis: List);
   begin scalar ans, tmp, evals, nf, flag;
     ans := t;
     while basis do <<
       tmp := cdr basis;
       while ans and tmp do <<
-        evals := core_spoly(lp_eval(car tmp), lp_eval(car basis));
-        flag . nf := core_normalFormTopReducers(evals, basis);
+        evals := poly_spoly(lp_eval(car tmp), lp_eval(car basis));
+        _ . nf := core_normalFormTopReducers(evals, basis);
         if not poly_iszero!?(nf) then
           ans := nil;
         tmp := cdr tmp
@@ -749,89 +378,334 @@ asserted procedure core_isGroebner1(basis: List);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% The heart of the package, --
-% the function to take the list of ideal generators `basis`
-% and to return a Groebner basis of this idel
-asserted procedure core_groebner1(basis: List): List;
-  begin scalar f1, r, Gprev, Rule, fi;
-        integer m, i, initialBasisSize;
-
-    m  := length(basis);
-    f1 := pop(basis);
-
-    % COEFF
-    f1 := lp_normalize(f1);
-
-    initialBasisSize := 10000;
-    r := core_BasisKeeper(initialBasisSize);
-    core_addPoly(r, f1);
-
-    Gprev := {0};
-    i := 1;
-
-    Rule := mkvect(m);
-
-    while i #< m do <<
-      fi := pop(basis);
-
-      % COEFF
-      fi := lp_normalize(fi);
-      core_addPoly(r, fi);
-      putv(Rule, i, nil);
-
-      Gprev := core_incrementalBasis(i, Gprev, r, Rule);
-
-      % prin2t {i, getv(Rule, i)};
-
-      % prin2t "#####################";
-      % prin2t Rule;
-      % prin2t "#####################";
-
-      i := i #+ 1
+% For polynomial at index k searches for a possible top-reducer from
+% the previous Groebner basis.
+% A possible reducer should fullfil several criteria:
+% First, it should be a top-reducer of r_k in a usual sense:
+%   the leading term of r_k must be divisible by the leading term of reducer
+% Secondly, reducer should admit a proper signature:
+%   . The signature must be not equal to the signature of r_k,
+%   . Reducer should be not rewritable AND not top-reducible itself
+%
+% If such reducer is found, return its index into r;
+% if no reducer was found, return 0
+asserted procedure core_findReducer(k: Integer, Gprev: List, newGcurr: List,
+                                  r: Basistracker, Rule: Vector): Integer;
+  begin scalar tt, rk, rkEval, rkSgn, rj, ri, u, rjSgnMult, tj;
+        integer j, reducer;
+    rk     := core_getPoly(r, k);
+    rkEval := lp_eval(rk);
+    rkSgn  := lp_sgn(rk);
+    tt := poly_leadTerm(rkEval);
+    for each j in newGcurr do <<
+      rj := core_getPoly(r, j);
+      tj := poly_leadTerm(lp_eval(rj));
+      % TODO: check order
+      if (reducer #= 0) and poly_divTerm!?(tj, tt) then <<
+        u := poly_divExp(tt, tj);
+        rjSgnMult := lp_multSgn(lp_sgn(rj), u);
+        if not lp_eqSig(rjSgnMult, rksgn) then
+          if not core_isRewritable(u, j, r, Rule) then
+            if not core_isTopReducibleTerm(lp_sgnTerm(rjSgnMult), Gprev, r) then
+              reducer := j
+      >>
     >>;
+    return reducer
+  end;
 
-    Gprev := core_filterRedundant(Gprev, r);
-
-    % if !*f5fullreduce then
-    %   Gprev := core_interreduceBasis(Gprev, r);
-
-    basis := nil;
-    while Gprev do <<
-      i := pop(Gprev);
-      basis := core_getPoly(r, i) . basis
+% Adapted from John Perry et al.
+%   https://arxiv.org/abs/0906.2967
+%
+% The most tricky part in F5 reduction, the top-reduction function.
+% If the LabeledPolynomial being examined has polynomial part 0, then there
+% is no data left in that particular signed polynomial - an
+% empty ordered pair is returned.
+%
+% Otherwise top-reduction calls upon another sub-subroutine core_findReducer.
+% Essentially, if core_findReducer comes back 0, the current LabeledPolynomial
+% is made monic and returned to reduction to be placed in completed.
+%
+% If a top-reduction is deemed possible, then there are two possible cases:
+% either the reduction will increase the signature of polynomial or it won't.
+% In the latter case, the signature is maintained, the polynomial part
+% is top-reduced and the LabeledPolynomial is returned to reduction to be
+% added back into todo.
+%
+% In the former case, however, the signature will change. This
+% is marked by adding a new polynomial to r with appropriate
+% signature based upon the reducer. A new rule is added and then
+% both reduced and reducer polynomials and are sent back to
+% reduction to be added back into todo. This is done because
+% reduced has a different signature than reducer and reducer might
+% still be reducible by another LabeledPolynomial.
+asserted procedure core_topReductionF5(k: Integer, Gprev: List, newGcurr: List,
+                      r: Basistracker, Rule: Vector): DottedPair;
+  begin scalar rk, p, u, newpoly, flag, reduced, reducerSgn;
+        integer j;
+    rk := core_getPoly(r, k);
+    % if reduction to zero happened in the normal form -
+    % meaning the system is not regular
+    if lp_iszero!?(rk) then <<
+      % prin2t "Reduction to zero!";
+      return nil . nil
     >>;
+    j := core_findReducer(k, Gprev, newGcurr, r, Rule);
+    % no top reducers found in the previous Groebner basis --
+    % reduction is not possible
+    if j #= 0 then <<
+      core_setPoly(r, k, lp_normalize(rk));
+      return k . nil
+    >>;
+    % reducer rj found, perform top-reduction
+    rj := core_getPoly(r, j);
+    _ . reduced := core_reducePolyByTop(lp_eval(rk), lp_eval(rj));
+    if not poly_iszero!?(reduced) then
+      reduced := poly_normalize(reduced);
+    % we need to check that signature of reducer
+    % is not greater than the signature of rj
+    u := poly_divTerm(poly_leadTerm(lp_eval(rk)), poly_leadTerm(lp_eval(rj)));
+    reducerSgn := lp_multSgn(lp_sgn(rj), u);
+    return if lp_sgnCmp(reducerSgn, lp_sgn(rk)) then <<
+      % signatures OK, reduction is successful.
+      % We form new new polynomial at index k,
+      % and return it to be reduced once again later
+      lp_setEval(rk, reduced);
+      core_setPoly(r, k, rk);
+      nil . k . nil
+    >> else <<
+      % signature of reducer is greater, reduction failed.
+      % BUT, we still can form a new polynomial with signature of reducer
+      % for further reduction
+      newpoly := lp_LabeledPolynomial2(reduced, reducerSgn);
+      core_addPoly(r, newpoly);
+      core_addRule(Rule, lp_sgn(newpoly), core_getBasisIdx(r));
+      % TODO: do we really want to return k here?
+      nil . k . core_getBasisIdx(r) . nil
+    >>
+  end;
 
-    basis := core_standardizeOutput(basis);
+% insert index j in todo, so that
+% indices in todo are sorted increasingly by signatures from r
+asserted procedure core_insertSorted(todo: List, j: Integer,
+                                        r: Basistracker): List;
+  begin scalar tmp, prev, sj, s;
+    if null todo then
+      return {j};
+    sj := lp_sgn(core_getPoly(r, j));
+    s  := lp_sgn(core_getPoly(r, car todo));
+    if lp_sgnCmp(sj, s) then
+      return j . todo;
+    tmp := todo;
+    while cdr todo and lp_sgnCmp(sj, lp_sgn(core_getPoly(r, cadr todo))) do <<
+      todo := cdr todo
+    >>;
+    cdr todo := j . cdr todo;
+    return tmp
+  end;
 
-    return basis
+% The main reduction function.
+% Given indexes of S-polynomials in S,
+% computes the F5-style reducted form for each of them.
+%
+% By F5-style reduced form we mean a normal form,
+% with respect to the previous Groebner basis,
+% combined with a top-reduction that does not change the signature of LP.
+asserted procedure core_reduction(S: List, Gprev: List, Gcurr: List,
+                                    r: Basistracker, Rule: Vector): List;
+  begin scalar todo, S, completed, newGcurr, rk, rknfeval,
+                newcompleted, redo;
+        integer k, j;
+    todo := S;
+    newGcurr := copy(Gcurr);
+    while todo do <<
+      k := pop(todo);
+      rk := core_getPoly(r, k);
+      % Compute the normal form;
+      % If full reduction is not needed, compute only top normal form.
+      % Otherwise, also reduce the polynomial tail.
+      _ . rknfeval := if !*f5fullreduce then
+        core_normalForm(lp_eval(rk), Gprev, r)
+      else
+        core_normalFormTop(lp_eval(rk), Gprev, r);
+      lp_setEval(rk, rknfeval);
+      core_setPoly(r, k, rk);
+      % Compute the F5-style top-reduction;
+      % If the polynomial
+      newcompleted . redo := core_topReductionF5(k, Gprev, newGcurr, r, Rule);
+      if newcompleted then <<
+        push(newcompleted, completed);
+        push(newcompleted, newGcurr)
+      >>;
+      for each j in redo do
+        todo := core_insertSorted(todo, j, r);
+    >>;
+    return completed
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Adapted from John Perry et al.
+%   https://arxiv.org/abs/0906.2967
+%
+% Though at first glance this subroutine may look complicated,
+%  core_computeSpolys essentially does one thing: form the new
+%  S-polynomials output from critical_pairs as LabeledPolynomials.
+%  We note that, because core_makeCriticalPair ensured
+%  that sgn(u*k) < sgn(v*l), we know that the signature of all new
+%  polynomials will always be of the form u_k*sgn(r_k) in core_computeSpolys.
+asserted procedure core_computeSpolys(pairs: List, r: Basistracker,
+                                        Rule: Vector): List;
+  begin scalar S, p, u, v, lpk, lpl, alS, seval, ssgn;
+        integer l, k;
+    pairs := sort(pairs, 'core_pairLcmCmp);
+    while pairs do <<
+      p := pop(pairs);
+      k . u := core_getPairFirst(p);
+      l . v := core_getPairSecond(p);
+      % Rewritten criterion
+      if (not core_isRewritable(u, k, r, Rule)) and (not core_isRewritable(v, l, r, Rule)) then <<
+        lpk := core_getPoly(r, k);
+        lpl := core_getPoly(r, l);
+        seval := poly_spoly(lp_eval(lpk), lp_eval(lpl));
+        ssgn  := lp_multSgn(lp_sgn(lpk), u);
+        core_addPoly(r, lp_LabeledPolynomial2(evals, sgns));
+        core_addRule(Rule, sgns, core_getBasisIdx(r));
+        if not poly_iszero!?(seval) then
+          push(core_getBasisIdx(r), S)
+      >>
+    >>;
+    % Sort indices S w.r.t. values in r
+    alS := for each i in S collect i . core_getPoly(r, i);
+    alS := sort(alS, 'core_assocSgnCmp);
+    S := for each pr in alS collect car pr;
+    return S
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Constructs a CriticalPair from polynomials at indices k and l.
+% If the pair is redundant by the F5 or the rewritten criterion, returns nil.
+%
+asserted procedure core_makeCriticalPair(i: Integer, k: Integer,
+                        l: Integer, Gprev: List, r: Basistracker): CriticalPair;
+  begin scalar rk, rl, tk, tl, tt, u1, u2, sgn1, sgn2, usgn1, usgn2;
+        integer i;
+    rk := core_getPoly(r, k);
+    rl := core_getPoly(r, l);
+    tk := poly_leadTerm(lp_eval(rk));
+    tl := poly_leadTerm(lp_eval(rl));
+    % tt = lcm(leadTerm(rk), leadTerm(rl))
+    tt := poly_lcmTerm(tk, tl);
+    % so that u1*rk - u2*rl is S-polynomial
+    u1 := poly_subExp(tt, tk);
+    u2 := poly_subExp(tt, tl);
+    % signatures of u1*rk and u2*rl
+    usgn1 := lp_mulSgn(lp_sgn(rk), u1);
+    usgn2 := lp_mulSgn(lp_sgn(rl), u2);
+    % F5 criterion
+    if (lp_indexSgn(sgn1) #= i) and core_isTopReducibleTerm(lp_termSgn(usgn1), Gprev, r) then
+      return nil;
+    if (lp_sgnIndex(sgn2) #= i) and core_isTopReducibleTerm(lp_termSgn(usgn2), Gprev, r) then
+      return nil;
+    % Rewritten criterion
+    if core_isRewritable(u1, k, r, Rule) or core_isRewritable(u2, l, r, Rule) then
+      return nil;
+    % the pair should be ordered
+    if lp_cmpSgn(usgn1, usgn2) then <<
+      u1 . u2 := u2 . u1;
+      k . l := l . k
+    >>;
+    return core_criticalPair(tt, k, u1, l, u2)
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Given that Gprev indexes the basis of {f1..fi-1} in `r`,
+% construct the basis of {f1..fi} and return a list of new indices
+asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
+                          r: Basistracker, Rule: Vector): List;
+  begin scalar Gcurr, pairs, p, S, dpairs, reduced, k, tmp;
+        integer i, j, d, currIdx;
+    currIdx := core_getBasisIdx(r);
+    Gcurr := copy(Gprev);
+    push(currIdx, Gcurr);
+    for each j in Gprev do <<
+      p := core_makeCriticalPair(i, currIdx, j, Gprev, r);
+      if p then
+        push(p, pairs)
+    >>;
+    while pairs do <<
+      pairs := sort(pairs, 'core_pairTotalDegreeCmp);
+      p := pop(pairs);
+      d := poly_totalDegTerm(core_getPairLcm(p));
+      dpairs := {p};
+      while pairs and (poly_totalDegTerm(core_getPairLcm(car pairs)) #= d) do <<
+        push(pop(pairs), dpairs)
+      >>;
+      S := core_computeSpolys(dpairs, r, Rule);
+      reduced := core_reduction(S, Gprev, Gcurr, r, Rule);
+      reduced := reversip(reduced);
+      while reduced do <<
+        k := pop(reduced);
+        tmp := Gcurr;
+        while tmp do <<
+          j := pop(tmp);
+          p := core_criticalPair(i, j, k, Gprev, r);
+          if p then
+            push(p, pairs)
+        >>;
+        push(k, Gcurr)
+      >>
+    >>;
+    return Gcurr
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% The heart of the package, --
+% the function to take a list of LabeledPolynomials as ideal generators,
+% and to return a standardized Groebner basis of this ideal as output
+%
+% Output contracts:
+%   . the output basis is top-reduced, meaning the number of generators is minimal,
+%   . the output basis is sorted by the leading term increasingly,
+%   . the output basis contains only normalized polynomials,
+%   . if f5fullreduce is on, then the output basis is tail-reduced
+asserted procedure core_groebner1(basis: List): List;
+  begin scalar f1, r, Gprev, Rule, fi;
+        integer m, i;
+    m  := length(basis);
+    % f1 - first polynomial added to the basis
+    f1 := pop(basis);
+    f1 := lp_normalize(f1);
+    r := core_BasisKeeper(core_initialBasisSize!*);
+    core_addPoly(r, f1);
+    % Gprev indexes generators of the current basis in the Basistracker `r`,
+    % So, Gprev := {0} indexes the basis of {f1}
+    Gprev := {0};
+    % Vector of RewriteRules
+    Rule := mkvect(m);
+    i := 1;
+    % Incremental construction from index 1 to index m
+    while i #< m do <<
+      fi := pop(basis);
+      fi := lp_normalize(fi);
+      core_addPoly(r, fi);
+      putv(Rule, i, nil);
+      % construct the basis for {f1...fi} using the basis for {f1...fi-1}
+      Gprev := core_incrementalBasis(i, Gprev, r, Rule);
+      i := i #+ 1
+    >>;
+    % filter redundant generators
+    Gprev := core_filterRedundant(Gprev, r);
+    % if !*f5fullreduce then
+    %   Gprev := core_interreduceBasis(Gprev, r);
+    basis := for each i in Gprev collect core_getPoly(r, i);
+    return core_standardizeOutput(basis)
+  end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 endmodule;
-
-% trst core_constructModule;
-% trst core_criticalPair;
-% trst core_groebner1;
-% trst core_incrementalBasis;
-% trst core_computeSpolys;
-% trst core_addRule;
-% trst core_reduction;
-% trst core_constructModule;
-% trst core_isTopReducibleMonom;
-% trst core_isRewritable;
-% trst core_findRewriting;
-% trst core_isTopReducible;
-% trst core_findReductor;
-% trst core_topReduction;
-% trst core_interreduceBasis;
-% trst core_normalForm2;
-% trst core_insertSorted;
-% trst core_groebner1;
-% trst core_checkIdealInclusion1;
-% trst core_filterRedundant;
-% trst core_criticalPair;
-% trst core_interreduceInput;
 
 end; % of file

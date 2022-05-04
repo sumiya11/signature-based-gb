@@ -1,16 +1,17 @@
-
 module f5primes;
+% The module provides lucky prime numbers manipulation
 
 % The helper module to keep track of prime numbers used in F5 modular computations.
-% Provides the structure `Primetracker` to store intermediate lucky and reliable primes.
-% Primetracker is represented internally as a list of integers
-%   {lucky prime, reliable prime, accum modulo}
-% where the first two guaranteed to be small integers < largest!-small!-modulus.
+% Provides the structure `Primetracker` to store intermediate "lucky" and "reliable" primes.
+% Primetracker is represented as a list of integers with a convenience tag
+%   {'pt, lucky prime, reliable prime, accum modulo}
+% where the first two are guaranteed to be small integers < largest!-small!-modulus.
 
 % We call the prime "lucky" if it is used directly for modular computation.
 % We call the ptime "reliable" if it is used to verify the correctness of
 % the modular computation.
-
+% This module stores current primes globally,
+% directly accessing these from other modules is forbidden
 fluid '(primes_initialLuckyPrime!* primes_initialReliablePrime!*);
 
 % The standard largest!-small!-modulus value is 2^23, which is 8388608
@@ -32,60 +33,68 @@ primes_initialReliablePrime!* := (largest!-small!-modulus / 3) * 2;
 % We expect this to hold
 % Write another swith =)
 if largest!-small!-modulus < 2^10 then
-  rederr {"*** Strange largest!-small!-modulus value: expected at least 2^10, found", largest!-small!-modulus};
+  rederr {"***** Strange largest!-small!-modulus value:",
+            "expected at least 2^10, found",
+            largest!-small!-modulus};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% initialize primetracker
-asserted procedure primes_Primetracker();
-  begin integer lucky_prime, reliable_prime;
-        scalar accum_modulo;
-    lucky_prime := primes_initialLuckyPrime!*;
-    reliable_prime := primes_initialReliablePrime!*;
-    accum_modulo := 1;
-    return {lucky_prime, reliable_prime, accum_modulo}
+% Initialize Primetracker
+asserted procedure primes_Primetracker(): Primetracker;
+  begin integer luckyPrime, reliablePrime, accumModulo;
+    luckyPrime    := primesInitialLuckyPrime!*;
+    reliablePrime := primesInitialReliablePrime!*;
+    accumModulo   := 1;
+    return {'pt, luckyPrime, reliablePrime, accumModulo}
   end;
 
+% Return the current lucky prime.
+% This should not be called before the first lucky prime was produced
+% (see primes_nextLuckyPrime below)
 asserted inline procedure primes_getLuckyPrime(p: Primetracker): Integer;
   car p;
 
+% Return the current reliable prime.
+% This should not be called before the first reliable prime was produced
+% (see primes_nextReliablePrime below)
 asserted inline procedure primes_getReliablePrime(p: Primetracker): Integer;
   cadr p;
 
+% Return the accumulated modulo (may be arbitrary large)
 asserted inline procedure primes_getAccumModulo(p: Primetracker): Integer;
   caddr p;
 
-asserted inline procedure primes_setLuckyPrime(p: Primetracker, i);
+asserted inline procedure primes_setLuckyPrime(p: Primetracker, i: Integer);
   car p := i;
 
-asserted inline procedure primes_setReliablePrime(p: Primetracker, i);
+asserted inline procedure primes_setReliablePrime(p: Primetracker, i: Integer);
   cadr p := i;
 
-asserted inline procedure primes_setAccumModulo(p: Primetracker, i);
+asserted inline procedure primes_setAccumModulo(p: Primetracker, i: Integer);
   caddr p := i;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% Lucky primes %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% LUCKY PRIMES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Checks if the given `prime` is lucky w.r.t. the input `basis` coefficients,
-% It is sufficient to check that generator's terms do not vanish under reduction
-asserted procedure primes_isLuckyPrime(basis, prime);
-  begin scalar flag, poly, coeffs, cf;
-    flag := t;
+% It is sufficient to check that generators coefficients
+% do not vanish under reduction modulo `prime`
+asserted procedure primes_isLuckyPrime(basis: List, prime: Integer);
+  begin scalar islucky, poly, cf;
+    islucky := t;
     for each poly in basis do <<
-      if flag then <<
-        coeffs := poly_getCoeffs(lp_getPoly(poly));
-        for each cf in coeffs do <<
+      if islucky then <<
+        for each cf in poly_getCoeffs(lp_eval(poly)) do <<
           if modular!-number(cf) = 0 then
-            flag := nil
+            islucky := nil
         >>
       >>
     >>;
-    return flag
+    return islucky
   end;
 
-% Returns the next lucky prime number for primetracker
-asserted procedure primes_nextLuckyPrime(primetracker, basis);
+% Returns (and sets in 'smallmod) the next lucky prime number for pt
+asserted procedure primes_nextLuckyPrime(pt: Primetracker, basis: List): Integer;
   begin integer nextprime;
     nextprime := primes_nextPrime(primes_getLuckyPrime(primetracker));
     set!-small!-modulus nextprime;
@@ -98,14 +107,14 @@ asserted procedure primes_nextLuckyPrime(primetracker, basis);
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% Reliable primes %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% RELIABLE PRIMES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Checks if the given `prime` is reliable w.r.t. the input `basis` coefficients,
-asserted procedure primes_isReliablePrime(basis, prime: Integer);
+asserted procedure primes_isReliablePrime(basis: List, prime: Integer);
   primes_isLuckyPrime(basis, prime);
 
-% Returns the next reliable prime number for primetracker
-asserted procedure primes_nextReliablePrime(primetracker, basis);
+% Returns (and sets in 'smallmod) the next reliable prime number for pt
+asserted procedure primes_nextReliablePrime(pt: Primetracker, basis: List): Integer;
   begin integer nextprime;
     nextprime := primes_nextPrime(primes_getReliablePrime(primetracker));
     set!-small!-modulus nextprime;
@@ -119,25 +128,19 @@ asserted procedure primes_nextReliablePrime(primetracker, basis);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Returns the next prime number greater than `prime`
-asserted procedure primes_nextPrime(prime);
-  begin;
-    % recursion depth should rarely exceed 15 for prime ~ 2^22
-    ASSERT(prime > 1);
+% Returns the next prime number greater than `prime`,
+% recursion depth should rarely exceed 15 for `prime` ~ 2^22
+asserted procedure primes_nextPrime(prime: Integer): Integer;
+  <<
     if evenp prime then
       prime := prime + 1
     else
       prime := prime + 2;
-    return if primep prime then
+    if primep prime then
       prime
     else
-      primes_nextPrime(prime);
-  end;
-
-% trst primes_nextPrime;
-% trst primes_nextReliablePrime;
-% trst primes_nextLuckyPrime;
-% trst primes_isLuckyPrime;
+      primes_nextPrime(prime)
+  >>;
 
 endmodule;
 
