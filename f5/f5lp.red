@@ -30,7 +30,6 @@ asserted inline procedure lp_Signature(idx: Integer, st: Term);
 % Instantiates LabeledPolynomial object from the given Polynomial `poly` and
 % places garbage in the Signature position
 %
-% TODO: this should not be used
 % Currently, used only in computing plain polynomial normal form
 asserted inline procedure lp_LabeledPolynomial0(
                               poly: Polynomial): LabeledPolynomial;
@@ -64,7 +63,7 @@ asserted inline procedure lp_setEval(lp: LabeledPolynomial, ev: Polynomial);
   cadr lp := ev;
 
 % set the signature of lp to Signature ev
-asserted inline procedure lp_setEval(lp: LabeledPolynomial, s: Signature);
+asserted inline procedure lp_setSgn(lp: LabeledPolynomial, s: Signature);
   caddr lp := s;
 
 % return the index of signature s
@@ -78,7 +77,7 @@ asserted inline procedure lp_termSgn(s: Signature): Term;
 % Signatures s1 == s2 ?
 asserted inline procedure lp_eqSgn(s1: Signature, s2: Signature);
   lp_indexSgn(s1) #= lp_indexSgn(s2) and
-    poly_eqTerm(lp_termSgn(s1), lp_termSgn(s2));
+    poly_eqTerm!?(lp_termSgn(s1), lp_termSgn(s2));
 
 % Zero LabeledPolynomial is represented as
 %   {'lp, zero Polynomial, any Signature}

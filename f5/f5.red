@@ -1,15 +1,14 @@
 module f5;
 % The F5 Algorithm for computing Groebner bases.
 %
-% The f5 module provides the implementation of the Faugère's F5 algorithm,
-% which is in detail documented in the work by Christian Eder and John Perry
-%   https://arxiv.org/abs/0906.2967
+% The f5 module provides the implementation of the Faugère's F5 algorithm
+%     https://www-polsys.lip6.fr/~jcf/Papers/F02a.pdf
 %
-% The interface contains the `f5` operator of signature
+% The interface contains the operator `f5` with the following signature
 %     `f5(polynomials: List, vars: List, order: Id)`
 % Where
 %   . `polynomials` is a list of expressions of Ideal generators;
-%   . `vars` is a list of Reduce kernels to compute the basis w.r.t. with;
+%   . `vars` is a list of Reduce kernels with respect to which the basis is computed;
 %     kernels not present in `vars` are treated as elements from the ground domain;
 %   . `order` is a term order to compute the basis in,
 %      possible options are `lex`, `revgradlex`;
@@ -30,25 +29,23 @@ off1 'f5modular;
 %             during modular computation. Is set ON by default,
 %             meaning that the output is guaranteed to be correct.
 %             Otherwise, the algorithm is randomized and may
-%             produce incorrect answer with a small probability (~1/2^22)
-%                                                          TODO?: Proof
+%             produce incorrect answer with a small probability
 switch f5certify;
 off1 'f5certify;
 
 % f5fullreduce - If the resulting basis should be fully interreduced.
-%                If this is ON, generators in the output basis are
-%                both head and tail reduced and the output is unique.
-%                Otherwise, the basis is head reduced, but not tail reduced.
+%                If this is ON, each generator in the output basis is
+%                in the normal form with respect to other generators.
+%                Otherwise, only head terms in the basis are reduced.
 %                Is OFF by default.
 switch f5fullreduce;
 off1 'f5fullreduce;
 
-% TODO?: do this
-% f5integer - If to perform computations assuming ring arithmetic
+% f5integers - If to perform computations assuming ring arithmetic
 %             for coefficients. If set ON, polynomials are not divided
 %             by the leading coefficient during reductions.
-% switch f5integer;
-% on1 'f5integer;
+switch f5integers;
+off1 'f5integers;
 
 load!-package 'assert;
 on1 'assert;
@@ -120,48 +117,6 @@ asserted procedure f5_groebner(u: List): List;
 % Argument error
 asserted procedure f5_argumentError();
    rederr "usage: f5(polynomials: List, variables: List, sortmode: Id)";
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%% ADAPTIVE ARITHMETIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% These arithmetic functions are defined here to
-% because they are inline and are needed in polynomial arithmetic.
-% Suggestion: move it to f5poly.red
-inline procedure mod_iszero!?(a);
-  if !*f5modular then
-    a #= 0
-  else
-    numr(a) = nil;
-
-inline procedure mod_add(a, b);
-  if !*f5modular then
-    modular!-plus(a, b)
-  else
-    addsq(a, b);
-
-inline procedure mod_mul(a, b);
-  if !*f5modular then
-    modular!-times(a, b)
-  else
-    multsq(a, b);
-
-inline procedure mod_neg(a);
-  if !*f5modular then
-    modular!-minus(a)
-  else
-    negsq(a);
-
-inline procedure mod_div(a, b);
-  if !*f5modular then
-    modular!-quotient(a, b)
-  else
-    quotsq(a, b);
-
-inline procedure mod_inv(a);
-  if !*f5modular then
-    modular!-reciprocal(a)
-  else
-    denr(a) . numr(a);
 
 endmodule;
 
