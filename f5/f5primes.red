@@ -97,13 +97,13 @@ asserted procedure primes_isLuckyPrime(basis: List, prime: Integer): Boolean;
 % Returns (and sets for 'smallmod) the next lucky prime number for pt
 asserted procedure primes_nextLuckyPrime(pt: Primetracker, basis: List): Integer;
   begin integer nextprime;
-    nextprime := primes_nextPrime(primes_getLuckyPrime(primetracker));
+    nextprime := primes_nextPrime(primes_getLuckyPrime(pt));
     set!-small!-modulus nextprime;
     while not primes_isLuckyPrime(basis, nextprime) do <<
       nextprime := primes_nextPrime(nextprime);
       set!-small!-modulus nextprime
     >>;
-    primes_setLuckyPrime(primetracker, nextprime);
+    primes_setLuckyPrime(pt, nextprime);
     return nextprime
   end;
 
@@ -117,13 +117,13 @@ asserted procedure primes_isReliablePrime(basis: List, prime: Integer): Boolean;
 % Returns (and sets in 'smallmod) the next reliable prime number for pt
 asserted procedure primes_nextReliablePrime(pt: Primetracker, basis: List): Integer;
   begin integer nextprime;
-    nextprime := primes_nextPrime(primes_getReliablePrime(primetracker));
+    nextprime := primes_nextPrime(primes_getReliablePrime(pt));
     set!-small!-modulus nextprime;
     while not primes_isReliablePrime(basis, nextprime) do <<
       nextprime := primes_nextPrime(nextprime);
       set!-small!-modulus nextprime
     >>;
-    primes_setReliablePrime(primetracker, nextprime);
+    primes_setReliablePrime(pt, nextprime);
     return nextprime
   end;
 
