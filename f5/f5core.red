@@ -131,20 +131,24 @@ asserted inline procedure core_getBasisIdx(r: Basistracker): Integer;
 % Additional comparators for sorting
 
 % TODO: add the current term order cmp as a tie-breaker
-asserted procedure core_pairTotalDegreeCmp(p1: CriticalPair, p2: CriticalPair);
+asserted procedure core_pairTotalDegreeCmp(p1: CriticalPair,
+                                            p2: CriticalPair): Boolean;
   poly_totalDegTerm(core_getPairLcm(p1)) #< poly_totalDegTerm(core_getPairLcm(p2));
 
 % compare critical pairs by lcm term according to the current term order
-asserted procedure core_pairLcmCmp(p1: CriticalPair, p2: CriticalPair);
+asserted procedure core_pairLcmCmp(p1: CriticalPair,
+                                    p2: CriticalPair): Boolean;
   poly_cmpTerm(core_getPairLcm(p1), core_getPairLcm(p2));
 
 % compare associative list elements by their signature
-asserted procedure core_assocSgnCmp(pr1: DottedPair, pr2: DottedPair);
+asserted procedure core_assocSgnCmp(pr1: DottedPair,
+                                      pr2: DottedPair): Boolean;
   lp_cmpSgn(lp_sgn(cdr pr1), lp_sgn(cdr pr2));
 
 % compare associative list elements by their leading term
 % in the current term order
-asserted procedure core_assocLeadCmp(pr1: DottedPair, pr2: DottedPair);
+asserted procedure core_assocLeadCmp(pr1: DottedPair,
+                                      pr2: DottedPair): Boolean;
   poly_leadTotalDegreeCmp(lp_eval(cdr pr1), lp_eval(cdr pr2));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -283,17 +287,20 @@ asserted procedure core_interreduceInput(input: List): List;
 
 asserted procedure core_interreduceBasis(Gprev: List, r: Basistracker): List;
   begin scalar reducers, updated, reduced, f, newGprev;
+        integer i;
     updated := t;
     while updated do <<
       updated := nil;
       newGprev := nil;
       while Gprev do <<
-        f := lp_eval(core_getPoly(r, pop(Gprev)));
+        i := pop(Gprev);
+        f := lp_eval(core_getPoly(r, i));
         reducers := append(newGprev, Gprev);
         reduced . f := core_normalForm(f, reducers, r, nil);
         updated := updated or reduced;
+        lp_setEval(core_getPoly(r, i), f);
         if not poly_iszero!?(f) then
-          push(f, newGprev)
+          push(i, newGprev)
       >>;
       Gprev := newGprev
     >>;
@@ -413,13 +420,14 @@ asserted procedure core_checkIdealInclusion1(basis: List, polys: List);
     % Computes the normal form of each polynomial from `polys`
     % with respect to the Groebner basis from `basis`
     included := t;
+    basis    := for each f in basis collect lp_eval(f);
     while included and polys do <<
       poly := lp_eval(pop(polys));
       flag_ . nf := core_normalFormReducers(poly, basis, t);
       if not poly_iszero!?(nf) then
         included := nil
     >>;
-    return ans
+    return included
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -427,13 +435,14 @@ asserted procedure core_checkIdealInclusion1(basis: List, polys: List);
 % Checks if `basis` is a Groebner basis by checking that
 % all S-polynomials reduce to zero
 asserted procedure core_isGroebner1(basis: List);
-  begin scalar isBasis, tmp, evals, nf, flag_;
+  begin scalar isBasis, tmp, spoly, nf, flag_;
     isBasis := t;
+    basis   := for each f in basis collect lp_eval(f);
     while basis do <<
       tmp := cdr basis;
       while isBasis and tmp do <<
-        evals := poly_spoly(lp_eval(car tmp), lp_eval(car basis));
-        flag_ . nf := core_normalFormReducers(evals, basis, t);
+        spoly := poly_spoly(car tmp, car basis);
+        flag_ . nf := core_normalFormReducers(spoly, basis, t);
         if not poly_iszero!?(nf) then
           isBasis := nil;
         pop(tmp)
@@ -808,6 +817,8 @@ asserted procedure core_groebner1(basis: List): List;
 % trst core_findReducer;
 % trst core_findRewriting;
 % trst core_filterRedundant;
+% trst core_isGroebner1;
+% trst core_checkIdealInclusion1;
 
 endmodule;
 

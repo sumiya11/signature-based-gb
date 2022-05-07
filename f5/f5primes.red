@@ -30,8 +30,9 @@ primes_initialLuckyPrime!* := largest!-small!-modulus / 2;
 %   [largest!-small!-modulus * 3/2, largest!-small!-modulus]
 primes_initialReliablePrime!* := (largest!-small!-modulus / 3) * 2;
 
-% We expect this to hold
-% Write another swith =)
+% We expect this to hold.
+% If the initial prime is too small,
+% modular computations are not very efficient
 if largest!-small!-modulus < 2^10 then
   rederr {"***** Strange largest!-small!-modulus value:",
             "expected at least 2^10, found",
@@ -42,8 +43,8 @@ if largest!-small!-modulus < 2^10 then
 % Initialize Primetracker
 asserted procedure primes_Primetracker(): Primetracker;
   begin integer luckyPrime, reliablePrime, accumModulo;
-    luckyPrime    := primesInitialLuckyPrime!*;
-    reliablePrime := primesInitialReliablePrime!*;
+    luckyPrime    := primes_initialLuckyPrime!*;
+    reliablePrime := primes_initialReliablePrime!*;
     accumModulo   := 1;
     return {'pt, luckyPrime, reliablePrime, accumModulo}
   end;
@@ -52,26 +53,26 @@ asserted procedure primes_Primetracker(): Primetracker;
 % This should not be called before the first lucky prime was produced
 % (see primes_nextLuckyPrime below)
 asserted inline procedure primes_getLuckyPrime(p: Primetracker): Integer;
-  car p;
+  cadr p;
 
 % Return the current reliable prime.
 % This should not be called before the first reliable prime was produced
 % (see primes_nextReliablePrime below)
 asserted inline procedure primes_getReliablePrime(p: Primetracker): Integer;
-  cadr p;
+  caddr p;
 
 % Return the accumulated modulo (may be arbitrary large)
 asserted inline procedure primes_getAccumModulo(p: Primetracker): Integer;
-  caddr p;
+  cadddr p;
 
 asserted inline procedure primes_setLuckyPrime(p: Primetracker, i: Integer);
-  car p := i;
-
-asserted inline procedure primes_setReliablePrime(p: Primetracker, i: Integer);
   cadr p := i;
 
-asserted inline procedure primes_setAccumModulo(p: Primetracker, i: Integer);
+asserted inline procedure primes_setReliablePrime(p: Primetracker, i: Integer);
   caddr p := i;
+
+asserted inline procedure primes_setAccumModulo(p: Primetracker, i: Integer);
+  cadddr p := i;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% LUCKY PRIMES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -79,7 +80,7 @@ asserted inline procedure primes_setAccumModulo(p: Primetracker, i: Integer);
 % Checks if the given `prime` is lucky w.r.t. the input `basis` coefficients,
 % It is sufficient to check that generators coefficients
 % do not vanish under reduction modulo `prime`
-asserted procedure primes_isLuckyPrime(basis: List, prime: Integer);
+asserted procedure primes_isLuckyPrime(basis: List, prime: Integer): Boolean;
   begin scalar islucky, poly, cf;
     islucky := t;
     for each poly in basis do <<
@@ -93,7 +94,7 @@ asserted procedure primes_isLuckyPrime(basis: List, prime: Integer);
     return islucky
   end;
 
-% Returns (and sets in 'smallmod) the next lucky prime number for pt
+% Returns (and sets for 'smallmod) the next lucky prime number for pt
 asserted procedure primes_nextLuckyPrime(pt: Primetracker, basis: List): Integer;
   begin integer nextprime;
     nextprime := primes_nextPrime(primes_getLuckyPrime(primetracker));
@@ -110,7 +111,7 @@ asserted procedure primes_nextLuckyPrime(pt: Primetracker, basis: List): Integer
 %%%%%% RELIABLE PRIMES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Checks if the given `prime` is reliable w.r.t. the input `basis` coefficients,
-asserted procedure primes_isReliablePrime(basis: List, prime: Integer);
+asserted procedure primes_isReliablePrime(basis: List, prime: Integer): Boolean;
   primes_isLuckyPrime(basis, prime);
 
 % Returns (and sets in 'smallmod) the next reliable prime number for pt

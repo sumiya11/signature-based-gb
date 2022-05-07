@@ -3,6 +3,8 @@ load_package f5;
 
 % noon-4 system in degrevlex
 
+on f5integers;
+
 system := {
 2*f1*f2*f3*f4*f5-9823275,
 21/5*f1*f2*f4*f5+16/5*f1*f3*f4*f5+9/5*f2*f3*f4*f5+24/5*f1*f2*f3*f5+5*f4*f3*f1*f2-4465125,

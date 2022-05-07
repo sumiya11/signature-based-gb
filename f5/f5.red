@@ -19,20 +19,6 @@ module f5;
 
 create!-package('(f5 f5core f5lp f5poly f5core f5primes f5mod), nil);
 
-% f5modular - If f5 should use modular algorithms during computation.
-%             Is set OFF by default, so all arithmetic operations
-%             take place in the original coefficient domain.
-switch f5modular;
-off1 'f5modular;
-
-% f5certify - If f5 should certify the correctness of result
-%             during modular computation. Is set ON by default,
-%             meaning that the output is guaranteed to be correct.
-%             Otherwise, the algorithm is randomized and may
-%             produce incorrect answer with a small probability
-switch f5certify;
-off1 'f5certify;
-
 % f5fullreduce - If the resulting basis should be fully interreduced.
 %                If this is ON, each generator in the output basis is
 %                in the normal form with respect to other generators.
@@ -41,17 +27,30 @@ off1 'f5certify;
 switch f5fullreduce;
 off1 'f5fullreduce;
 
-% f5integers - If to perform computations assuming ring arithmetic
-%             for coefficients. If set ON, polynomials are not divided
-%             by the leading coefficient during reductions.
+% f5integers - If this is ON, then coefficients of polynomials
+%              in the output basis have denominator 1, and the numerator
+%              parts have unit content.
+%              Otherwise, each polynomial in the output is divided
+%              by the leading coefficient.
 switch f5integers;
 off1 'f5integers;
 
-load!-package 'assert;
-on1 'assert;
+% Not exported and should not be used directly.
+% f5modular - If f5 should use modular algorithms during computation.
+%             Is set OFF by default, so all arithmetic operations
+%             take place in the original coefficient domain.
+switch f5modular;
+off1 'f5modular;
 
-% Not used for now
-% load!-package 'cali;
+% Not exported and should not be used directly.
+% f5certify - If f5 should certify the correctness of result
+%             during modular computation (when f5modular is ON).
+switch f5certify;
+off1 'f5certify;
+
+load!-package 'assert;
+off1 'assert;
+off1 'assert_procedures;
 
 % The only function in the interface
 put('f5, 'psopfn, 'f5_groebner);
@@ -60,24 +59,30 @@ put('f5, 'psopfn, 'f5_groebner);
 %%%%%%%% STRUCTS DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % interface implemented in f5poly.red
-% asserted inline procedure f5_isPolynomial
-struct Polynomial; % checked by function(lambda x; eqcar(x, 'p));
+inline procedure f5_isPolynomial(x); eqcar(x, 'p);
+struct Polynomial checked by 'f5_isPolynomial;
 struct Terms checked by 'listp;
 struct Term checked by 'listp;
 struct Coeffs checked by 'listp;
 struct Coeff;
 
 % interface implemented in f5lp.red
-struct LabeledPolynomial; % checked by function(lambda x; eqcar(x, 'lp));
-struct Signature; % checked by function(lambda x; eqcar(x, 'sgn));
+inline procedure f5_isLabeledPolynomial(x); eqcar(x, 'lp);
+inline procedure f5_isSignature(x); eqcar(x, 'sgn);
+struct LabeledPolynomial checked by 'f5_isLabeledPolynomial;
+struct Signature checked by 'f5_isSignature;
 
 % interface implemented in f5primes.red
-struct Primetracker; % checked by function(lambda x; eqcar(x, 'pt));
+inline procedure f5_isPrimetracker(x); eqcar(x, 'pt);
+struct Primetracker checked by 'f5_isPrimetracker;
 
 % interface implemented in f5core.red
-struct Basistracker; % checked by function(lambda x; eqcar(x, 'bt));
-struct CriticalPair; % checked by function(lambda x; eqcar(x, 'cp));
-struct RewriteRule; % checked by function(lambda x; eqcar(x, 'rr));
+inline procedure f5_isBasistracker(x); eqcar(x, 'bt);
+inline procedure f5_isCriticalPair(x); eqcar(x, 'cp);
+inline procedure f5_isRewriteRule(x); eqcar(x, 'rr);
+struct Basistracker checked by 'f5_isBasistracker;
+struct CriticalPair checked by 'f5_isCriticalPair;
+struct RewriteRule checked by 'f5_isRewriteRule;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -2,8 +2,10 @@
 
 load_package f5;
 
-setmod 65537;
-on modular;
+on f5integers;
+
+% setmod 65537;
+% on modular;
 
 system := {x1 + 2*x2 + 2*x3 + 2*x4 + 2*x5 + 2*x6 + 2*x7 - 1,
     2*x1*x6 + 2*x2*x5 + 2*x2*x7 + 2*x3*x4 - x6,
