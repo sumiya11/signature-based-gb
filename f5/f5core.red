@@ -631,8 +631,8 @@ asserted procedure core_reduction(S: List, Gprev: List, Gcurr: List,
         integer k, j, nNormalForms;
     % For each polynomial f the reduction process is the following.
     % First, this polynomial is placed in the `todo` list from the beginning.
-    % Secondly, when f is popped from the list, the normal form of f with
-    % respect to the basis computed up to this module index (in Gprev) is produced.
+    % Secondly, when f is popped from the `todo`, the normal form of f is produced with
+    % respect to the basis from Gprev.
     % Since during the normal form computation it is possible that not all feasible
     % reducers were handled, a separate top-reduction step is needed.
     % This is handled by the core_topReductionF5, which is called on the
@@ -640,8 +640,8 @@ asserted procedure core_reduction(S: List, Gprev: List, Gcurr: List,
     %
     % The core_topReductionF5 returns a pair of two lists:
     %   newcompleted and redo
-    % Elements from redo are inserted back to the todo list,
-    % and the elements of newcompleted are considered fully reduced.
+    % Elements from `redo` are inserted back to the `todo` list,
+    % and elements of the `newcompleted` are considered fully reduced.
     todo := S;
     newGcurr := copy(Gcurr);
     while todo do <<
