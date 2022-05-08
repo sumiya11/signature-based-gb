@@ -253,10 +253,6 @@ asserted procedure mod_crt(a1: Integer, m1: Integer,
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% trst mod_groebnerModular1;
-% trst mod_rationalReconstruction;
-% trst mod_randomizedCorrectnessCheck;
-
-endmodule;
+endmodule;  % end of module f5mod
 
 end;  % of file

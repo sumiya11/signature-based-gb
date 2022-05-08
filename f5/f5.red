@@ -25,12 +25,13 @@ module f5;
 % The f5mod and f5primes files provide rational reconstruction
 % and lucky prime numbers manipulations, which extends existing
 % F5 to a modular setting.
-% create!-package('(f5 f5core f5lp f5poly f5primes f5mod), nil);
+% The f5stat records and prints useful statistics for each f5 call.
+create!-package('(f5 f5core f5lp f5poly f5primes f5mod f5stat), nil);
 
-% Currently, there are two switches available:
+% Currently, there are three switches available, these are described below
 % . f5fullreduce (default is OFF)
 % . f5integers   (default is OFF)
-% They are described below
+% . f5statistics (default is OFF)
 
 % f5fullreduce - If the output basis should be fully interreduced.
 %                If this is ON, each generator in the output basis is
@@ -61,6 +62,17 @@ off1 'f5fullreduce;
 %
 switch f5integers;
 off1 'f5integers;
+
+% f5statistics - If this is ON, collects and prints the following statistics
+%                 after each f5 call:
+%                 The total number of reduced polynomials,
+%                 The number of polynomials reduced to zero,
+%                 the number of calls to normal form,
+%                 the range of critical pair degrees,
+%                By default, this is OFF, the information
+%                is neither collected nor printed.
+switch f5statistics;
+off1 'f5statistics;
 
 % Not exported and should not be used directly.
 % Currently, f5modular is not available as an option mainly for two reasons:
@@ -127,10 +139,10 @@ asserted procedure f5_groebner(u: List): List;
       if null u or not (listp u) or not (length u = 3) then
          f5_argumentError();
       inputBasis := reval pop u;
-      if not (listp inputBasis)then
+      if not (listp inputBasis) or not (pop inputBasis eq 'list) then
          f5_argumentError();
       vars := reval pop u;
-      if not (listp vars) then
+      if not (listp vars) or not (pop vars eq 'list) then
          f5_argumentError();
       ord := pop u;
       if not (idp ord) then

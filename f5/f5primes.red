@@ -143,6 +143,6 @@ asserted procedure primes_nextPrime(prime: Integer): Integer;
       primes_nextPrime(prime)
   >>;
 
-endmodule;
+endmodule;  % end of module f5primes
 
-end; % eof
+end;  % of file
