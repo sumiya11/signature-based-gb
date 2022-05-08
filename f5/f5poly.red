@@ -404,10 +404,11 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
                                   gmult: Term,   gcoeff: Coeff): Polynomial;
   begin scalar fterms, fcoeffs, gterms, gcoeffs, gmultcoeff, fmultcoeff,
                 sterms, scoeffs, ft, gt, fc, gc, newc;
-    % We form two lists sterms and scoeffs, which would be the base
-    % for the new polynomial s = gcoeff*fmult*f - fcoeff*gmult*g,
-    % by merging two sorted lists: the list of terms of f each multiplied by fmult
-    % with the list of terms of g each multiplied by gmult (the while loop below).
+    % We form two lists, sterms and scoeffs, which would be 
+    % the list of terms and the list coefficients of s, where 
+    % s is the new polynomial s = gcoeff*fmult*f - fcoeff*gmult*g,
+    % by merging two sorted lists: the list of terms of f each multiplied by fmult,
+    % with the list of terms of g each multiplied by gmult (in the while loop below).
     % In parallel, the list of coefficients of f is being merged with the
     % list of coefficients of g with appropriate multipliers,
     % in the same merge order as for the terms.
@@ -418,7 +419,7 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
     gmultcoeff := poly_negCoeff(fcoeff);
     fmultcoeff := gcoeff;
     % Merge two sorted lists: fterms and gterms multiplied by fmult and gmult,
-    % together with fcoeffs and gcoeffs multiplied by gmultcoeff and fmultcoeff
+    % together with fcoeffs and gcoeffs multiplied by gmultcoeff and fmultcoeff, respectively
     while fterms and gterms do <<
       ft := poly_mulTerm(car fterms, fmult);
       gt := poly_mulTerm(car gterms, gmult);
@@ -504,7 +505,7 @@ asserted procedure poly_spoly(f: Polynomial, g: Polynomial): Polynomial;
     elcm := poly_lcmTerm(e1, e2);
     mult1 := poly_divTerm(elcm, e2);
     mult2 := poly_divTerm(elcm, e1);
-    % using poly_paircombTail since leading terms vanish
+    % using poly_paircombTail since the leading terms vanish
     return poly_paircombTail(f, mult2, poly_leadCoeff(f), g, mult1, poly_leadCoeff(g))
   end;
 
@@ -522,7 +523,7 @@ asserted procedure poly_tryTopReductionStep(f: Polynomial,
     if poly_dividesTerm!?(glead, flead) then <<
       fmult := poly_identityTerm();
       gmult := poly_divTerm(flead, glead);
-      % using poly_paircombTail since leading terms vanish
+      % using poly_paircombTail since the leading terms vanish
       f := poly_paircombTail(f, fmult, poly_leadCoeff(f), g, gmult, poly_leadCoeff(g));
       updated := t;
     >>;
@@ -626,7 +627,7 @@ asserted procedure poly_reconstructCoeffs(poly: Polynomial,
     return poly_Polynomial(poly_getTerms(poly), newcoeffs)
   end;
 
-% Applis CRT to coefficients of (polyaccum mod modulo) and (polycomp mod prime)
+% Applies CRT to coefficients of (polyaccum mod modulo) and (polycomp mod prime)
 % to obtain new polynomial over modulo*prime
 asserted procedure poly_crtCoeffs(polyaccum: Polynomial, modulo: Integer,
                           polycomp: Polynomial, prime: Integer): Polynomial;
@@ -650,8 +651,8 @@ asserted inline procedure poly_cmpPolyLead(poly1: Polynomial,
 
 % Returns t if
 % the total degree of lead term of poly1 < the total degree of lead term poly2,
-% Otherwise, if degrees are equal compares terms with the current order,
-% Otherwise, nil.
+% Otherwise, if term degrees are equal, compares terms with the current order,
+% Otherwise, returns nil.
 asserted procedure poly_leadTotalDegreeCmp(poly1: Polynomial,
                                             poly2: Polynomial): Boolean;
   begin integer t1, t2;
