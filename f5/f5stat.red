@@ -111,7 +111,7 @@ asserted procedure stat_int2list(i: Integer): List;
       s := nil;
     while i > 0 do <<
       % 48 is the code of digit 0
-      push(string(48 + (i mod 10)), s);
+      push(compress({48 + (i mod 10)}), s);
       i := i / 10
     >>;
     return s

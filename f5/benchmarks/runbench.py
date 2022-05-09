@@ -13,9 +13,9 @@ UNDETECTABLE = ["cyclic6", "cyclic7", "cyclic8", "eco5", "noon4",
 TINY = ["noon5", "noon6", "katsura6",  
         "cyclic9", "cyclic10", "henrion5", "eco7"]
 
-LARGE = ["noon8", "cyclic12", "henrion6"]
+LARGE = ["noon8", "henrion6"]
 
-LARGE = ["noon6", "cyclic10", "cyclic11", "henrion5"]
+# LARGE = ["noon6", "cyclic10", "cyclic11", "henrion5"]
 
 ENORMOUS = ["nbody4", "nbody4sym"]
 
