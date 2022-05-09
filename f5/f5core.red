@@ -256,7 +256,7 @@ asserted procedure core_constructModule(inputBasis: List): List;
     % If f5integers is ON, then scale input polynomials, so that
     % coefficients of input polynomials become integers
     % (!! assuming there are no parameters in the input)
-    if !*f5integers then
+    if !*f5integers or !*f5modular then
       inputBasis := for each poly in inputBasis
                       collect poly_scaleDenominators(poly);
     % Interreducing input basis is a heuristic. The idea it to produce

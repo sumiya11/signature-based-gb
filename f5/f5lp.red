@@ -1,10 +1,10 @@
 module f5lp;
 % The module implements LabeledPolynomial interface.
 
-% The lp module provides the Labeled Polynomial interface --
+% The lp module provides the labeled polynomial interface --
 % a special polynomial type to be used in the f5-style algorithm.
 % Essentially, LabeledPolynomial object consists of two parts:
-% a polynomial part, and a signature part.
+% a polynomial part (also called evaluation), and a signature part.
 %
 % The LabeledPolynomial object `p` is represented as a 3-item list:
 %   {'lp, evaluation of `p`, signature `p`}
@@ -23,27 +23,27 @@ module f5lp;
 % The signature interface provides procedures for accessing
 % the index and the term respectively:
 %   lp_indexSgn and lp_termSgn
+%
+%
+% For example, a labeled polynomial with the evaluation xy^2 + 3
+% and the signature y*e3 will be stored as
+%   {'lp, xy^2 + 3 as a `Polynomial`, {3, y as a `Term`}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Constructs a Signature from the given index and term
+% Constructs a Signature from the given index and the given term
 asserted inline procedure lp_Signature(idx: Integer, st: Term): Signature;
   {'sgn, idx, st};
 
-% Instantiates LabeledPolynomial object from the given Polynomial `poly` and
-% places garbage in the Signature position.
-% Currently, used only in computing plain polynomial normal form
-asserted inline procedure lp_LabeledPolynomial0(
-                              poly: Polynomial): LabeledPolynomial;
-  lp_LabeledPolynomial1(poly, 0);
-
-% Instantiates LabeledPolynomial from Polynomial and the Signature index
+% Instantiates LabeledPolynomial from the given Polynomial
+% and the given Signature index
 asserted inline procedure lp_LabeledPolynomial1(
                               poly: Polynomial,
                               idx: Integer): LabeledPolynomial;
   lp_LabeledPolynomial2(poly, lp_Signature(idx, poly_identityTerm()));
 
-% Instantiates LabeledPolynomial from Polynomial and its signature
+% Instantiates LabeledPolynomial from the given Polynomial
+% and the given Signature
 asserted inline procedure lp_LabeledPolynomial2(
                               poly: Polynomial,
                               sgn: Signature): LabeledPolynomial;
@@ -84,14 +84,14 @@ asserted inline procedure lp_eqSgn(s1: Signature, s2: Signature): Boolean;
 % Checks if `lp` is zero as a LabeledPolynomial.
 % Zero LabeledPolynomial is represented as
 %   {'lp, zero `Polynomial`, any `Signature`}
-% so we just check if the polynomial is zero.
+% so we just check if the polynomial part is zero.
 asserted inline procedure lp_iszero!?(lp: LabeledPolynomial): Boolean;
   poly_iszero!?(lp_eval(lp));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% SIGNATURE MANIPULATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Multiplies signature `sgn` by term `ev`
+% Returns the result of multiplication of the signature `sgn` by the term `ev`
 asserted inline procedure lp_mulSgn(sgn: Signature, ev: Term): Signature;
   lp_Signature(lp_indexSgn(sgn), poly_mulTerm(lp_termSgn(sgn), ev));
 
@@ -106,29 +106,31 @@ asserted procedure lp_cmpSgn(s1: Signature, s2: Signature): Boolean;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% LP COEFFICIENTS MANIPULATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Mainly, these functions fall back to simple polynomial coefficients
-% manipulations from f5poly
+% Mainly, these functions fall back to simple polynomial coefficient
+% manipulations on the polynomial part of LabeledPolynomial
 
 % Normalizes the evaluation of `f`
 asserted inline procedure lp_normalize(f: LabeledPolynomial): LabeledPolynomial;
   lp_LabeledPolynomial2(poly_normalize(lp_eval(f)), lp_sgn(f));
 
-% Scales coefficients of the evaluation of `f` by their common denominator
+% Scales coefficients of the evaluation of `f` by their common denominator.
+% The coefficients of the resulting polynomial part are in the Standard Form
 asserted inline procedure lp_scaleDenominators(f: LabeledPolynomial): LabeledPolynomial;
   lp_LabeledPolynomial2(poly_scaleDenominators(lp_eval(f)), lp_sgn(f));
 
-% Reduces coefficients of the evaluation of `f` modulo `prime`
+% Reduces coefficients of the evaluation of `f` modulo `prime`.
 asserted inline procedure lp_reduceCoeffs(f: LabeledPolynomial,
                                           prime: Integer): LabeledPolynomial;
   lp_LabeledPolynomial2(poly_reduceCoeffs(lp_eval(f), prime), lp_sgn(f));
 
-% Reconstructs coefficients of the evaluation of `f` modulo `prime`
+% Reconstructs coefficients of the evaluation of `f` modulo `prime`.
+% The coefficients of the resulting polynomial part are in the Standard Quotient
 asserted inline procedure lp_reconstructCoeffs(f: LabeledPolynomial,
                                                prime: Integer): LabeledPolynomial;
   lp_LabeledPolynomial2(poly_reconstructCoeffs(lp_eval(f), prime), lp_sgn(f));
 
 % Given two LPs (polyaccum and polycomp) and two Integers (modulo and prime)
-% constructs a new LP with the evaluation equal to the modular reconstruction
+% constructs a new LP with the evaluation part equal to the modular reconstruction
 % of evaluations of polyaccum and polycomp modulo modulo and prime respectively.
 asserted inline procedure lp_crtCoeffs(polyaccum: Polynomial, modulo: Integer,
                       polycomp: Polynomial, prime: Integer): LabeledPolynomial;
@@ -138,7 +140,7 @@ asserted inline procedure lp_crtCoeffs(polyaccum: Polynomial, modulo: Integer,
   );
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Comparators for sorting LabeledPolynomials
+% Comparators for comparing LabeledPolynomials
 
 % Returns t if lead(eval(lp1)) < lead(eval(lp2))
 asserted procedure lp_cmpLPLead(lp1: LabeledPolynomial,

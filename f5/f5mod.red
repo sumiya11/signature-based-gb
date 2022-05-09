@@ -5,13 +5,33 @@ module f5mod;
 % and Chinese reminder theorem implementations
 % together with main modular GB procedure `mod_groebnerModular1`.
 
+% The files f5mod.red and f5primes.red extend the existing f5
+% with the modular Groebner basis computation.
+% ("extend" in a sense that they can be removed and main f5 still works)
+%
+% The structure of the Groebner bases modular computation is the following.
+%
+%   A list of ideal generators is passed as an input to `mod_groebnerModular1`.
+%   A "lucky" prime number is then selected. The "lucky" properties of this number
+% and the interface for manipulating primes is implemented in f5primes.
+% Each coefficients of input generators is reduced to the finite field modulo
+% selected prime number.
+%   Then, a Groebner basis is computed over the finite field from the previously
+% reduced generators. Coefficients in this basis are reconstructed to integers
+% using the Chinese Reminder Theorem. Then, integer coefficients are reconstructed
+% to rationals using the Rational Reconstruction.
+%   From the previous step, we have obtained a Groebner basis over rationals.
+% We check that the obtained basis is indeed a Groebner basis of the input ideal,
+% and, if it is, return it. Otherwise, we select the next lucky prime,
+% and repeat all steps.
+
 % Using small modular arithmetic backend from smallmod
 load!-package 'smallmod;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%% MODULAR CORRECTNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Verifies that the given `recBasis` is indeed the Groebner basis
+% Verifies that the given `recBasis` is indeed a Groebner basis
 % of the original input list `intBasis`.
 % By default, randomized correctness check is used
 asserted procedure mod_correctnessCheck(pt: Primetracker, intBasis: List,
@@ -88,7 +108,7 @@ asserted procedure mod_rationalReconstruction(
 
 % Given the basis `accumBasis` computed modulo some `modulo`,
 % and the basis `computedBasis` computed modulo some `prime`,
-% constructs a new basis modulo `modulo × prime`.
+% constructs a new basis modulo modulo * prime.
 % This function is assumed to be called only
 % when coefficients of input bases are integers
 asserted procedure mod_crtReconstruction(
@@ -122,8 +142,7 @@ asserted procedure mod_crtReconstruction(
 asserted procedure mod_scaleDenominators(inputBasis: List): List;
   for each poly in inputBasis collect lp_scaleDenominators(poly);
 
-% Main procedure for modular F5 Groebner basis computation,
-% !! Takes list of module elements as input and returns a list of module elements as output
+% Main procedure for modular F5 Groebner basis computation
 asserted procedure mod_groebnerModular1(inputBasis: List): List;
   begin scalar integerBasis, reducedBasis, computedBasis,
                 reconstructedBasis, accumBasis,
@@ -169,7 +188,8 @@ asserted procedure mod_groebnerModular1(inputBasis: List): List;
 
 % Rational number reconstruction implementation from CLUE
 %   https://arxiv.org/abs/2004.11961
-% modified a bit to suit the 'Modern Computer Algebra' definitions.
+% modified a bit to suit the 'Modern Computer Algebra, Edition 3' definitions
+%   https://doi.org/10.1017/CBO9781139856065
 % Returns a rational r // h in canonical form such that
 %   r // h ≡ a (mod m)
 %
@@ -178,9 +198,9 @@ asserted procedure mod_reconstruction(a: Integer, m: Integer): SQ;
   begin integer ans, x, com, u1, u2, u3, q, bnd,
                 v1, v2, v3, t1, t2, t3, tt, r;
     if a = 0 then
-        ans := 0 . 1
+        ans := 0 ./ 1
     else if a = 1 then
-        ans := 1 . 1
+        ans := 1 ./ 1
     else <<
         bnd := isqrt(m / 2);
         u1 := 1;
@@ -208,7 +228,7 @@ asserted procedure mod_reconstruction(a: Integer, m: Integer): SQ;
           r  := - r
         >>;
         com := mod_euclid(abs(r), tt);
-        ans := (r / com) . (tt / com)
+        ans := (r / com) ./ (tt / com)
     >>;
     return ans
   end;
@@ -226,7 +246,9 @@ asserted procedure mod_euclid(a: Integer, b: Integer): Integer;
 
 % Standard Extended Euclidean algorithm,
 % Returns x and y such that a*x + b*y = 1.
-% Assumes that a and b are coprime and *arbitrary large* integers
+% Assumes that a and b are coprime.
+%
+% a and b can be *arbitrary large* integers (and they are usually large)
 asserted procedure mod_extendedEuclid(a: Integer, b: Integer): DottedPair;
   begin integer x, y, k;
     return if b = 0 then
@@ -238,10 +260,12 @@ asserted procedure mod_extendedEuclid(a: Integer, b: Integer): DottedPair;
     >>
   end;
 
-% Chinese reminder theorem reconstruction implementation
+% Chinese reminder theorem reconstruction implementation.
 % Returns integer x such that
 %   x ≡ a1 (mod m1)
 %   x ≡ a2 (mod m2)
+%
+% Here, a1, a2, m1, m2 can be *arbitrary large* integers
 asserted procedure mod_crt(a1: Integer, m1: Integer,
                             a2: Integer, m2: Integer): Integer;
   begin integer x, y, n, m;
