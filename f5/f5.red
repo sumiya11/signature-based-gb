@@ -187,8 +187,6 @@ asserted procedure f5_groebner(u: List): List;
          % initialize base polynomial ring
          saveTorder := poly_initRing(vars, ord)
       >>;
-      % The following should be put in errorset()!
-      % convert input expressions to `Polynomial`s
       w := errorset({'f5_groebner1, mkquote inputBasis}, t, !*backtrace);
       if not null saveTorder then
          torder cdr saveTorder;
@@ -200,6 +198,7 @@ asserted procedure f5_groebner(u: List): List;
 
 asserted procedure f5_groebner1(inputBasis: List): List;
    begin scalar inputModule, outputModule;
+      % convert input expressions to `Polynomial`s
       inputBasis := for each f in inputBasis collect
          poly_f2poly numr simp f;
       % construct the basis of the module,
