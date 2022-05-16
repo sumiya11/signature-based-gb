@@ -172,20 +172,22 @@ struct RewriteRule checked by f5_isRewriteRule;
 % and the resulting list is returned.
 asserted procedure f5_groebner(u: List): List;
    begin scalar inputBasis, vars, ord,
-                inputModule, outputModule;
-      if null u or not (listp u) or not (length u = 3) then
+                inputModule, outputModule,
+                saveTorder;
+      if null u or not (listp u) then
          f5_argumentError();
       inputBasis := reval pop u;
       if not (listp inputBasis) or not (pop inputBasis eq 'list) then
          f5_argumentError();
-      vars := reval pop u;
-      if not (listp vars) or not (pop vars eq 'list) then
-         f5_argumentError();
-      ord := pop u;
-      if not (idp ord) then
-        f5_argumentError();
-      % initialize base polynomial ring
-      poly_initRing(vars, ord);
+      if not null u then <<
+         vars := reval pop u;
+         if not (listp vars) or not (pop vars eq 'list) then
+          f5_argumentError();
+         ord := pop u;
+         % initialize base polynomial ring
+         saveTorder := poly_initRing(vars, ord)
+      >>;
+      % The following should be put in errorset()!
       % convert input expressions to `Polynomial`s
       inputBasis := for each f in inputBasis collect
          poly_f2poly numr simp f;
@@ -199,7 +201,9 @@ asserted procedure f5_groebner(u: List): List;
          outputModule := core_groebner1(inputModule);
       % convert `LabeledPolynomial`s back to expressions
       outputModule := 'list . for each f in outputModule collect
-                        poly_poly2a lp_eval f;
+         poly_poly2a lp_eval f;
+      if not null saveTorder then
+         torder cdr saveTorder;
       return outputModule
    end;
 

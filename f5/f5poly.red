@@ -62,7 +62,7 @@ poly_nvars!* := 0;
 poly_vars!* := '(list);
 
 % Initialize polynomial ring with variables `vars` and term order `ord`
-asserted procedure poly_initRing(vars: List, ord: Id);
+asserted procedure poly_initRing(vars: List, ord: Any): List;
   <<
     poly_nvars!* := length(vars);
     poly_ord!*   := ord;
