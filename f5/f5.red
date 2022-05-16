@@ -30,6 +30,8 @@ module f5;
 % for each f5 call.
 create!-package('(f5 f5core f5lp f5poly f5primes f5mod f5stat), nil);
 
+fluid '(!*backtrace);
+
 % Currently, there are three switches available, these are described below
 % . f5fullreduce (default is OFF)
 % . f5integers   (default is OFF)
@@ -171,9 +173,7 @@ struct RewriteRule checked by f5_isRewriteRule;
 %   Finally, each item in the Groebner basis list is converted to a Standard Form,
 % and the resulting list is returned.
 asserted procedure f5_groebner(u: List): List;
-   begin scalar inputBasis, vars, ord,
-                inputModule, outputModule,
-                saveTorder;
+   begin scalar inputBasis, vars, ord, outputModule, saveTorder, w;
       if null u or not (listp u) then
          f5_argumentError();
       inputBasis := reval pop u;
@@ -189,6 +189,17 @@ asserted procedure f5_groebner(u: List): List;
       >>;
       % The following should be put in errorset()!
       % convert input expressions to `Polynomial`s
+      w := errorset({'f5_groebner1, mkquote inputBasis}, t, !*backtrace);
+      if not null saveTorder then
+         torder cdr saveTorder;
+      if errorp w then
+         return nil;
+      outputModule := car w;
+      return 'list . outputModule
+   end;
+
+asserted procedure f5_groebner1(inputBasis: List): List;
+   begin scalar inputModule, outputModule;
       inputBasis := for each f in inputBasis collect
          poly_f2poly numr simp f;
       % construct the basis of the module,
@@ -200,10 +211,8 @@ asserted procedure f5_groebner(u: List): List;
       else
          outputModule := core_groebner1(inputModule);
       % convert `LabeledPolynomial`s back to expressions
-      outputModule := 'list . for each f in outputModule collect
+      outputModule := for each f in outputModule collect
          poly_poly2a lp_eval f;
-      if not null saveTorder then
-         torder cdr saveTorder;
       return outputModule
    end;
 
