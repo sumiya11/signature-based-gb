@@ -28,15 +28,10 @@ module f5poly;
 % if f5integers is ON. It is stored as
 %   {'p, {{3, 1, 2}, {1, 1, 0}}, {1 ./ 1, 3 ./ 1}}
 % otherwise (using SQ).
-%
-% Possible term orders are
-%     lex, revgradlex
 
 % The global polynomial ring should be initialized before constructing polynomials.
 % To initialize the ring in variables `vars` and term order `ord`
 % `poly_initRing(vars, ord)` should be used.
-% Initialization will set the following globals accordingly
-fluid '(poly_ord!* poly_nvars!* poly_vars!*);
 
 off1 'allfac;
 
@@ -49,27 +44,13 @@ load!-package 'dipoly;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% These globals do not make sense until the `poly_initRing`
-% is called for the first time:
-
-% The current term order
-poly_ord!* := 'lex;
-
-% The current number of variables
-poly_nvars!* := 0;
-
-% The list of current variable identifiers
-poly_vars!* := '(list);
-
 % Initialize polynomial ring with variables `vars` and term order `ord`
 asserted procedure poly_initRing(vars: List, ord: Any): List;
   <<
-    poly_nvars!* := length(vars);
-    poly_ord!*   := ord;
-    poly_vars!*  := vars;
-    % initialize polynomials
+    % initialize polynomials from cgb/dp for parsing input/output
     dip_init(vars, ord, nil);
     % initialize term order from dipoly/torder
+    dipsortingmode(ord);
     torder({'list . vars, ord})
   >>;
 
@@ -137,7 +118,7 @@ asserted inline procedure poly_totalDegExp(e1: List): Integer;
 
 % Returns exponent list of zeros of the appropriate length
 asserted inline procedure poly_zeroExp(): List;
-  for x := 0:poly_nvars!* collect 0;
+  for x := 1:length(global!-dipvars!*) collect 0;
 
 % Returns the elementwise sum of exponent lists e1, e2
 asserted procedure poly_sumExp(e1: List, e2: List): List;
@@ -210,14 +191,16 @@ asserted inline procedure poly_cmpExpRevGradLex(e1: List, e2: List): Boolean;
   else
     car e1 #< car e2;
 
-% Compares exponent lists e1, e2 w.r.t. the current order poly_ord!*
+% Compares exponent lists e1, e2 w.r.t. the current term order
 asserted procedure poly_cmpExp(e1: List, e2: List): Boolean;
-  if poly_ord!* eq 'lex then
+  if vdpsortmode!* eq 'lex then
     poly_cmpExpLex(e1, e2)
-  else if poly_ord!* eq 'gradlex then
+  else if vdpsortmode!* eq 'gradlex then
     poly_cmpExpGradLex(e1, e2)
+  else if vdpsortmode!* eq 'revgradlex then
+    poly_cmpExpRevGradLex(e1, e2)
   else
-    poly_cmpExpRevGradLex(e1, e2);
+    evcomp(e1, e2);
 
 % Compares exponent lists w.r.t. the total degree
 asserted inline procedure poly_tdegCmpExp(e1: List, e2: List): Boolean;
@@ -256,7 +239,7 @@ asserted inline procedure poly_dividesTerm!?(a: Term, b: Term): Boolean;
 asserted inline procedure poly_lcmTerm(a: Term, b: Term): Term;
   poly_elmaxExp(a, b);
 
-% Returns a < b in the current term order poly_ord
+% Returns a < b in the current term order term order
 asserted inline procedure poly_cmpTerm(a: Term, b: Term): Boolean;
   poly_cmpExp(a, b);
 

@@ -13,10 +13,19 @@ module f5;
 %   . `order` is the identifier of the term order to compute the basis in,
 %      possible options are `lex`, `revgradlex`;
 %
+% Arguments `vars` and `order` are not needed if `torder` has been called before.
+% If `vars` and `order` are still provided, they temporarily shadow the current `torder`.
+%
 % For example, one can use f5 to compute the Groebner basis of
-% x*y + 1, y*z + 1 in the lex term order with x > y > z in the following way:
+% x*y + 1, y*z + 1 in lex term order with x > y > z in the following way:
 %  > load_package f5;
 %  > f5({x*y + 1, y*z + 1}, {x, y, z}, lex);
+%
+%  or
+%
+%  > load_package f5;
+%  > torder({x, y, z}, lex);
+%  > f5({x*y + 1, y*z + 1});
 
 % The f5core file is the heart of the package, it contains
 % the implementation of the F5 algorithm with the Rewritten Criterion.
@@ -156,6 +165,13 @@ inline procedure f5_isRewriteRule(x); eqcar(x, 'rr);
 struct Basistracker checked by f5_isBasistracker;
 struct CriticalPair checked by f5_isCriticalPair;
 struct RewriteRule checked by f5_isRewriteRule;
+
+in "C:\data\projects\mpi\signature-based-gb\f5\f5core.red"$
+in "C:\data\projects\mpi\signature-based-gb\f5\f5primes.red"$
+in "C:\data\projects\mpi\signature-based-gb\f5\f5mod.red"$
+in "C:\data\projects\mpi\signature-based-gb\f5\f5poly.red"$
+in "C:\data\projects\mpi\signature-based-gb\f5\f5lp.red"$
+in "C:\data\projects\mpi\signature-based-gb\f5\f5stat.red"$
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
