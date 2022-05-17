@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 
-REDUCE = r"redcsl"
+REDUCE = r"bootstrapreduce"
 ARG1 = '~/signature-based-gb/f5/benchmarks/{0}/{1}{0}.red'
 ARG2 = '-w ~/signature-based-gb/f5/correctness/output.rlg'
 
@@ -13,7 +13,7 @@ UNDETECTABLE = ["cyclic6", "cyclic7", "cyclic8", "eco5", "noon4",
 TINY = ["noon5", "noon6", "katsura6",  
         "cyclic9", "cyclic10", "henrion5", "eco7"]
 
-LARGE = ["noon8", "henrion6"]
+LARGE = ["cyclic10", "cyclic11"]
 
 # LARGE = ["noon6", "cyclic10", "cyclic11", "henrion5"]
 

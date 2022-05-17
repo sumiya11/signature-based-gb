@@ -275,7 +275,7 @@ asserted procedure core_constructModule(inputBasis: List): List;
                       collect poly_scaleDenominators(poly);
     % Interreducing input basis is a heuristic. The idea it to produce
     % polynomials with disjoint leading terms after interreduction if possible.
-    inputBasis := core_interreduceInput(inputBasis);
+    % inputBasis := core_interreduceInput(inputBasis);
     % Since F5 constructs the basis for the input polynomials {f1..fn} incrementally,
     % starting from constructing the basis for {f1,f2}, then for {f1,f2,f3}, and so on,
     % the order of input actually matters.
