@@ -133,6 +133,10 @@ off1 'assert_inline_procedures;
 off1 'assertinstall;
 off1 'evalassert;
 
+% For string manipulations in table printing;
+% For `sfto_kernelp`;
+load!-package 'rltools;
+
 % The only function in the interface
 put('f5, 'psopfn, 'f5_groebner);
 
@@ -189,9 +193,14 @@ asserted procedure f5_groebner(u: List): List;
       if not (listp inputBasis) or not (pop inputBasis eq 'list) then
          f5_argumentError();
       if not null u then <<
+      % Alex: something happened to indentation here;
+      % Introduce function like `parse_input(polys, vars, ord)`?;
          vars := reval pop u;
          if not (listp vars) or not (pop vars eq 'list) then
           f5_argumentError();
+         for each w in vars do
+           if not sfto_kernelp(w) then
+             f5_argumentError();
          ord := pop u;
          % initialize base polynomial ring
          saveTorder := poly_initRing(vars, ord)
