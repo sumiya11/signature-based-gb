@@ -13,6 +13,8 @@ torder({x1, x2}, revgradlex);
 
 f5({x1, x2^2});
 
+f5({x1 + 1, x1});
+
 f5({x2, x1, x1, x1, x2, x2, x1, x2, x1, x2}, {x1, x2}, lex);
 
 f5({x1 + x2, (x1 + x2)^2, (x1 + x2)^3}, {x1, x2}, lex);
