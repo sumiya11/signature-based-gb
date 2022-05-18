@@ -3,7 +3,7 @@
 
 load_package f5;
 
-on f5fullreduce;
+on f5interreduce;
 
 procedure modularMessage(system);
   {"Modular Error", system};

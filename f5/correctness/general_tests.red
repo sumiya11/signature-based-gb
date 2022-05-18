@@ -1,7 +1,7 @@
 
 load_package f5;
 
-on f5fullreduce;
+on f5interreduce;
 
 procedure errorMessage(system);
   {"Wrong Answer", system};

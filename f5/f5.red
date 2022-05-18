@@ -1,3 +1,4 @@
+
 module f5;
 % The F5 Algorithm for computing Groebner bases.
 
@@ -13,9 +14,6 @@ module f5;
 %   . `order` is the identifier of the term order to compute the basis in,
 %      possible options are `lex`, `revgradlex`;
 %
-% Arguments `vars` and `order` are not needed if `torder` has been called before.
-% If `vars` and `order` are still provided, they temporarily shadow the current `torder`.
-%
 % For example, one can use f5 to compute the Groebner basis of
 % x*y + 1, y*z + 1 in lex term order with x > y > z in the following way:
 %  > load_package f5;
@@ -26,6 +24,17 @@ module f5;
 %  > load_package f5;
 %  > torder({x, y, z}, lex);
 %  > f5({x*y + 1, y*z + 1});
+%
+% For different combinations of torder and input arguments f5 works
+% much the same way as groebner:
+%
+% If torder was called before, then
+%     f5(system) uses the order set by torder;
+%     f5(system, vars, ord) temporarily shadows torder and uses input arguments.
+% If torder was not called before, then
+%     f5(system) extracts variables as identifiers present in input system,
+%                 and uses default order from torder (lex);
+%     f5(system, vars, ord) uses input arguments.
 
 % The f5core file is the heart of the package, it contains
 % the implementation of the F5 algorithm with the Rewritten Criterion.
@@ -44,31 +53,31 @@ fluid '(global!-dipvars!*);
 fluid '(vdpsortmode!*);
 
 % Currently, there are three switches available, these are described below
-% . f5fullreduce (default is OFF)
+% . f5interreduce (default is OFF)
 % . f5integers   (default is OFF)
 % . f5statistics (default is OFF)
 
-% f5fullreduce - If the output basis should be fully interreduced.
+% f5interreduce - If the output basis should be fully interreduced.
 %                If this is ON, each generator in the output basis is
 %                in the normal form with respect to other generators.
 %                Otherwise, only head terms of polynomials in the basis
 %                are reduced (and the size of the basis is minimal).
 %                Is OFF by default.
-%                Generally, f5 with f5fullreduce ON is considerably slower.
+%                Generally, f5 with f5interreduce ON is considerably slower.
 %
 %  For example,
-%  > off f5fullreduce;
+%  > off f5interreduce;
 %  > f5({x^2 + x + y, x*y + y, x^3 + x}, {x, y}, lex);
 %
 %    {x + y,y}
 %
-%  > on f5fullreduce;
+%  > on f5interreduce;
 %  > f5({x^2 + x + y, x*y + y, x^3 + x}, {x, y}, lex);
 %
 %    {x,y}
 %
-switch f5fullreduce;
-off1 'f5fullreduce;
+switch f5interreduce;
+off1 'f5interreduce;
 
 % f5integers - If this is ON, then coefficients of polynomials
 %              in the output basis have denominator 1, and the numerator

@@ -514,7 +514,7 @@ asserted procedure core_normalizeBasis(basis: List): List;
 
 % Given a Groebner `basis` standardizes it,
 % so that the output agrees with the following invariants:
-%  . the basis is interreduced (if f5fullreduce is OFF, only top-reductions are performed)
+%  . the basis is interreduced (if f5interreduce is OFF, only top-reductions are performed)
 %  . the basis is normalized
 %  . the basis is sorted by the order on the leading terms of its generators
 asserted procedure core_standardizeOutput(basis: List): List;
@@ -853,6 +853,8 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
       if p then
         push(p, pairs)
     >>;
+    if !*f5statistics then
+      stat_updatePairs(length(pairs));
     % construct d-Groebner bases for d=0,1,2,..., incrementally
     while pairs do <<
       % first, select critical pairs of the smallest degree, d,
@@ -871,7 +873,7 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
       reduced := core_reduction(S, Gprev, Gcurr, r, Rule);
       reduced := reversip(reduced);
       if !*f5statistics then
-        stat_updateIncremental(d);
+        stat_updateIncremental(d, length(Gcurr)*length(reduced) + length(reduced)*(length(reduced)-1) / 2);
       % form new critical pairs and insert them in the `pairs` list
       while reduced do <<
         k := pop(reduced);
@@ -898,7 +900,7 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
 %   . the output basis is top-reduced, meaning the number of generators is minimal,
 %   . the output basis is sorted,
 %   . the output basis contains only normalized polynomials,
-%   . if f5fullreduce is ON, then the output basis is fully reduced
+%   . if f5interreduce is ON, then the output basis is fully reduced
 asserted procedure core_groebner1(basis: List): List;
   begin scalar f1, r, Gprev, Rule, fi;
         integer m, i;
@@ -928,7 +930,7 @@ asserted procedure core_groebner1(basis: List): List;
     >>;
     % filter redundant generators
     Gprev := core_filterRedundant(Gprev, r);
-    if !*f5fullreduce then
+    if !*f5interreduce then
       Gprev := core_interreduceBasis(Gprev, r);
     basis := for each i in Gprev collect core_getPoly(r, i);
     if !*f5statistics then
