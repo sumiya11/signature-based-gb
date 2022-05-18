@@ -146,7 +146,7 @@ put('f5, 'psopfn, 'f5_groebner);
 %%%%%%%% STRUCTS DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % interface implemented in f5poly.red
-inline procedure f5_isPolynomial(x); eqcar(x, 'p);
+procedure f5_isPolynomial(x); eqcar(x, 'p);
 struct Polynomial checked by f5_isPolynomial;
 struct Terms checked by listp;
 struct Term checked by listp;
@@ -155,19 +155,19 @@ struct Coeffs checked by listp;
 struct Coeff;
 
 % interface implemented in f5lp.red
-inline procedure f5_isLabeledPolynomial(x); eqcar(x, 'lp);
-inline procedure f5_isSignature(x); eqcar(x, 'sgn);
+procedure f5_isLabeledPolynomial(x); eqcar(x, 'lp);
+procedure f5_isSignature(x); eqcar(x, 'sgn);
 struct LabeledPolynomial checked by f5_isLabeledPolynomial;
 struct Signature checked by f5_isSignature;
 
 % interface implemented in f5primes.red
-inline procedure f5_isPrimetracker(x); eqcar(x, 'pt);
+procedure f5_isPrimetracker(x); eqcar(x, 'pt);
 struct Primetracker checked by f5_isPrimetracker;
 
 % interface implemented in f5core.red
-inline procedure f5_isBasistracker(x); eqcar(x, 'bt);
-inline procedure f5_isCriticalPair(x); (null x) or eqcar(x, 'cp);
-inline procedure f5_isRewriteRule(x); eqcar(x, 'rr);
+procedure f5_isBasistracker(x); eqcar(x, 'bt);
+procedure f5_isCriticalPair(x); (null x) or eqcar(x, 'cp);
+procedure f5_isRewriteRule(x); eqcar(x, 'rr);
 struct Basistracker checked by f5_isBasistracker;
 struct CriticalPair checked by f5_isCriticalPair;
 struct RewriteRule checked by f5_isRewriteRule;
@@ -195,7 +195,7 @@ asserted procedure f5_groebner(u: List): List;
       inputBasis := reval pop u;
       if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
          f5_argumentError();
-      properIdeal := t; while c and not null inputBasis <<
+      properIdeal := t; while properIdeal and not null inputBasis do <<
          f := numr simp pop inputBasis;
          if numberp f and not null f then
             properIdeal := nil
@@ -228,7 +228,7 @@ asserted procedure f5_groebner(u: List): List;
          for each f in inputBasis do
             vars := union(vars, kernels f);
          vars := sort(vars, 'ordp);
-         poly_initRing(inputBasisVars, vdpsortmode!*)
+         poly_initRing(vars, vdpsortmode!*)
       >>;
       w := errorset({'f5_groebner1, mkquote inputBasis}, t, !*backtrace);
       torder cdr saveTorder;
@@ -259,9 +259,16 @@ asserted procedure f5_groebner1(inputBasis: List): List;
 
 % Argument error
 asserted procedure f5_argumentError();
-   rederr "usage: f5(polynomials: List, vars: List, order: Id). For example,
+   rederr "usage: f5(polynomials: List, vars: List, order: Any). For example,
 
-          f5({x*y + 1, y*z + 1}, {x, y, z}, lex);";
+          > f5({x*y + 1, y*z + 1}, {x, y, z}, lex);
+
+          Or, using torder:
+
+          > torder({x, y, z}, lex);
+          > f5({x*y + 1, y*z + 1});
+
+          ";
 
 endmodule;  % end of module f5
 

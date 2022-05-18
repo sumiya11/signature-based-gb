@@ -1,9 +1,6 @@
 module f5stat
 % The module for collecting statistics during f5 computation.
 
-% For string manipulations in table printing
-load!-package 'rltools;
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % All information is stored in several global variables,
 % and is updated using the functions from the interface
