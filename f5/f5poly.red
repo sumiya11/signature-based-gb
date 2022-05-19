@@ -363,16 +363,28 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
                                                    gmult: Term,   gcoeff: Coeff): Polynomial;
    begin scalar fterms, fcoeffs, gterms, gcoeffs, gmultcoeff, fmultcoeff,
                         sterms, scoeffs, ft, gt, fc, gc, newc;
-      % We form two lists, sterms and scoeffs, which would be the list of
-      %  terms and the list of coefficients of s, where s is the new polynomial
+      % We return s, a new polynomial,
       % constructed as s = gcoeff*fmult*f - fcoeff*gmult*g.
+      % We form two lists, sterms and scoeffs, which would be the list of
+      % terms and the list of coefficients of s.
       % The sterms list is formed by merging two sorted lists:
-      %  the list of terms of f each multiplied by fmult
+      % the list of terms of f each multiplied by fmult,
       % with the list of terms of g each multiplied by gmult.
-      % In parallel (in the same loop), the scoeffs list is formed
+      % In parallel (in the same loop), scoeffs list is formed
       % by merging the list of coefficients of f each multiplied by fmultcoeff,
       % with the list of coefficients of g each multiplied by gmultcoeff,
       % *in the same merge order as for the terms*.
+      %
+      % For example,
+      % f = x^2y + 3x  ~  {{x^2*y, x}, {1, 3}},
+      % g = xy + 2     ~  {{x*y, 1},   {1, 2}}
+      % fmult  = 1 (as almost always)
+      % gmult  = x
+      % gcoeff = 1
+      % foceff = 1
+      %
+      % s = 1*(x^2*y + 3x) - x*(x*y + 2)
+      %
       fterms  := poly_getTerms(f);
       fcoeffs := poly_getCoeffs(f);
       gterms  := poly_getTerms(g);
@@ -383,16 +395,23 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
       % Merge in the same order two other lists:
           % fcoeffs and gcoeffs, multiplied by gmultcoeff and fmultcoeff, respectively.
       while fterms and gterms do <<
+         % First iteration:
+         % take ft = x^2*y, gt = x*(xy)
+         %      fc = 1,     gc = -1
          ft := poly_mulTerm(car fterms, fmult);
          gt := poly_mulTerm(car gterms, gmult);
          fc := poly_mulCoeff(car fcoeffs, fmultcoeff);
          gc := poly_mulCoeff(car gcoeffs, gmultcoeff);
+         % Optimization: return -1,0,1 just as C comparator;
+         % Optimization: do not repeat oneself.
          if poly_cmpTerm(gt, ft) then <<   % if term gt < term ft
             push(ft, sterms);
             push(fc, scoeffs);
             pop(fterms);
             pop(fcoeffs)
          >> else if poly_eqTerm!?(gt, ft) then <<  % if term gt = term ft
+            % this is the case for the first iteration,
+            % newc = 1 - 1 = 0, continue to second iteration
             newc := poly_addCoeff(gc, fc);
             if not poly_iszeroCoeff!?(newc) then <<
                push(gt, sterms);
@@ -410,6 +429,8 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
          >>
       >>;
       % Merge what is left from fterms and fcoeffs
+      % Optimization: assuming fmult is indentity, and fmultcoeff is literal 1
+      %               just sterms := fterms . sterms; same for coeffs
       while fterms do <<
          push(poly_mulTerm(pop(fterms), fmult), sterms);
          push(poly_mulCoeff(pop(fcoeffs), fmultcoeff), scoeffs)
@@ -485,7 +506,9 @@ asserted procedure poly_tryTopReductionStep(f: Polynomial,
       if poly_dividesTerm!?(glead, flead) then <<
          fmult := poly_identityTerm();
          gmult := poly_divTerm(flead, glead);
-         % using poly_paircombTail since leading terms vanish
+         % using poly_paircombTail since leading terms vanish.
+         % Optimization: do not pass fmult;
+         % Optimization: poly_leadCoeff(g) is always one;
          f := poly_paircombTail(f, fmult, poly_leadCoeff(f), g, gmult, poly_leadCoeff(g));
          updated := t
       >>;

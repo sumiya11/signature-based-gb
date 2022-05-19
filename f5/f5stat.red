@@ -7,7 +7,8 @@ module f5stat
 
 fluid '(stat_nCurrentIndex!*    stat_nModuleIndices!*
         stst_nAllReductions!*   stat_nZeroReductions!*
-        stat_nNormalFormCalls!* stat_nDegreeRange!*);
+        stat_nNormalFormCalls!* stat_nDegreeRange!*
+        stat_nCriticalPairs!*);
 
 % stat_nCurrentIndex!* - the current index in the module
 % (the mathematical module, namely, the index `i` from the `core_incrementalBasis`)
@@ -42,6 +43,8 @@ stat_nNormalFormCalls!* := nil;
 % that the smallest encountered degree was 3, and the largest was 8
 stat_nDegreeRange!*     := nil;
 
+stat_nCriticalPairs!*   := nil;
+
 % To initialize the minimal degree with a "very large number"
 fluid '(stat_initialMinDegree!*);
 stat_initialMinDegree!* := 10000;
@@ -59,10 +62,12 @@ asserted procedure stat_init(m: Integer);
     stat_nZeroReductions!*  := mkvect(m);
     stat_nNormalFormCalls!* := mkvect(m);
     stat_nDegreeRange!*     := mkvect(m);
+    stat_nCriticalPairs!*   := mkvect(m);
     for i := 0:m do <<
       putv(stat_nAllReductions!*, i, 0);
       putv(stat_nZeroReductions!*, i, 0);
       putv(stat_nNormalFormCalls!*, i, 0);
+      putv(stat_nCriticalPairs!*, i, 0);
       putv(stat_nDegreeRange!*, i, stat_initialMinDegree!* . 0)
     >>
   >>;
@@ -77,15 +82,26 @@ asserted procedure stat_incrementZeroReductions();
 asserted procedure stat_updateModuleIndex();
   stat_nCurrentIndex!* := stat_nCurrentIndex!* + 1;
 
+% Increments the module index
+asserted procedure stat_updatePairs(p: Integer);
+  putv(
+    stat_nCriticalPairs!*,
+    stat_nCurrentIndex!*,
+    getv(stat_nCriticalPairs!*, stat_nCurrentIndex!*) + p
+  );
+
 % Updates statistics with the data from the main loop of core_incrementalBasis:
 %  . d is the degree of selected critical pairs, it updates stat_nDegreeRange!*
-asserted procedure stat_updateIncremental(d: Integer);
-  begin scalar degreeRange;
+%  . p
+asserted procedure stat_updateIncremental(d: Integer, p: Integer);
+  begin scalar degreeRange, i;
     degreeRange := getv(stat_nDegreeRange!*, stat_nCurrentIndex!*);
     if car degreeRange > d then
       car degreeRange := d;
     if cdr degreeRange < d then
-      cdr degreeRange := d
+      cdr degreeRange := d;
+    i := stat_nCurrentIndex!*;
+    putv(stat_nCriticalPairs!*, i, getv(stat_nCriticalPairs!*, i) + p)
   end;
 
 % Updates statistics with the polynomial reductions data
@@ -139,7 +155,7 @@ asserted procedure stat_joinList(s: List): String;
 %
 % Where columns labels stand for
 %    # i - the module index (the signature index)
-%    # reductions - the number of polynomialss reduced
+%    # reductions - the number of polynomials reduced
 %    # zero reductions - the number of polynomials reduced to zero
 %    # normal forms - the number of normal forms computed
 %    degree range - the minimal degree and the maximal degree of a critical pair
@@ -148,19 +164,20 @@ asserted procedure stat_joinList(s: List): String;
 asserted procedure stat_print();
   begin scalar header0, header1, header2, footer,
                 spaces, tmp, degsep, degs, line, colsep;
-        integer idx, red1, red2, nf, mindeg, maxdeg,
-                totalAllReductions, totalZeroReductions, totalNormalForms;
+        integer idx, red1, red2, nf, mindeg, maxdeg, ps,
+                totalAllReductions, totalZeroReductions,
+                totalNormalForms, totalCriticalPairs;
     % headers of our table, defining 5 columns, from left to right:
     % the module index, the number of reduced polynomials,
     % the number of polynomials reduced to zero,
     % the number of normal forms computed,
     % the range of critical pair degrees
-    header0 := "---------------------------------------------------------------------";
-    header1 := "| # i | # reductions | # zero reductions | # normal forms | degrees |";
-    header2 := "---------------------------------------------------------------------";
+    header0 := "-------------------------------------------------------------------------------";
+    header1 := "| # i | # pairs | # reductions | # zero reductions | # normal forms | degrees |";
+    header2 := "-------------------------------------------------------------------------------";
     footer  := header2;
     % widths of table columns
-    spaces  := {5, 14, 19, 16, 7};
+    spaces  := {5, 9, 14, 19, 16, 7};
     % degree separator, and column separator
     degsep  := " - ";
     colsep  := "|";
@@ -172,16 +189,18 @@ asserted procedure stat_print();
     for i := 1:stat_nModuleIndices!* do <<
       tmp  := spaces;
       idx  := stat_paveList({i}, pop(tmp));
-      red1 := stat_paveList({getv(stat_nAllReductions!*, i)}, pop(tmp));
-      red2 := stat_paveList({getv(stat_nZeroReductions!*, i)}, pop(tmp));
-      nf   := stat_paveList({getv(stat_nNormalFormCalls!*, i)}, pop(tmp));
+      ps   := stat_paveList(explode(getv(stat_nCriticalPairs!*, i)), pop(tmp));
+      red1 := stat_paveList(explode(getv(stat_nAllReductions!*, i)), pop(tmp));
+      red2 := stat_paveList(explode(getv(stat_nZeroReductions!*, i)), pop(tmp));
+      nf   := stat_paveList(explode(getv(stat_nNormalFormCalls!*, i)), pop(tmp));
       mindeg . maxdeg := getv(stat_nDegreeRange!*, i);
       if not (mindeg = stat_initialMinDegree!*) then
-        degs := nconc({mindeg}, degsep . {maxdeg})
+        degs := nconc(explode(mindeg), degsep . explode(maxdeg))
       else
         degs := {degsep};
       degs := stat_paveList(degs, pop(tmp));
       line := stat_joinList({colsep, idx,
+                             colsep, ps,
                              colsep, red1,
                              colsep, red2,
                              colsep, nf,
@@ -193,15 +212,17 @@ asserted procedure stat_print();
     for i := 1:stat_nModuleIndices!* do <<
       totalAllReductions  := getv(stat_nAllReductions!*, i) + totalAllReductions;
       totalZeroReductions := getv(stat_nZeroReductions!*, i) + totalZeroReductions;
-      totalNormalForms    :=  getv(stat_nNormalFormCalls!*, i) + totalNormalForms
+      totalNormalForms    :=  getv(stat_nNormalFormCalls!*, i) + totalNormalForms;
+      totalCriticalPairs  :=  getv(stat_nCriticalPairs!*, i) + totalCriticalPairs
     >>;
     % print last lines of the table
     prin2t footer;
     prin2t stat_joinList({
       stat_paveList({"Total"}, pop(spaces)-2),
-      stat_paveList({totalAllReductions}, pop(spaces)+1),
-      stat_paveList({totalZeroReductions}, pop(spaces)),
-      stat_paveList({totalNormalForms}, pop(spaces)+2)
+      stat_paveList(explode(totalCriticalPairs), pop(spaces)),
+      stat_paveList(explode(totalAllReductions), pop(spaces)+2),
+      stat_paveList(explode(totalZeroReductions), pop(spaces)),
+      stat_paveList(explode(totalNormalForms), pop(spaces)+2)
     })
   end;
 
