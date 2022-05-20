@@ -1,9 +1,6 @@
+% cyclic-5 system in lex
 
-load_package f5;
-
-% noon-4 system in degrevlex
-
-off f5integers;
+load_package cgb;
 
 system := {
 2*f1*f2*f3*f4*f5-9823275,
@@ -15,14 +12,15 @@ f1+2*f2+3*f3+4*f4+5*f5+6*t
 };
 
 vars := {f1,f2,f3,f4,f5,t};
+torder(vars, revgradlex)$
 
-share system, vars;
+share system;
 
 lisp;
 st := time();
 
 algebraic;
-gb := f5(system, vars, 'revgradlex)$
+gb := gb(system)$
 
 lisp;
 prin2t({"TIME", time() - st});

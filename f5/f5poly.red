@@ -218,6 +218,9 @@ asserted procedure poly_eqExp!?(e1: List, e2: List): Boolean;
 asserted inline procedure poly_identityTerm(): Term;
    poly_zeroExp();
 
+asserted inline procedure poly_isIdentityTerm!?(tm: Term): Boolean;
+   poly_totalDegTerm(tm) #= 0;
+
 % Returns the total degree of the Term
 asserted inline procedure poly_totalDegTerm(a: Term): Integer;
    poly_totalDegExp(a);
@@ -300,6 +303,14 @@ asserted inline procedure poly_iszeroCoeff!?(a: Coeff): Boolean;
    else
       numr(a) = nil;
 
+asserted inline procedure poly_isoneCoeff!?(a: Coeff): Boolean;
+   if !*f5modular then
+      a #= 1
+   else if !*f5integers then
+      a = 1
+   else
+      numr(a) = 1 and denr(a) = 1;
+
 asserted inline procedure poly_addCoeff(a: Coeff, b: Coeff): Coeff;
    if !*f5modular then
       modular!-plus(a, b)
@@ -307,6 +318,14 @@ asserted inline procedure poly_addCoeff(a: Coeff, b: Coeff): Coeff;
      a + b
    else
       addsq(a, b);
+
+asserted inline procedure poly_subCoeff(a: Coeff, b: Coeff): Coeff;
+   if !*f5modular then
+      modular!-sub(a, b)
+   else if !*f5integers then
+     a - b
+   else
+      subsq(a, b);
 
 asserted inline procedure poly_mulCoeff(a: Coeff, b: Coeff): Coeff;
    if !*f5modular then
@@ -343,6 +362,7 @@ asserted inline procedure poly_invCoeff(a: Coeff): Coeff;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% POLYNOMIAL LOW LEVEL OPERATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
 % This is the only section where polynomial coefficient arithmetic happens
 
 % Returns s = gcoeff*fmult*f - fcoeff*gmult*g
@@ -355,14 +375,18 @@ asserted inline procedure poly_paircombTail(f: Polynomial, fmult: Term,
    % Assuming the leading monomials of `gcoeff*fmult*f` and `fcoeff*gmult*g`
    % are mutually canceled, we can use the general reduction applied to
    % the tails of input polynomials
-   poly_paircomb(poly_tail(f), fmult, fcoeff, poly_tail(g), gmult, gcoeff);
+   <<
+   % prin2t {"lc(f) =", poly_leadCoeff(f)};
+   % prin2t {"lc(g) =", poly_leadCoeff(g)};
+   poly_paircomb(poly_tail(f), fmult, fcoeff, poly_tail(g), gmult, gcoeff)
+   >>;
 
 % Returns s = gcoeff*fmult*f - fcoeff*gmult*g
 asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
-                                                   fcoeff: Coeff, g: Polynomial,
-                                                   gmult: Term,   gcoeff: Coeff): Polynomial;
+                                 fcoeff: Coeff, g: Polynomial,
+                                 gmult: Term,   gcoeff: Coeff): Polynomial;
    begin scalar fterms, fcoeffs, gterms, gcoeffs, gmultcoeff, fmultcoeff,
-                        sterms, scoeffs, ft, gt, fc, gc, newc;
+                sterms, scoeffs, ft, gt, fc, gc, newc;
       % We return s, a new polynomial,
       % constructed as s = gcoeff*fmult*f - fcoeff*gmult*g.
       % We form two lists, sterms and scoeffs, which would be the list of
@@ -375,73 +399,112 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
       % with the list of coefficients of g each multiplied by gmultcoeff,
       % *in the same merge order as for the terms*.
       %
-      % For example,
-      % f = x^2y + 3x  ~  {{x^2*y, x}, {1, 3}},
-      % g = xy + 2     ~  {{x*y, 1},   {1, 2}}
-      % fmult  = 1 (as almost always)
-      % gmult  = x
-      % gcoeff = 1
-      % foceff = 1
-      %
-      % s = 1*(x^2*y + 3x) - x*(x*y + 2)
-      %
       fterms  := poly_getTerms(f);
       fcoeffs := poly_getCoeffs(f);
       gterms  := poly_getTerms(g);
       gcoeffs := poly_getCoeffs(g);
       gmultcoeff := poly_negCoeff(fcoeff);
-      fmultcoeff := gcoeff;
+      % fmultcoeff := gcoeff;
+
+      if not poly_isoneCoeff!?(gcoeff) then
+         rederr "Beda!";
+
       % Merge two sorted lists: fterms and gterms, multiplied by fmult and gmult, respectively.
       % Merge in the same order two other lists:
           % fcoeffs and gcoeffs, multiplied by gmultcoeff and fmultcoeff, respectively.
+      %
+      % if n = length(fterms), m = length(gterms), then in the worst case
+      %   2(n+m)*E  +    m*E     +     2m*C    +   (n+m)
+      % comparison    term mult.    coeff op.     reverse
+      %
+      % where E is the cost of iterating exponent vector,
+      % and C is the cost of one arithmetic operation on coefficients
       while fterms and gterms do <<
-         % First iteration:
-         % take ft = x^2*y, gt = x*(xy)
-         %      fc = 1,     gc = -1
-         ft := poly_mulTerm(car fterms, fmult);
-         gt := poly_mulTerm(car gterms, gmult);
-         fc := poly_mulCoeff(car fcoeffs, fmultcoeff);
-         gc := poly_mulCoeff(car gcoeffs, gmultcoeff);
+         % prin2t {fterms, gterms};
+         if null ft then <<
+            ft := car fterms;
+            % identity check is 1 car and 1 comparison
+            if not poly_isIdentityTerm!?(fmult) then
+               ft := poly_mulTerm(ft, fmult)
+         >>;
+         if null gt then
+            gt := poly_mulTerm(car gterms, gmult);
          % Optimization: return -1,0,1 just as C comparator;
-         % Optimization: do not repeat oneself.
          if poly_cmpTerm(gt, ft) then <<   % if term gt < term ft
             push(ft, sterms);
-            push(fc, scoeffs);
-            pop(fterms);
-            pop(fcoeffs)
+            push(car fcoeffs, scoeffs);
+            pop(fterms); pop(fcoeffs);
+            ft := nil
          >> else if poly_eqTerm!?(gt, ft) then <<  % if term gt = term ft
-            % this is the case for the first iteration,
-            % newc = 1 - 1 = 0, continue to second iteration
-            newc := poly_addCoeff(gc, fc);
+            fc := car fcoeffs;
+            gc := poly_mulCoeff(car gcoeffs, gmultcoeff);
+            newc := poly_addCoeff(fc, gc);
             if not poly_iszeroCoeff!?(newc) then <<
                push(gt, sterms);
                push(newc, scoeffs)
             >>;
-            pop(fterms);
-            pop(fcoeffs);
-            pop(gterms);
-            pop(gcoeffs)
+            pop(fterms); pop(fcoeffs);
+            pop(gterms); pop(gcoeffs);
+            gt := nil;
+            ft := nil
          >> else <<   % if term gt > term ft
             push(gt, sterms);
-            push(gc, scoeffs);
-            pop(gterms);
-            pop(gcoeffs)
+            push(poly_mulCoeff(car gcoeffs, gmultcoeff), scoeffs);
+            pop(gterms); pop(gcoeffs);
+            gt := nil
          >>
       >>;
-      % Merge what is left from fterms and fcoeffs
-      % Optimization: assuming fmult is indentity, and fmultcoeff is literal 1
-      %               just sterms := fterms . sterms; same for coeffs
-      while fterms do <<
-         push(poly_mulTerm(pop(fterms), fmult), sterms);
-         push(poly_mulCoeff(pop(fcoeffs), fmultcoeff), scoeffs)
+      if null gterms and null fterms then <<
+         scoeffs := reversip(scoeffs);
+         sterms  := reversip(sterms)
       >>;
       % Merge what is left from gterms and gcoeffs
-      while gterms do <<
-         push(poly_mulTerm(pop(gterms), gmult), sterms);
-         push(poly_mulCoeff(pop(gcoeffs), gmultcoeff), scoeffs)
+      if not null gterms then <<
+         if poly_isIdentityTerm!?(gmult) then
+            sterms := nconc(reversip sterms, gterms)
+         else <<
+            while gterms do
+               push(poly_mulTerm(pop(gterms), gmult), sterms);
+            sterms := reversip(sterms)
+         >>;
+         while gcoeffs do
+            push(poly_mulCoeff(pop(gcoeffs), gmultcoeff), scoeffs);
+         scoeffs := reversip(scoeffs);
       >>;
-      return poly_Polynomial(reversip(sterms), reversip(scoeffs))
+      % Merge what is left from fterms and fcoeffs
+      if not null fterms then <<
+         if poly_isIdentityTerm!?(fmult) then
+            sterms := nconc(reversip sterms, fterms)
+         else <<
+            while fterms do
+               push(poly_mulTerm(pop(fterms), fmult), sterms);
+            sterms := reversip(sterms)
+         >>;
+         scoeffs := nconc(reversip scoeffs, fcoeffs)
+      >>;
+      return poly_Polynomial(sterms, scoeffs)
    end;
+
+% trst poly_paircomb;
+
+% for history
+procedure copyList(l);
+  begin scalar queue, newPair;
+    if null l then
+      return nil;
+    queue := car l . nil;
+    queue := queue . queue;
+  % car queue points to the end of the queue
+  % cdr queue points to the beginning of the queue
+    l := cdr l;
+    while not null l do <<
+      newPair := car l . nil;
+      cdar queue := newPair;
+      car queue := newPair;
+      l := cdr l
+    >>;
+    return cdr queue
+  end;
 
 % Constructs a new polynomial as a copy of `poly` with normalized coefficients.
 % If !*f5integers is ON, this will divide all coefficients by the content of `poly`

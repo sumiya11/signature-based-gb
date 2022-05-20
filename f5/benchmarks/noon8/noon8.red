@@ -3,7 +3,7 @@ load_package f5;
 
 % noon-8 system in degrevlex
 
-on f5integers;
+off f5integers;
 
 system := {
   10*x1*x2^2 + 10*x1*x3^2 + 10*x1*x4^2 + 10*x1*x5^2 + 10*x1*x6^2 + 10*x1*x7^2 + 10*x1*x8^2 - 11*x1 + 10,

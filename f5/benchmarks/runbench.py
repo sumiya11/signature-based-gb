@@ -10,8 +10,7 @@ ARG2 = '-w ~/signature-based-gb/f5/correctness/output.rlg'
 UNDETECTABLE = ["cyclic6", "cyclic7", "cyclic8", "eco5", "noon4",
                 "ojika4", "ku10", "trinks"]
 
-TINY = ["noon6", "noon7", "katsura6", "katsura7", 
-        "cyclic10", "cyclic11", "henrion5"]
+TINY = ["cyclic10", "cyclic11", "henrion5"]
 
 LARGE = ["cyclic10", "cyclic11"]
 
@@ -40,10 +39,11 @@ def extract_time(output):
     fromstart = fromstart[0:fromstart.index(")")]
     return round(float(fromstart) / 1e3, 3)
 
-def runfile(dir, samples, groebner=False):
+def runfile(dir, samples, groebner=False, cgb=False):
     prefix = "gb" if groebner else ""
-    
-    if not groebner:
+    prefix = "cgb" if cgb else ""
+
+    if not groebner and not cgb:
         print(f"{dir}: ", end='')
         sys.stdout.flush()
 
@@ -88,7 +88,7 @@ def runbench_small(cmp):
             else:
                 bench1 = runfile(dir, samples, groebner=False)
                 totaltime += bench1.time
-                bench2 = runfile(dir, 1, groebner=True)
+                bench2 = runfile(dir, 1, cgb=True)
                 msg = compare_message(bench1, bench2)
                 print(msg)
 
