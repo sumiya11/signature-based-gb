@@ -127,6 +127,17 @@ asserted procedure poly_sumExp(e1: List, e2: List): List;
    else
       (car e1 #+ car e2) . poly_sumExp(cdr e1, cdr e2);
 
+asserted procedure poly_sumExp(e1: List, e2: List): List;
+   <<
+      ASSERT(not null e1 and not null e2);
+      if car e1 #= 0 then
+         e2
+      else if car e2 #= 0 then
+         e1
+      else
+         for each x in e1 collect x #+ pop e2
+   >>;
+
 % Return the elementwise subtraction of exponent lists e1, e2
 asserted procedure poly_subExp(e1: List, e2: List): List;
    if null e1 then
@@ -148,7 +159,17 @@ asserted procedure poly_elmaxExp1(e1: List, e2: List): List;
    else
       max(car e1, car e2) . poly_elmaxExp1(cdr e1, cdr e2);
 
-% Checks if e1 is elementwise not larger than e2
+% Returns the elementwise maximum of exponent lists e1, e2
+asserted procedure poly_elmaxExp(e1: List, e2: List): List;
+   begin scalar w;
+      ASSERT(not null e1 and not null e2);
+      e1 := cdr e1;
+      e2 := cdr e2;
+      w := for each x in e1 collect max(x, pop e2);
+      return (for each x in w sum x) . w
+   end;
+
+% Checks if e1 is elementwise less ore equal than e2
 asserted procedure poly_divExp!?(e1: List, e2: List): Boolean;
    if null e1 then
       t
@@ -156,6 +177,15 @@ asserted procedure poly_divExp!?(e1: List, e2: List): Boolean;
       nil
    else
       poly_divExp!?(cdr e1, cdr e2);
+
+% Checks if e1 is elementwise less ore equal than e2
+asserted procedure poly_divExp!?(e1: List, e2: List): Boolean;
+   begin scalar brk;
+      % We deliberately also check the total degree.
+      while not brk and e1 do
+         brk := pop e1 #> pop e2;
+      return brk
+   end;
 
 % Checks if exponent e1 is disjoint with e2
 asserted procedure poly_disjExp!?(e1: List, e2: List): Boolean;
@@ -168,6 +198,16 @@ asserted procedure poly_disjExp1(e1: List, e2: List): Boolean;
       nil
    else
       poly_disjExp1(cdr e1, cdr e2);
+
+asserted procedure poly_disjExp!?(e1: List, e2: List): Boolean;
+   begin scalar ok;
+      e1 := cdr e1;
+      e2 := cdr e2;
+      ok = t;
+      while ok and e1 do
+         ok := pop e1 #= 0 or pop e2 #= 0;
+      return ok
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Comparators for exponent lists.
@@ -209,6 +249,10 @@ asserted inline procedure poly_tdegCmpExp(e1: List, e2: List): Boolean;
 % Checks that e1 = e2 elementwise
 asserted procedure poly_eqExp!?(e1: List, e2: List): Boolean;
    evlexcomp(e1, e2) #= 0;
+
+% Checks that e1 = e2 elementwise
+asserted procedure poly_eqExp!?(e1: List, e2: List): Boolean;
+   e1 = e2;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% TERMS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -301,7 +345,7 @@ asserted inline procedure poly_iszeroCoeff!?(a: Coeff): Boolean;
    else if !*f5integers then
       a = 0
    else
-      numr(a) = nil;
+      not numr(a);
 
 asserted inline procedure poly_isoneCoeff!?(a: Coeff): Boolean;
    if !*f5modular then
@@ -309,7 +353,7 @@ asserted inline procedure poly_isoneCoeff!?(a: Coeff): Boolean;
    else if !*f5integers then
       a = 1
    else
-      numr(a) = 1 and denr(a) = 1;
+      eqn(numr(a), 1) and eqn(denr(a), 1);
 
 asserted inline procedure poly_addCoeff(a: Coeff, b: Coeff): Coeff;
    if !*f5modular then
@@ -356,8 +400,10 @@ asserted inline procedure poly_invCoeff(a: Coeff): Coeff;
       modular!-reciprocal(a)
    else if !*f5integers then
       rederr "*****  Trying to take an inverse with f5integers ON."
-   else
-      denr(a) . numr(a);
+   else <<
+      % ASSERT(not null numr a);
+      denr(a) ./ numr(a);
+   >>
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% POLYNOMIAL LOW LEVEL OPERATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
