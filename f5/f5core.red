@@ -307,28 +307,27 @@ asserted procedure core_constructModule(inputBasis: List): List;
 % If topReduce is set, only top-reductions happen. Otherwise,
 % the polynomial is fully reduced.
 asserted procedure core_normalForm(f: Polynomial, Gprev: List,
-                                    r: Basistracker,
-                                    topReduce: Boolean): DottedPair;
-  begin scalar updated, reducer, reduced, updatedToreturn;
-    updated := t;
-    % while polynomial f gets updated by reduction steps,
-    % scan the list Gprev in search for possible reducers
-    while updated do <<
-      updated := nil;
-      for each g in Gprev do <<
-        reducer := lp_eval(core_getPoly(r, g));
-        if not poly_iszero!?(reducer) and not poly_iszero!?(f) then <<
-          reduced . f := if topReduce then
-            poly_tryTopReductionStep(f, reducer)
-          else
-            poly_tryReductionStep(f, reducer);
-          updated := reduced or updated;
-          updatedToreturn := reduced or updatedToreturn
-        >>
-      >>
-    >>;
-    return updatedToreturn . f
-  end;
+                                   r: Basistracker,
+                                   topReduce: Boolean): DottedPair;
+   begin scalar updated, reducer, reduced, updatedToreturn;
+      % while polynomial f gets updated by reduction steps,
+      % scan the list Gprev in search for possible reducers
+      repeat <<
+         updated := nil;
+         for each g in Gprev do <<
+            reducer := lp_eval(core_getPoly(r, g));
+            if not poly_iszero!?(reducer) and not poly_iszero!?(f) then <<
+               reduced . f := if topReduce then
+                  poly_tryTopReductionStep(f, reducer)
+               else
+                  poly_tryReductionStep(f, reducer);
+               updated := reduced or updated
+            >>
+         >>;
+         updatedToreturn := updated or updatedToreturn
+      >> until not updated;
+      return updatedToreturn . f
+   end;
 
 % Same as the above, but all possible reducers are
 % already stored in the list `reducers` as Polynomial objects.
