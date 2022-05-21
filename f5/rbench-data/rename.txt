@@ -1,0 +1,1 @@
+find groebner -name "gb*.red" -exec bash -c 'mv -f "{}" "$(echo "{}" | sed "s/gb//")"' \;
