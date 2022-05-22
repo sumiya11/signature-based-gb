@@ -329,6 +329,7 @@ asserted procedure core_normalForm(f: Polynomial, Gprev: List,
       return updatedToreturn . f
    end;
 
+
 % Same as the above, but all possible reducers are
 % already stored in the list `reducers` as Polynomial objects.
 asserted procedure core_normalFormReducers(f: Polynomial, reducers: List,
@@ -774,6 +775,8 @@ asserted procedure core_computeSpolys(pairs: List, r: Basistracker,
         lpl := core_getPoly(r, l);
         seval := poly_spoly(lp_eval(lpk), lp_eval(lpl));
         ssgn  := lp_mulSgn(lp_sgn(lpk), u);
+        if not poly_iszero!?(seval) then
+          seval := poly_normalize(seval);
         core_addPoly(r, lp_LabeledPolynomial2(seval, ssgn));
         core_addRule(Rule, ssgn, core_getBasisIdx(r));
         if not poly_iszero!?(seval) then

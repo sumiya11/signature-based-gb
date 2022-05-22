@@ -1,4 +1,3 @@
-
 module f5;
 % The F5 Algorithm for computing Groebner bases.
 
@@ -49,6 +48,8 @@ module f5;
 create!-package('(f5 f5core f5lp f5poly f5primes f5mod f5stat), nil);
 
 fluid '(!*backtrace);
+
+% Needed for compatibility with torder
 fluid '(global!-dipvars!*);
 fluid '(vdpsortmode!*);
 
@@ -198,7 +199,7 @@ struct RewriteRule checked by f5_isRewriteRule;
 % and the resulting list is returned.
 asserted procedure f5_groebner(u: List): List;
    begin scalar inputBasis, inputBasisSf, properIdeal, f, vars, ord, outputModule,
-                saveTorder, w;
+                saveTorder, oldTorder, w;
       if null u or not (listp u) then
          f5_argumentError();
       inputBasis := reval pop u;
@@ -220,7 +221,6 @@ asserted procedure f5_groebner(u: List): List;
          return {'list, 0};
       saveTorder := if not null u then <<
          % variables and sort mode are specified in f5 call
-         % Introduce function like `parse_input(polys, vars, ord)`?;
          vars := reval pop u;
          if not (listp vars) or not (pop vars eq 'list) then
             f5_argumentError();
@@ -228,16 +228,16 @@ asserted procedure f5_groebner(u: List): List;
            if not sfto_kernelp(w) then
               f5_argumentError();
          ord := pop u;
-         poly_initRing(vars, ord)
+         poly_initRing({vars, ord})
       >> else if not null cdr global!-dipvars!* then <<
          % variables <> {} and sort mode are specified using torder
-         poly_initRing(cdr global!-dipvars!*, vdpsortmode!*)
+         poly_initRing(nil)
       >> else <<
          % variables = {} and sort mode are specified using torder. Take variables from inputBasis.
          for each f in inputBasis do
             vars := union(vars, kernels f);
          vars := sort(vars, 'ordp);
-         poly_initRing(vars, vdpsortmode!*)
+         poly_initRing({vars})
       >>;
       w := errorset({'f5_groebner1, mkquote inputBasis}, t, !*backtrace);
       torder cdr saveTorder;
@@ -262,7 +262,7 @@ asserted procedure f5_groebner1(inputBasis: List): List;
          outputModule := core_groebner1(inputModule);
       % convert `LabeledPolynomial`s back to expressions
       outputModule := for each f in outputModule collect
-         poly_poly2a lp_eval f;
+         poly_2a lp_eval f;
       return outputModule
    end;
 
