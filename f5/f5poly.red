@@ -402,8 +402,8 @@ asserted inline procedure poly_invCoeff(a: Coeff): Coeff;
       rederr "*****  Trying to take an inverse with f5integers ON."
    else <<
       % ASSERT(not null numr a);
-      denr(a) ./ numr(a);
-   >>
+      denr(a) ./ numr(a)
+   >>;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% POLYNOMIAL LOW LEVEL OPERATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
