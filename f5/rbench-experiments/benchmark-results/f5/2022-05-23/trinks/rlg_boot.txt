@@ -1,0 +1,65 @@
+
+load_package f5;
+
+
+
+% noon-6 system in degrevlex
+
+system := {35*p + 40*z + 25*t - 27*s,
+          45*p + 35*s - 165*b - 36*h,
+          -11*s*b + 3b^2 + 99*w*h,
+          25*p*s - 165*b^2 + 15*w*h + 30*z*h - 18*t*h,
+          15*p*t + 20*z*s - 9*w*h,
+          -11*b^3 + w*p*h + 2*z*t*h;
+
+system:={35*p+40*z+25*t-27*s,45*p+35*s-165*b-36*h,-11*s*b+3 b^2+99*w*h,25*p*s-
+165*b^2+15*w*h+30*z*h-18*t*h,15*p*t+20*z*s-9*w*h,-11*b^3+w*p*h+2*z*t*h$$$;
+at line 11 of file trinks.red
+
+***** Syntax error: semicolon in list 
+
+};
+
+$$$};
+at line 11 of file trinks.red
+
+***** Improper delimiter 
+
+
+
+vars := {w,p,z,t,s,b,h};
+
+
+vars := {w,
+
+         p,
+
+         z,
+
+         t,
+
+         s,
+
+         b,
+
+         h}
+
+
+gb := f5(system, vars, 'revgradlex)$
+
+
+***** 
+usage: f5(polynomials: List, vars: List, order: Any). For example,
+
+          > f5({x*y + 1, y*z + 1}, {x, y, z}, lex);
+
+          Or, using torder:
+
+          > torder({x, y, z}, lex);
+          > f5({x*y + 1, y*z + 1});
+
+           
+
+
+end;
+
