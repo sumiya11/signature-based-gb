@@ -1,7 +1,7 @@
+% kinema system in revgradlex
+% characteristic 0
 
 load_package groebner;
-
-% kinema system in degrevlex
 
 system := {
     z1^2 - 12*z1 + z2^2 + z3^2 - 68,
@@ -13,9 +13,9 @@ system := {
     2*z2 + 2*z3 - z4 - z5 - 2*z6 - z7 - z9 + 18,
     z1 + z2 + 2*z3 + 2*z4 + 2*z6 - 2*z7 + z8 - z9 - 38,
     z1 + z3 - 2*z4 + z5 - z6 + 2*z7 - 2*z8 + 8
-};
+}$
 
-vars := {z1, z2, z3, z4, z5, z6, z7, z8, z9};
+vars := {z1, z2, z3, z4, z5, z6, z7, z8, z9}$
 torder(vars, revgradlex)$
 
 gb := groebner(system)$

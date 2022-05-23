@@ -1,4 +1,9 @@
-% cyclic-5 system in lex
+% nbody-5 system in revgradlex
+% characteristic 0
+% 0 dim
+%
+% PoSSo test suite
+% https://www-sop.inria.fr/saga/POL/BASE/2.multipol/centralpos.html
 
 load_package groebner;
 

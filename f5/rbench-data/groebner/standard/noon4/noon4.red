@@ -1,4 +1,8 @@
-% cyclic-5 system in lex
+% noon-4 system in revgradlex
+% characteristic 0
+% 0 dim
+%
+% reference TODO
 
 load_package groebner;
 

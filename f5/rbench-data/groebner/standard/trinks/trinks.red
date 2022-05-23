@@ -1,15 +1,19 @@
-% noon-6 system in degrevlex
+% trinks system in lex
+% characteristic 0
 
 load_package groebner;
 
-system := {10*x1*x2^2 + 10*x1*x3^2 +
-10*x1*x4^2 + 10*x1*x5^2 + 10*x1*x6^2 + 10*x1*x7^2 - 11*x1 + 10, 10*x1^2*x2 + 10*x2*x3^2 + 10*x2*x4^2 + 10*x2*x5^2 + 10*x2*x6^2 + 10*x2*x7^2 - 11*x2
-+ 10, 10*x1^2*x3 + 10*x2^2*x3 + 10*x3*x4^2 + 10*x3*x5^2 + 10*x3*x6^2 + 10*x3*x7^2 - 11*x3 + 10, 10*x1^2*x4 + 10*x2^2*x4 + 10*x3^2*x4 + 10*x4*x5^2 +
-10*x4*x6^2 + 10*x4*x7^2 - 11*x4 + 10, 10*x1^2*x5 + 10*x2^2*x5 + 10*x3^2*x5 + 10*x4^2*x5 + 10*x5*x6^2 + 10*x5*x7^2 - 11*x5 + 10, 10*x1^2*x6 + 10*x2^2*x6 + 10*x3^2*x6 + 10*x4^2*x6 + 10*x5^2*x6 + 10*x6*x7^2 - 11*x6 + 10, 10*x1^2*x7 + 10*x2^2*x7 + 10*x3^2*x7 + 10*x4^2*x7 + 10*x5^2*x7 + 10*x6^2*x7 -
-11*x7 + 10};
+system := {35*p + 40*z + 25*t - 27*s,
+          45*p + 35*s - 165*b - 36*h,
+          -11*s*b + 3b^2 + 99*w*h,
+          25*p*s - 165*b^2 + 15*w*h + 30*z*h - 18*t*h,
+          15*p*t + 20*z*s - 9*w*h,
+          -11*b^3 + w*p*h + 2*z*t*h}$
 
-vars := {x1, x2, x3, x4, x5, x6, x7};
-torder(vars, revgradlex)$
+vars := {w,p,z,t,s,b,h}$
+
+gb := groebner(system, vars, 'revgradlex)$
+torder(vars, lex)$
 
 gb := groebner(system)$
 

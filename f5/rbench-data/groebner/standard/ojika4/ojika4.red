@@ -1,7 +1,7 @@
-% eco-5 system in degrevlex
+% ojika-4 system in revgradlex
+% characteristic 0
 
 load_package groebner;
-
 
 system := {
         x1+x3*x1^3+x1*x3*x2^2-x1*x3,

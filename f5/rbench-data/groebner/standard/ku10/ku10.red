@@ -1,4 +1,5 @@
-% eco-5 system in degrevlex
+% ku-10 system in revgradlex
+% characteristic 0
 
 load_package groebner;
 
@@ -13,9 +14,9 @@ system := {
         4*x8*x9+ 4*x8+ 6*x9+ 16,
         8*x9*x10+ 4*x9+ 3*x10-51,
         3*x1*x10-6*x1+x10+ 5
-};
+}$
 
-vars := {x1, x2, x3, x4, x5, x6, x7, x8, x9, x10};
+vars := {x1, x2, x3, x4, x5, x6, x7, x8, x9, x10}$
 torder(vars, revgradlex)$
 
 gb := groebner(system)$

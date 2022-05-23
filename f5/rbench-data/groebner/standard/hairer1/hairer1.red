@@ -1,4 +1,9 @@
-% cyclic-5 system in lex
+% hairer-1 system in revgradlex
+% characteristic 0
+% 0 dim
+%
+% PoSSo test suite
+% https://www-sop.inria.fr/saga/POL/BASE/3.posso/ha-mo1.dir/index.html
 
 load_package groebner;
 

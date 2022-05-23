@@ -1,4 +1,6 @@
-% cyclic-5 system in lex
+% caprasse system in revgradlex
+% characteristic 0
+% 0 dim
 
 load_package groebner;
 
