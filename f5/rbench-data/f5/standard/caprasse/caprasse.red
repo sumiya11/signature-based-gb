@@ -1,4 +1,5 @@
-% cassou system in revgradlex
+% caprasse system in revgradlex
+% characteristic 0
 % 0 dim
 
 load_package f5;
@@ -11,7 +12,8 @@ y**2*z+2*x*y*t-2*x-z,
 }$
 
 vars := {x, y, z, t}$
+torder(vars, revgradlex)$
 
-gb := f5(system, vars, 'revgradlex)$
+gb := f5(system)$
 
 end;

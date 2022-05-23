@@ -1,4 +1,9 @@
-% cyclic-5 system in lex
+% symmetric nbody-4 system in revgradlex
+% characteristic 0
+% 0 dim
+%
+% PoSSo test suite
+% https://www-sop.inria.fr/saga/POL/BASE/2.multipol/centralpos.html
 
 load_package f5;
 
@@ -9,7 +14,8 @@ s*Theta^2-p*s*pp-p*ss*Theta-2, p^3*pp^2-1, ff^2*f^3-1
 }$
 
 vars := {s,p,ss,pp,TH,ff,f}$
+torder(vars, revgradlex)$
 
-gb := f5(system, vars, 'revgradlex)$
+gb := f5(system)$
 
 end;

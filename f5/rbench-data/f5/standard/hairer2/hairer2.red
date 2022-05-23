@@ -1,5 +1,9 @@
-% cassou system in revgradlex
+% hairer-2 system in revgradlex
+% characteristic 0
 % 0 dim
+%
+% PoSSo test suite
+% https://www-sop.inria.fr/saga/POL/BASE/3.posso/ha-mo1.dir/index.html
 
 load_package f5;
 
@@ -18,7 +22,8 @@ system := {
 }$
 
 vars := {a,b,c,d,ee,f,g,h,ii,j,k,l,m}$
+torder(vars, revgradlex)$
 
-gb := f5(system, vars, 'revgradlex)$
+gb := f5(system)$
 
 end;

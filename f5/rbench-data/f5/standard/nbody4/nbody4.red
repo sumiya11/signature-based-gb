@@ -1,7 +1,11 @@
-% cyclic-5 system in lex
+% nbody-4 system in revgradlex
+% characteristic 0
+% 0 dim
+%
+% PoSSo test suite
+% https://www-sop.inria.fr/saga/POL/BASE/2.multipol/centralpos.html
 
 load_package f5;
-
 
 system := {
 	(b-d)*(bb-dd)-2*ff+2,
@@ -13,7 +17,8 @@ system := {
 }$
 
 vars := {bb,dd,ff,b,d,f}$
+torder(vars, revgradlex)$
 
-gb := f5(system, vars, 'revgradlex)$
+gb := f5(system)$
 
 end;

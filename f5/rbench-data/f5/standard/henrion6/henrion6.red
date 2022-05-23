@@ -1,9 +1,8 @@
+% henrion-6 system in revgradlex
+% characteristic 0
+% 0 dim
 
 load_package f5;
-
-% noon-4 system in degrevlex
-
-off f5integers;
 
 system := {
   2*f1*f2*f3*f4*f5*f6-1404728325,
@@ -14,8 +13,9 @@ system := {
   7/6*f6+2*f5+2*f4+2*f3+2*f2+2*f1-358
 };
 
-vars := {f1,f2,f3,f4,f5,f6};
+vars := {f1,f2,f3,f4,f5,f6}$
+torder(vars, revgradlex)$
 
-gb := f5(system, vars, 'revgradlex)$
+gb := f5(system)$
 
 end;

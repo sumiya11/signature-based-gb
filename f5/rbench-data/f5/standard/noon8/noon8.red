@@ -1,9 +1,10 @@
+% noon-7 system in revgradlex
+% characteristic 0
+% 0 dim
+%
+% reference TODO
 
 load_package f5;
-
-% noon-8 system in degrevlex
-
-off f5integers;
 
 system := {
   10*x1*x2^2 + 10*x1*x3^2 + 10*x1*x4^2 + 10*x1*x5^2 + 10*x1*x6^2 + 10*x1*x7^2 + 10*x1*x8^2 - 11*x1 + 10,
@@ -14,10 +15,11 @@ system := {
   10*x1^2*x6 + 10*x2^2*x6 + 10*x3^2*x6 + 10*x4^2*x6 + 10*x5^2*x6 + 10*x6*x7^2 + 10*x6*x8^2 - 11*x6 + 10,
   10*x1^2*x7 + 10*x2^2*x7 + 10*x3^2*x7 + 10*x4^2*x7 + 10*x5^2*x7 + 10*x6^2*x7 + 10*x7*x8^2 - 11*x7 + 10,
   10*x1^2*x8 + 10*x2^2*x8 + 10*x3^2*x8 + 10*x4^2*x8 + 10*x5^2*x8 + 10*x6^2*x8 + 10*x7^2*x8 - 11*x8 + 10
-};
+}$
 
-vars := {x1, x2, x3, x4, x5, x6, x7, x8};
+vars := {x1, x2, x3, x4, x5, x6, x7, x8}$
+torder(vars, revgradlex)$
 
-gb := f5(system, vars, 'revgradlex)$
+gb := f5(system)$
 
 end;

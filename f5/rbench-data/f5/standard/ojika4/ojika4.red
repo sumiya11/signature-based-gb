@@ -1,7 +1,7 @@
+% ojika-4 system in revgradlex
+% characteristic 0
 
 load_package f5;
-
-% ojika-4 system in degrevlex
 
 system := {
         x1+x3*x1^3+x1*x3*x2^2-x1*x3,
@@ -10,7 +10,8 @@ system := {
 };
 
 vars := {x1, x2, x3};
+torder(vars, revgradlex)$
 
-gb := f5(system, vars, 'revgradlex)$
+gb := f5(system)$
 
 end;
