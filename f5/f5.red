@@ -242,7 +242,7 @@ asserted procedure f5_groebner(u: List): List;
       w := errorset({'f5_groebner1, mkquote inputBasis}, t, !*backtrace);
       torder cdr saveTorder;
       if errorp w then
-        return nil;
+         return nil;
       outputModule := car w;
       return 'list . outputModule
    end;
