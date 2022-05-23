@@ -1,13 +1,53 @@
 % Correctness tests of f5
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Term order checks
+
+% Without torder:
+
+f5({x + z + y});
+% Expected {x + y + z}
+
+f5({x + z + y^2}, {z, y, x}, revgradlex);
+% Expected {y^2 + z + x}
+
+% With torder:
+
+torder({z, x, y}, lex);
+f5({x + y^2 + z});
+% Expected {z + x + y^2}
+
+% Weighted order
+torder({x,y,z},weighted,{3, 5, 4});
+f5({x + y + z});
+% Expected {y + z + x}
+
+% Block order
+torder({x, y, z}, lexgradlex, 1);
+f5({x + y + z^2});
+% Expected {x + z^2 + y}
+
+% Graded order
+torder({x, y, z}, graded, {1, 1, 2}, lex);
+f5({x + y^4 + z^3});
+% Expected {z^3 + y^4 + x}
+
+% aaand Matrix order
+% Not working
+torder({x, y},matrix, mat(
+    (1,0),
+    (0,1)))$
+f5({x + y + z});
+f5({x + y^2 + z^3});
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sanity checks
 
 torder({x1}, lex);
 
-f5({x1});
+f5({3x1});
 
-f5({x1}, {x1}, lex);
+f5({4x1}, {x1}, lex);
 
 torder({x1, x2}, revgradlex);
 

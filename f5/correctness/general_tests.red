@@ -3,11 +3,56 @@ load_package f5;
 
 on f5interreduce;
 
+load_package dipoly;
+
 procedure errorMessage(system);
   {"Wrong Answer", system};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Simple sanity check tests
+
+% Without torder:
+
+gb := f5({x + z + y});
+if not (gb = {x + y + z}) then
+   errorMessage("Term order problem");
+
+gb := f5({x + z + y}, {z, y, x}, lex);
+if not (gb = {z + y + x}) then
+   errorMessage("Term order problem");
+
+gb := f5({x + z + y^2}, {z, y, x}, revgradlex);
+if not (gb = {y^2 + z + x}) then
+   errorMessage("Term order problem");
+
+% With torder:
+
+torder({z, x, y}, lex);
+gb := f5({x + y^2 + z});
+if not (gb = {z + x + y^2}) then
+   errorMessage("Term order problem");
+
+gb := f5({x + y^2 + z});
+if not (gb = {z + x + y^2}) then
+   errorMessage("Term order problem");
+
+% Weighted order
+torder({x,y,z},weighted,{3, 5, 4});
+gb := f5({x + y + z});
+if not (gb = {y + z + x}) then
+   errorMessage("Term order problem");
+
+% Block order
+torder({x, y, z}, lexgradlex, 1);
+gb := f5({x + y + z^2});
+if not (gb = {x + z^2 + y}) then
+   errorMessage("Term order problem");
+
+% Graded order
+torder({x, y, z}, graded, {1, 1, 2}, lex);
+gb := f5({x + y^4 + z^3});
+if not (gb = {z^3 + y^4 + x}) then
+   errorMessage("Term order problem");
 
 ans := f5({x1}, {x1}, lex);
 if not (ans = {x1}) then
@@ -25,13 +70,9 @@ f5({x1*x2 + 1, x2*x3 + 1}, {x1, x2, x3}, lex);
 
 f5({x1 + x2 + x3, x1*x2 + x2*x3 + x1*x3, x1*x2*x3 - 1}, {x1, x2, x3}, lex);
 
-ans := f5({10*x1*x2^2 - 11*x1 + 10, 10*x1^2*x2 - 11*x2 + 10}, {x1, x2}, lex);
+ans := f5({10*x1*x2^2 - 11*x1 + 10, 10*x1^2*x2 - 11*x2 + 10}, {x1, x2}, lex)$
 if not (length(ans) = 2) then
   errorMessage("noon2 lex");
-
-% if not (ans = {x1 + x2^4 - 10/11*x2^3 - 11/10*x2^2 + x2 - 10/11,
-%                x2^5 - 10/11*x2^4 - 11/5*x2^3 + 2*x2^2 + 331/1100*x2 - 11/10}) then
-  % errorMessage("noon2 lex");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Several corner cases tests
@@ -42,8 +83,8 @@ vars := {x, y};
 gb := f5(system, vars, lex);
 if not (length(gb) = 3) then
   errorMessage(system);
-% if not (gb = {x^2 + x*y - y^2, x*y^4, y^6}) then
-%  errorMessage(system);
+if not (gb = {x^2 + x*y - y^2, x*y^4, y^6}) then
+  errorMessage(system);
 
 
 system := {(x + y), (x + y)^5, (x + y)^100};
@@ -60,8 +101,8 @@ vars := {x, y};
 gb := f5(system, vars, lex);
 if not (length(gb) = 2) then
   errorMessage(system);
-% if not (gb = {x + 2y, y^4}) then
-%   errorMessage(system);
+if not (gb = {x + 2y, y^4}) then
+  errorMessage(system);
 
 
 system := {5x + 10y, 4x^4 - 8y^4 - 100x^2*y^2};
@@ -70,8 +111,8 @@ vars := {x, y};
 gb := f5(system, vars, revgradlex);
 if not (length(gb) = 2) then
   errorMessage(system);
-% if not (gb = {y^4, x + 2y}) then
-%   errorMessage(system);
+if not (gb = {y^4, x + 2y}) then
+  errorMessage(system);
 
 
 system := {x1^5 - x2^2 - 3, x1*x2^4 + x2^8};
@@ -80,8 +121,8 @@ vars := {x1, x2};
 gb := f5(system, vars, lex);
 if not (length(gb) = 3) then
   errorMessage(system);
-% if not (gb = {x1^5 - x2^2 - 3, x1*x2^4 + x2^8, x2^24 + x2^6 + 3*x2^4}) then
-%   errorMessage(system);
+if not (gb = {x1^5 - x2^2 - 3, x1*x2^4 + x2^8, x2^24 + x2^6 + 3*x2^4}) then
+  errorMessage(system);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Several known systems tests
@@ -111,7 +152,7 @@ system := {q1,
           - 1/3*q3^4*q2^2*q5^3 + 1/3*q4^4*q2^2*q5^3 + 1/3*q4^2
             *q3^4*q5^3 - 1/3*q4^4*q3^2*q5^3}$
 
-gb := f5(system, vars, lex);
+gb := f5(system, vars, lex)$
 
 if not (length(gb) = 20) then
   errorMessage("Bad length for model system");
@@ -130,7 +171,7 @@ system := {-e*g - 2*d*h,
         9*d + 6*a - 5*b,
         9*c - 7*a + 8}$
 
-gb := f5(system, vars, revgradlex);
+gb := f5(system, vars, revgradlex)$
 
 if not (length(gb) = 15) then
   errorMessage("Bad length for model system");
@@ -149,6 +190,8 @@ system := {y^4 + x*y^2*z + x^2*h^2 - 2*x*y*h^2 + y^2*h^2 + z^2*h^2,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % liu, regular? yes
+
+off f5integers;
 
 vars := {x,y,z,t,a,h}$
 system := {y*z - y*t - x*h + a*h,
@@ -189,23 +232,6 @@ if not (length(gb) = 11) then
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% kinama, regular? NA
-
-vars := {z1, z2, z3, z4, z5, z6, z7, z8, z9}$
-system := {z1^2 - 12*z1 + z2^2 + z3^2 - 68,
- z4^2 + z5^2 - 12*z5 + z6^2 - 68,
- z7^2 + z8^2 - 24*z8 + z9^2 - 12*z9 + 100,
- z1*z4 - 6*z1 + z2*z5 + z3*z6 - 6*z5 - 52,
- z1*z7 - 6*z1 + z2*z8 + z3*z9 - 12*z8 - 6*z9 + 64  ,
- z4*z7 + z5*z8 - 6*z5 + z6*z9 - 12*z8 - 6*z9 + 32  ,
- 2*z2 + 2*z3 - z4 - z5 - 2*z6 - z7 - z9 + 18       ,
- z1 + z2 + 2*z3 + 2*z4 + 2*z6 - 2*z7 + z8 - z9 - 38,
- z1 + z3 - 2*z4 + z5 - z6 + 2*z7 - 2*z8 + 8 }$
-
-% f5(system, vars, revgradlex);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % root-7, regular? no
 
 system := {x1 + x2 + x3 + x4 + x5 + x6 + x7, x1*x2 + x1*x3 + x1*x4 + x1*x5 + x1*x6
@@ -235,25 +261,62 @@ system := { 10*x1*x2^2 + 10*x1*x3^2 + 10*x1*x4^2 - 11*x1 + 10,
             10*x1^2*x4 + 10*x2^2*x4 + 10*x3^2*x4 - 11*x4 + 10}$
 vars := {x1, x2, x3, x4}$
 
-truegb := {x1^2*x4 + x2^2*x4 + x3^2*x4 - 11/10*x4 + 1, x1^2*x3 + x2^2*x3 + x3*x4^2 - 11/10*x3 + 1, x1*x2^2 + x1*x3^2 + x1*x4^2 - 11/10*x1 + 1, x1^2*x2 + x2*x3^2 + x2*x4^2 - 11/10*x2 + 1, x3^3*x4 - x3*x4^3 + x3 - x4, x2^3*x4 - x2*x4^3 + x2 - x4, x2^2*x3^2 + x2^2*x4^2 + x3^2*x4^2 + 11/20*x1^2 - 11/20*x2^2 - 11/20*x3^2 - 11/20*x4^2 - 1/2*x1 + 1/2*x2 + 1/2*x3 + 1/2*x4, x2^3*x3 - x2*x3^3 + x2 - x3, x1*x2*x3^2*x4 + 2*x1*x2*x4^3 - 11/10*x1*x2*x4 - x1*x2 + x1*x4 + x2*x4, x2*x3^4 + x2*x3^2*x4^2 + x2*x4^4 - 11/20*x2^3 -
-11/10*x2*x3^2 - 11/10*x2*x4^2 - 1/2*x1*x2 + 1/2*x2^2 - 1/2*x2*x3 + x3^2 - 1/2*x2*x4 + x4^2 + 121/200*x2 - 11/20, x1*x3^4 + x1*x3^2*x4^2 + x1*x4^4 - 11/20*x1^3 - 11/10*x1*x3^2 - 11/10*x1*x4^2 + 1/2*x1^2 - 1/2*x1*x2 - 1/2*x1*x3 + x3^2 - 1/2*x1*x4 + x4^2 + 121/200*x1 - 11/20, x1*x2*x3^3 + 1/2*x1*x2*x3*x4^2 - 11/20*x1*x2*x3 - 1/2*x1*x2 + 1/2*x1*x3 + 1/2*x2*x3, x3^2*x4^4 + 11/60*x1^4
-+ 11/60*x2^4 - 11/30*x3^4 - 11/10*x3^2*x4^2 - 11/30*x4^4 - 1/6*x1^3 - 1/6*x2^3 - 1/2*x1*x3^2 - 1/2*x2*x3^2 + 1/3*x3^3 - 1/2*x3^2*x4 - 1/2*x1*x4^2 - 1/2*x2*x4^2 + 1/2*x3*x4^2 + 1/3*x4^3 - 121/600*x1^2 - 121/600*x2^2 + 121/300*x3^2 + 121/300*x4^2 + 11/30*x1 + 11/30*x2 - 11/60*x3 - 11/60*x4 - 2/3, x2^2*x4^4 + 11/60*x1^4 - 11/30*x2^4 + 11/60*x3^4 - 11/10*x2^2*x4^2 - 11/30*x4^4 - 1/6*x1^3 + 1/3*x2^3 - 1/2*x2^2*x3 + 1/2*x1*x3^2 - 1/6*x3^3 - 1/2*x2^2*x4 + 1/2*x2*x4^2 - 1/2*x3*x4^2 + 1/3*x4^3 - 121/600*x1^2 + 121/300*x2^2 - 121/600*x3^2 + 121/300*x4^2 - 11/60*x1 - 11/60*x2 + 11/30*x3 - 11/60*x4 - 1/6, x2*x3^2*x4^3 + 1/2*x2*x4^5 - 11/20*x2*x3^2*x4 - 33/40*x2*x4^3 - 1/2*x2*x3^2 -
-1/4*x1*x2*x4 + 1/4*x2^2*x4 + 1/4*x2*x3*x4 + 1/2*x3^2*x4 - 1/4*x2*x4^2 + 1/2*x4^3 + 121/400*x2*x4 + 11/40*x2 - 11/20*x4, x1*x3^2*x4^3 + 1/2*x1*x4^5 - 11/20*x1*x3^2*x4 - 33/40*x1*x4^3 - 1/2*x1*x3^2 - 1/4*x1*x2*x4 - 1/4*x2^2*x4 + 1/4*x1*x3*x4 + 1/4*x3^2*x4 - 1/4*x1*x4^2 + 1/2*x4^3 + 121/400*x1*x4 + 11/40*x1 - 11/40*x4 - 1/4, x2^2*x3*x4^3 + 1/2*x3*x4^5 - 11/20*x2^2*x3*x4 - 33/40*x3*x4^3 - 1/2*x2^2*x3 + 1/2*x2^2*x4 - 1/4*x1*x3*x4 + 1/4*x2*x3*x4 + 1/4*x3^2*x4 - 1/4*x3*x4^2 + 1/2*x4^3 + 121/400*x3*x4 + 11/40*x3 - 11/20*x4, x1*x2*x3*x4^3 - 11/30*x1*x2*x3*x4 - 2/3*x1*x2*x3 + 1/3*x1*x2*x4 + 1/3*x1*x3*x4 + 1/3*x2*x3*x4, x3^6 - x4^6 - 10/11*x3^5 - 20/11*x1*x3^2*x4^2 - 20/11*x2*x3^2*x4^2 + 20/11*x3^2*x4^3 - 40/11*x1*x4^4 - 40/11*x2*x4^4 - 20/11*x3*x4^4 + 10/11*x4^5 - 33/20*x3^4 + 33/20*x4^4 + x1^3 + x2^3 + 1/2*x1*x3^2 + 1/2*x2*x3^2 + x3^3
-- 3/2*x3^2*x4 + 7/2*x1*x4^2 + 7/2*x2*x4^2 + 3/2*x3*x4^2 - x4^3 - 10/11*x1^2
-+ 20/11*x1*x2 - 10/11*x2^2 + 5/11*x1*x3 + 5/11*x2*x3 - 3669/2200*x3^2 + 15/11*x1*x4 + 15/11*x2*x4 + 20/11*x3*x4 - 16331/2200*x4^2 - 11/10*x1 - 11/10*x2 + 2, x2^6 - x4^6 - 10/11*x2^5 - 20/11*x2^2*x3*x4^2 + 20/11*x1*x3^2*x4^2 + 20/11*x2^2*x4^3 - 20/11*x1*x4^4 - 20/11*x2*x4^4 - 40/11*x3*x4^4 + 10/11*x4^5 -
-33/20*x2^4 + 33/20*x4^4 + x1^3 + x2^3 + 1/2*x2^2*x3 - 1/2*x1*x3^2 + x3^3 - 3/2*x2^2*x4 + x1*x4^2 + 3/2*x2*x4^2 + 7/2*x3*x4^2 - x4^3 - 10/11*x1^2 + 5/11*x1*x2 - 3669/2200*x2^2 + 20/11*x1*x3 + 5/11*x2*x3 - 10/11*x3^2 + 15/11*x1*x4
-+ 20/11*x2*x4 + 15/11*x3*x4 - 1121/200*x4^2 - 11/20*x1 - 11/10*x3 + 3/2, x1^6 - x4^6 - 10/11*x1^5 + 20/11*x2^2*x3*x4^2 + 20/11*x2*x3^2*x4^2 - 20/11*x2^2*x4^3 - 20/11*x3^2*x4^3 - 20/11*x1*x4^4 - 20/11*x2*x4^4 - 20/11*x3*x4^4 + 10/11*x4^5 - 33/20*x1^4 + 33/20*x4^4 + x1^3 + x2^3 - 1/2*x2^2*x3 - 1/2*x2*x3^2
-+ x3^3 + 3/2*x2^2*x4 + 3/2*x3^2*x4 + 3/2*x1*x4^2 + x2*x4^2 + x3*x4^2 + x4^3 -
-3669/2200*x1^2 + 5/11*x1*x2 - 10/11*x2^2 + 5/11*x1*x3 + 20/11*x2*x3 - 10/11*x3^2 + 20/11*x1*x4 + 15/11*x2*x4 + 15/11*x3*x4 - 1121/200*x4^2 - 11/20*x2 - 11/20*x3 - 33/20*x4 + 5/2, x4^7 + 30/11*x1*x4^5 + 30/11*x2*x4^5 + 30/11*x3*x4^5 - 10/11*x4^6 - 121/60*x4^5 + 1/3*x1^4 + 1/3*x2^4 + 1/3*x3^4 - 11/3*x1*x4^3 - 11/3*x2*x4^3 - 11/3*x3*x4^3 + 2/3*x4^4 - 10/33*x1^3 - 10/33*x2^3 - 10/33*x3^3 - 10/11*x1*x2*x4 - 10/11*x1*x3*x4 - 10/11*x2*x3*x4 - 20/11*x1*x4^2 - 20/11*x2*x4^2 - 20/11*x3*x4^2 + 25493/3300*x4^3 - 11/20*x1^2 - 11/20*x2^2 - 11/20*x3^2 + 11/10*x1*x4 + 11/10*x2*x4 + 11/10*x3*x4 + 11/30*x4^2 + 4/3*x1 + 4/3*x2 + 4/3*x3 - 28331/6000*x4 - 293/200, x3*x4^6 - 11/30*x3^5 - 33/20*x3*x4^4 - 2/3*x1*x3^3 - 2/3*x2*x3^3 + 1/3*x3^4 - 1/2*x1*x3*x4^2 - 1/2*x2*x3*x4^2 + 1/2*x3^2*x4^2 - 7/6*x3*x4^3 + x4^4 + 121/200*x3^3 + 121/200*x3*x4^2
-- 11/60*x1^2 - 11/60*x2^2 + 11/20*x1*x3 + 11/20*x2*x3 - 11/30*x3^2 + 11/10*x3*x4 - 77/60*x4^2 + 1/6*x1 + 1/6*x2 - 4331/6000*x3 - 1/2*x4 + 121/600, x2*x4^6 - 11/30*x2^5 - 33/20*x2*x4^4 + 1/3*x2^4 + 2/3*x1*x2*x3^2 - 2/3*x2*x3^3
-+ 1/6*x1*x2*x4^2 + 1/2*x2^2*x4^2 - 1/2*x2*x3*x4^2 - 7/6*x2*x4^3 + x4^4 + 121/200*x2^3 + 121/200*x2*x4^2 - 11/60*x1^2 - 11/60*x1*x2 - 11/30*x2^2 + 11/20*x2*x3 - 11/60*x3^2 + 11/10*x2*x4 - 77/60*x4^2 + 1/6*x1 + 1223/2000*x2 - 1/2*x3 - 1/2*x4 + 121/600, x1*x4^6 - 11/30*x1^5 - 33/20*x1*x4^4 + 1/3*x1^4 + 2/3*x1*x2*x3^2 - 2/3*x1*x3^3 + 1/6*x1*x2*x4^2 - 1/2*x2^2*x4^2 - 1/2*x1*x3*x4^2 - 1/2*x3^2*x4^2 - 7/6*x1*x4^3 + x4^4 + 121/200*x1^3 + 121/200*x1*x4^2 - 11/30*x1^2 - 11/60*x1*x2 - 11/60*x2^2 + 11/20*x1*x3 - 11/60*x3^2 + 11/10*x1*x4
-- 11/15*x4^2 + 1223/2000*x1 + 1/6*x2 - 1/2*x3 - x4 + 121/600, x2*x3*x4^5 - 11/12*x2*x3*x4^3 - 1/3*x2*x3^3 - 1/6*x1*x2*x3*x4 + 1/6*x2^2*x3*x4 + 1/6*x2*x3^2*x4 - 5/6*x2*x3*x4^2 + 2/3*x2*x4^3 + 2/3*x3*x4^3 + 121/600*x2*x3*x4 + 11/20*x2*x3 - 11/30*x2*x4 - 11/30*x3*x4 - 1/3*x3 + 1/3*x4, x1*x3*x4^5 - 11/12*x1*x3*x4^3 - 1/3*x1*x3^3 - 1/6*x1*x2*x3*x4 - 1/6*x2^2*x3*x4 + 1/6*x1*x3^2*x4 -
-5/6*x1*x3*x4^2 + 2/3*x1*x4^3 + 1/2*x3*x4^3 + 121/600*x1*x3*x4 + 11/20*x1*x3
-- 11/30*x1*x4 - 11/60*x3*x4 - 1/3*x3 + 1/6*x4, x1*x2*x4^5 - 11/12*x1*x2*x4^3 + 1/3*x1*x2*x3^2 - 1/6*x1*x2*x3*x4 - 1/6*x1*x3^2*x4 - 1/6*x2*x3^2*x4 - 1/2*x1*x2*x4^2 + 1/2*x1*x4^3 + 1/2*x2*x4^3 + 121/600*x1*x2*x4 + 11/60*x1*x2 - 11/60*x1*x4 - 11/60*x2*x4}$
+gb := f5(system, vars, revgradlex);
+
+if not (length(gb) = 28) then
+  errorMessage("noon 4 revgradlex");
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+off f5interreduce;
+
+% katsura-3
+
+system := {
+    x0^2 - x0 + 2*x1^2 + 2*x2^2 + 2*x3^2,
+    2*x0*x1 + 2*x1*x2 - x1 + 2*x2*x3,
+    2*x0*x2 + x1^2 + 2*x1*x3 - x2,
+    x0 + 2*x1 + 2*x2 + 2*x3 - 1
+}$
+vars := {x0,x1, x2, x3}$
 
 gb := f5(system, vars, revgradlex);
 
-% if not (gb = truegb) then
-%  errorMessage("noon 4 revgradlex");
+if not (length(gb) = 7) then
+  errorMessage("katsura 3 revgradlex");
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% katsura-4
+
+system := {
+  x0^2 - x0 + 2*x1^2 + 2*x2^2 + 2*x3^2 + 2*x4^2,
+  2*x0*x1 + 2*x1*x2 - x1 + 2*x2*x3 + 2*x3*x4,
+  2*x0*x2 + x1^2 + 2*x1*x3 + 2*x2*x4 - x2,
+  2*x0*x3 + 2*x1*x2 + 2*x1*x4 - x3,
+  x0 + 2*x1 + 2*x2 + 2*x3 + 2*x4 - 1}$
+vars := {x0, x1, x2, x3, x4}$
+
+gb := f5(system, vars, revgradlex);
+
+if not (length(gb) = 13) then
+  errorMessage("katsura 4 revgradlex");
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% katsura-5
+
+system := { x0^2 - x0 + 2*x1^2 + 2*x2^2 + 2*x3^2 + 2*x4^2 + 2*x5^2,
+            2*x0*x1 + 2*x1*x2 - x1 + 2*x2*x3 + 2*x3*x4 + 2*x4*x5,
+            2*x0*x2 + x1^2 + 2*x1*x3 + 2*x2*x4 - x2 + 2*x3*x5,
+            2*x0*x3 + 2*x1*x2 + 2*x1*x4 + 2*x2*x5 - x3,
+            2*x0*x4 + 2*x1*x3 + 2*x1*x5 + x2^2 - x4,
+            x0 + 2*x1 + 2*x2 + 2*x3 + 2*x4 + 2*x5 - 1}$
+vars := {x0, x1, x2, x3, x4, x5}$
+
+gb := f5(system, vars, revgradlex);
+
+if not (length(gb) = 22) then
+  errorMessage("% katsura 5 revgradlex");
 
 end; % eof
