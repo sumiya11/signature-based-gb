@@ -1,7 +1,7 @@
 load_package f5$
 torder({}, revgradlex)$
 
-parameters := k1 := 1/10;
+k1 := 1/10;
 k2 := 109/500;
 k3 := 1;
 k4 := 292408052354609/100000000000000;

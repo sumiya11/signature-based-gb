@@ -30,7 +30,7 @@ torder = "torder({}, revgradlex)$"
 run_f5 = "f5(odes)"
 run_groebner = "groebner(odes)"
 
-FILE_TEMPLATE = "{0}\n" + "{1}\n\n" + "parameters := {3}\n" + "operator diff$\n" +\
+FILE_TEMPLATE = "{0}\n" + "{1}\n\n" + "{3}\n" + "operator diff$\n" +\
                    "odes := {2}$\n" +\
                    "odes := for each o in odes collect part(o, 2)$\n\n" +\
                    "gb := {4}$\n\n" +\

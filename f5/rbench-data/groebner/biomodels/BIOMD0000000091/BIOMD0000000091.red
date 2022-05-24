@@ -1,7 +1,7 @@
 load_package groebner$
 torder({}, revgradlex)$
 
-parameters := k1 := 10;
+k1 := 10;
 k2 := 1/50000;
 k3 := 50;
 k4 := 1/100000;
