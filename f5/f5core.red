@@ -860,8 +860,9 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
       if p then
         push(p, pairs)
     >>;
-    %
-    %
+    % A heuristic: sort generators by their length, ascending;
+    % In that way polynomial reductions with less number of terms
+    % will happen first 
     alGprev := for each i in Gprev collect i . core_getPoly(r, i);
     alGprev := sort(alGprev, 'core_assocLengthCmp);
     Gprev := for each pr in alGprev collect car pr;
