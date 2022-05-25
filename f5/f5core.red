@@ -248,6 +248,11 @@ asserted procedure core_assocSgnCmp(pr1: DottedPair,
                                       pr2: DottedPair): Boolean;
   lp_cmpSgn(lp_sgn(cdr pr1), lp_sgn(cdr pr2));
 
+% Compare associative list elements by their value - length of polynomial part
+asserted procedure core_assocLengthCmp(pr1: DottedPair,
+                                      pr2: DottedPair): Boolean;
+   poly_length(lp_eval(cdr pr1)) #< poly_length(lp_eval(cdr pr2));
+
 % Compare associative list elements by their value - a leading term
 % in the current term order
 asserted procedure core_assocLeadCmp(pr1: DottedPair,
@@ -855,6 +860,11 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
       if p then
         push(p, pairs)
     >>;
+    %
+    %
+    alGprev := for each i in Gprev collect i . core_getPoly(r, i);
+    alGprev := sort(alGprev, 'core_assocLengthCmp);
+    Gprev := for each pr in alGprev collect car pr;
     if !*f5statistics then
       stat_updatePairs(length(pairs));
     % construct d-Groebner bases for d=0,1,2,..., incrementally
