@@ -45,6 +45,8 @@ module f5;
 % F5 to a modular setting.
 % The f5stat allows recording and printing useful statistics
 % for each f5 call.
+%
+% f5mod and f5primes are not used at the moment;
 create!-package('(f5 f5core f5lp f5poly f5primes f5mod f5stat), nil);
 
 fluid '(!*backtrace);

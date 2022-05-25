@@ -36,19 +36,21 @@ load!-package 'smallmod;
 % By default, randomized correctness check is used
 asserted procedure mod_correctnessCheck(pt: Primetracker, intBasis: List,
                                           recBasis: List): Boolean;
-  if not mod_heuristicCorrectnessCheck(recBasis) then
-    nil
-  else if not mod_randomizedCorrectnessCheck(pt, intBasis, recBasis) then
-    nil
-  else if !*f5certify then
-    mod_guaranteedCorrectnessCheck(recBasis)
-  else
-    t;
+   % if not mod_heuristicCorrectnessCheck(recBasis) then
+   %   nil
+   if not mod_randomizedCorrectnessCheck(pt, intBasis, recBasis) then
+      nil
+   else
+      t;
+   % if !*f5certify then
+   %   mod_guaranteedCorrectnessCheck(recBasis)
+   % else
+   %   t;
 
 % Heuristic correctness check based on the bitsize of coefficients,
 % Not needed currently
-asserted procedure mod_heuristicCorrectnessCheck(reconstructedBasis: List);
-  t;
+% asserted procedure mod_heuristicCorrectnessCheck(reconstructedBasis: List);
+%  t;
 
 % Randomized correctness check, checks that
 %   . ideal <intBasis> contains in ideal <recBasis>
@@ -75,8 +77,8 @@ asserted procedure mod_randomizedCorrectnessCheck(pt: Primetracker, intBasis: Li
 % Guaranteed correctness check. Same as mod_randomizedCorrectnessCheck,
 % but all computations are carried in the original ground ring,
 % Not needed currently
-asserted procedure mod_guaranteedCorrectnessCheck(reconstructedBasis: List);
-  t;
+% asserted procedure mod_guaranteedCorrectnessCheck(reconstructedBasis: List);
+%   t;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%% MODULAR F5 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
