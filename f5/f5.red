@@ -199,7 +199,7 @@ struct RewriteRule checked by f5_isRewriteRule;
 % and the resulting list is returned.
 asserted procedure f5_groebner(u: List): List;
    begin scalar inputBasis, inputBasisSf, properIdeal, f, vars, ord, outputModule,
-                saveTorder, oldTorder, w;
+                saveTorder, w;
       if null u or not (listp u) then
          f5_argumentError();
       inputBasis := reval pop u;

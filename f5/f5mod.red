@@ -41,7 +41,7 @@ asserted procedure mod_correctnessCheck(pt: Primetracker, intBasis: List,
   else if not mod_randomizedCorrectnessCheck(pt, intBasis, recBasis) then
     nil
   else if !*f5certify then
-    mod_guaranteedCorrectnessCheck(reconstructedBasis)
+    mod_guaranteedCorrectnessCheck(recBasis)
   else
     t;
 
@@ -131,7 +131,7 @@ asserted procedure mod_crtReconstruction(
       >>;
       ans := reversip(ans)
     >>;
-    primes_setAccumModulo(primetracker, modulo * prime);
+    primes_setAccumModulo(pt, modulo * prime);
     return ans
   end;
 
@@ -195,7 +195,7 @@ asserted procedure mod_groebnerModular1(inputBasis: List): List;
 %
 % Here, a and m can be *arbitrary large* integers
 asserted procedure mod_reconstruction(a: Integer, m: Integer): SQ;
-  begin integer ans, x, com, u1, u2, u3, q, bnd,
+  begin integer ans, com, u1, u2, u3, q, bnd,
                 v1, v2, v3, t1, t2, t3, tt, r;
     if a = 0 then
         ans := 0 ./ 1

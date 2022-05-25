@@ -6,7 +6,7 @@ module f5stat
 % and is updated using the functions from the interface
 
 fluid '(stat_nCurrentIndex!*    stat_nModuleIndices!*
-        stst_nAllReductions!*   stat_nZeroReductions!*
+        stat_nAllReductions!*   stat_nZeroReductions!*
         stat_nNormalFormCalls!* stat_nDegreeRange!*
         stat_nCriticalPairs!*);
 

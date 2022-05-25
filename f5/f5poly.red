@@ -445,23 +445,23 @@ asserted inline procedure poly_invCoeff(a: Coeff): Coeff;
 
 % This is the only section where polynomial coefficient arithmetic happens
 
-% Returns s = gcoeff*fmult*f - fcoeff*gmult*g
+% Returns s = fmult*f - fcoeff*gmult*g
 %
-% !! Assuming the leading terms of `gcoeff*fmult*f` and `fcoeff*gmult*g`
-% mutually cancel each other
+% !! Assuming the leading terms of `fmult*f` and `fcoeff*gmult*g`
+%    mutually cancel each other
 asserted inline procedure poly_paircombTail(f: Polynomial, fmult: Term,
                                                 fcoeff: Coeff, g: Polynomial,
-                                                gmult: Term,   gcoeff: Coeff): Polynomial;
+                                                gmult: Term): Polynomial;
    % Assuming the leading monomials of `gcoeff*fmult*f` and `fcoeff*gmult*g`
    % are mutually canceled, we can use the general reduction applied to
    % the tails of input polynomials
-   poly_paircomb(poly_tail(f), fmult, fcoeff, poly_tail(g), gmult, gcoeff);
+   poly_paircomb(poly_tail(f), fmult, fcoeff, poly_tail(g), gmult);
 
-% Returns s = gcoeff*fmult*f - fcoeff*gmult*g
+% Returns s = fmult*f - fcoeff*gmult*g
 asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
                                  fcoeff: Coeff, g: Polynomial,
-                                 gmult: Term,   gcoeff: Coeff): Polynomial;
-   begin scalar fterms, fcoeffs, gterms, gcoeffs, gmultcoeff, fmultcoeff,
+                                 gmult: Term): Polynomial;
+   begin scalar fterms, fcoeffs, gterms, gcoeffs, gmultcoeff,
                 sterms, scoeffs, ft, gt, fc, gc, newc;
       % We return s, a new polynomial,
       % constructed as s = gcoeff*fmult*f - fcoeff*gmult*g.
@@ -613,7 +613,7 @@ asserted procedure poly_normalizeByLead(poly: Polynomial): Polynomial;
 % High level functions: Spolynomial computation and reduction
 
 asserted inline procedure poly_sumPoly(f: Polynomial, g: Polynomial): Polynomial;
-   poly_paircomb(f, poly_identityTerm(), poly_negCoeff(poly_oneCoeff()), g, poly_identityTerm(), poly_oneCoeff());
+   poly_paircomb(f, poly_identityTerm(), poly_negCoeff(poly_oneCoeff()), g, poly_identityTerm());
 
 % Computes S-polynomial of f and g
 asserted procedure poly_spoly(f: Polynomial, g: Polynomial): Polynomial;
@@ -624,7 +624,7 @@ asserted procedure poly_spoly(f: Polynomial, g: Polynomial): Polynomial;
       mult1 := poly_divTerm(elcm, e2);
       mult2 := poly_divTerm(elcm, e1);
       % using poly_paircombTail since leading terms vanish
-      return poly_paircombTail(f, mult2, poly_leadCoeff(f), g, mult1, poly_leadCoeff(g))
+      return poly_paircombTail(f, mult2, poly_leadCoeff(f), g, mult1)
    end;
 
 % Tries to top-reduce f using g (reduces only the leading term of f, only once).
@@ -644,7 +644,7 @@ asserted procedure poly_tryTopReductionStep(f: Polynomial,
          % using poly_paircombTail since leading terms vanish.
          % Optimization: do not pass fmult;
          % Optimization: poly_leadCoeff(g) is always one;
-         f := poly_paircombTail(f, fmult, poly_leadCoeff(f), g, gmult, poly_leadCoeff(g));
+         f := poly_paircombTail(f, fmult, poly_leadCoeff(f), g, gmult);
          updated := t
       >>;
       return updated . f
@@ -656,19 +656,18 @@ asserted procedure poly_tryTopReductionStep(f: Polynomial,
 % 2. reduction is not possible, we return nil flag and f
 asserted procedure poly_tryReductionStep(f: Polynomial,
                                           g: Polynomial): DottedPair;
-   begin scalar updated, fterms, fcoeffs, glead, gcoef,
+   begin scalar updated, fterms, fcoeffs, glead,
                 fcoef, fterm, fmult, gmult;
       fterms  := poly_getTerms(f);
       fcoeffs := poly_getCoeffs(f);
       glead := poly_leadTerm(g);
-      gcoef := poly_leadCoeff(g);
       while (not updated) and fterms do <<
          fterm := pop(fterms);
          fcoef := pop(fcoeffs);
          if poly_dividesTerm!?(glead, fterm) then <<
             fmult := poly_identityTerm();
             gmult := poly_divTerm(fterm, glead);
-            f := poly_paircomb(f, fmult, fcoef, g, gmult, gcoef);
+            f := poly_paircomb(f, fmult, fcoef, g, gmult);
             updated := t
          >>
       >>;
@@ -724,7 +723,9 @@ asserted procedure poly_scaleDenominators(f: Polynomial): Polynomial;
 % Reduces coefficients of `f` by the given `prime`
 asserted procedure poly_reduceCoeffs(f: Polynomial, prime: Integer): Polynomial;
   begin scalar fcoeffs, newcoeffs, c;
-    % note that prime is not used here, since `modular!-number` works globally
+    % note that prime is not used here, since `modular!-number` works globally,
+    % to elide warning
+    prime := prime;
     fcoeffs := poly_getCoeffs(f);
     while fcoeffs do <<
          c  := pop(fcoeffs);

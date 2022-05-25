@@ -82,6 +82,7 @@ asserted inline procedure primes_setAccumModulo(p: Primetracker, i: Integer);
 % do not vanish under reduction modulo `prime`
 asserted procedure primes_isLuckyPrime(basis: List, prime: Integer): Boolean;
   begin scalar islucky, poly, cf;
+    prime := prime; % To think a bit
     islucky := t;
     for each poly in basis do <<
       if islucky then <<
