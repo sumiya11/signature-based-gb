@@ -278,7 +278,6 @@ asserted procedure f5_argumentError();
 
           > torder({x, y, z}, lex);
           > f5({x*y + 1, y*z + 1});
-
           ";
 
 endmodule;  % end of module f5

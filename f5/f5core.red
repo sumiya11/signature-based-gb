@@ -131,15 +131,15 @@ asserted inline procedure core_CriticalPair(tt: Term, k: Integer, u: Term,
 
 % Returns tt
 asserted inline procedure core_getPairLcm(p: CriticalPair): Term;
-  cadr p;
+   cadr p;
 
 % Returns k . u1
 asserted inline procedure core_getPairFirst(p: CriticalPair): DottedPair;
-  (caddr p) . (cadddr p);
+   (caddr p) . (cadddr p);
 
 % Returns l . u2
 asserted inline procedure core_getPairSecond(p: CriticalPair): DottedPair;
-  (car cddddr p) . (cadr cddddr p);
+   (car cddddr p) . (cadr cddddr p);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RewriteRule
@@ -154,15 +154,15 @@ asserted inline procedure core_getPairSecond(p: CriticalPair): DottedPair;
 %   term is a Term, a multiplier for the signature.
 
 asserted inline procedure core_RewriteRule(idx: Integer, tt: Term): RewriteRule;
-  {'rr, idx, tt};
+   {'rr, idx, tt};
 
 % Returns the rule index
 asserted inline procedure core_getRuleIndex(r: RewriteRule): Integer;
-  cadr r;
+   cadr r;
 
 % Returns the rule term
 asserted inline procedure core_getRuleTerm(r: RewriteRule): Term;
-  caddr r;
+   caddr r;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Basistracker
@@ -194,41 +194,41 @@ core_initialBasisSize!* := 10000;
 
 % Creates an empty `Basistracker` with the given capacity
 asserted procedure core_Basistracker(capacity: Integer): Basistracker;
-  {'bt, mkvect(capacity), 0, capacity};
+   {'bt, mkvect(capacity), 0, capacity};
 
 % Adds LabeledPolynomial f to the basis to the first available index
 asserted procedure core_addPoly(r: Basistracker, f: LabeledPolynomial);
-  begin scalar polys, newpolys;
-        integer capacity, idx;
-    polys := cadr r;
-    idx := caddr r;
-    capacity := cadddr r;
-    % check if vector is overflowed.
-    % If it is, double the size
-    if idx >= capacity then <<
-      capacity := capacity * 2;
-      cadddr r := capacity;
-      newPolys := mkvect(capacity);
-      for i := 0:idx do
-        putv(newPolys, i, getv(polys, i));
-      cadr r := newPolys
-    >>;
-    % add polynmomial to the first free position
-    putv(cadr r, caddr r, f);
-    caddr r := caddr r #+ 1
-  end;
+   begin scalar polys, newpolys;
+         integer capacity, idx;
+      polys := cadr r;
+      idx := caddr r;
+      capacity := cadddr r;
+      % check if vector is overflowed.
+      % If it is, double the size
+      if idx >= capacity then <<
+         capacity := capacity * 2;
+         cadddr r := capacity;
+         newPolys := mkvect(capacity);
+         for i := 0:idx do
+            putv(newPolys, i, getv(polys, i));
+         cadr r := newPolys
+      >>;
+      % add polynmomial to the first free position
+      putv(cadr r, caddr r, f);
+      caddr r := caddr r #+ 1
+   end;
 
 % Sets the i'th polynomial in the basis to f
 asserted inline procedure core_setPoly(r: Basistracker, i: Integer, f: LabeledPolynomial);
-  putv(cadr r, i, f);
+   putv(cadr r, i, f);
 
 % Returns the i'th polynomial from the basis
 asserted inline procedure core_getPoly(r: Basistracker, i: Integer): LabeledPolynomial;
-  getv(cadr r, i);
+   getv(cadr r, i);
 
 % Returns the index of the last polynomial added to the basis
 asserted inline procedure core_getBasisIdx(r: Basistracker): Integer;
-  (caddr r) #- 1;
+   (caddr r) #- 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Additional comparators for sorting
@@ -236,17 +236,17 @@ asserted inline procedure core_getBasisIdx(r: Basistracker): Integer;
 % TODO: add the current term order cmp as a tie-breaker
 asserted procedure core_pairTotalDegreeCmp(p1: CriticalPair,
                                             p2: CriticalPair): Boolean;
-  poly_totalDegTerm(core_getPairLcm(p1)) #< poly_totalDegTerm(core_getPairLcm(p2));
+   poly_totalDegTerm(core_getPairLcm(p1)) #< poly_totalDegTerm(core_getPairLcm(p2));
 
 % Compares critical pairs by lcm term according to the current term order
 asserted procedure core_pairLcmCmp(p1: CriticalPair,
                                     p2: CriticalPair): Boolean;
-  poly_cmpTerm(core_getPairLcm(p1), core_getPairLcm(p2));
+   poly_cmpTerm(core_getPairLcm(p1), core_getPairLcm(p2));
 
 % Compare associative list elements by their value - a signature
 asserted procedure core_assocSgnCmp(pr1: DottedPair,
                                       pr2: DottedPair): Boolean;
-  lp_cmpSgn(lp_sgn(cdr pr1), lp_sgn(cdr pr2));
+   lp_cmpSgn(lp_sgn(cdr pr1), lp_sgn(cdr pr2));
 
 % Compare associative list elements by their value - length of polynomial part
 asserted procedure core_assocLengthCmp(pr1: DottedPair,
@@ -257,7 +257,7 @@ asserted procedure core_assocLengthCmp(pr1: DottedPair,
 % in the current term order
 asserted procedure core_assocLeadCmp(pr1: DottedPair,
                                       pr2: DottedPair): Boolean;
-  poly_leadTotalDegreeCmp(lp_eval(cdr pr1), lp_eval(cdr pr2));
+   poly_leadTotalDegreeCmp(lp_eval(cdr pr1), lp_eval(cdr pr2));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -270,34 +270,34 @@ asserted procedure core_assocLeadCmp(pr1: DottedPair,
 %   {f1,f2,f3}  -->  {(1,0,0), (0,1,0), (0,0,1)}.
 % Each unit vector in the list is represented as a LabeledPolynomial.
 asserted procedure core_constructModule(inputBasis: List): List;
-  begin scalar outputModule;
-        integer i;
-    % If f5integers is ON, then scale input polynomials, so that
-    % coefficients of input polynomials become integers
-    % (!! assuming there are no parameters in the input)
-    if !*f5integers or !*f5modular then
+   begin scalar outputModule;
+         integer i;
+      % If f5integers is ON, then scale input polynomials, so that
+      % coefficients of input polynomials become integers
+      % (!! assuming there are no parameters in the input)
+      if !*f5integers or !*f5modular then
       inputBasis := for each poly in inputBasis
                       collect poly_scaleDenominators(poly);
-    % Interreducing input basis is a heuristic. The idea it to produce
-    % polynomials with disjoint leading terms after interreduction if possible.
-    % inputBasis := core_interreduceInput(inputBasis);
-    % Since F5 constructs the basis for the input polynomials {f1..fn} incrementally,
-    % starting from constructing the basis for {f1,f2}, then for {f1,f2,f3}, and so on,
-    % the order of input actually matters.
-    % We sort polynomials w.r.t. the total degree of leading terms
-    % from the smallest to the largest one, as described in the original F5.
-    inputBasis := sort(inputBasis, 'poly_leadTotalDegreeCmp);
-    i := 0;
-    while inputBasis do <<
-      push(lp_LabeledPolynomial1(pop(inputBasis), i), outputModule);
-      i := i + 1
-    >>;
-    % if f5statistics is ON, initialize all statistics
-    % for i - 1 input polynomials
-    if !*f5statistics then
-      stat_init(i - 1);
-    return reversip(outputModule)
-  end;
+      % Interreducing input basis is a heuristic. The idea it to produce
+      % polynomials with disjoint leading terms after interreduction if possible.
+      % inputBasis := core_interreduceInput(inputBasis);
+      % Since F5 constructs the basis for the input polynomials {f1..fn} incrementally,
+      % starting from constructing the basis for {f1,f2}, then for {f1,f2,f3}, and so on,
+      % the order of input actually matters.
+      % We sort polynomials w.r.t. the total degree of leading terms
+      % from the smallest to the largest one, as described in the original F5.
+      inputBasis := sort(inputBasis, 'poly_leadTotalDegreeCmp);
+      i := 0;
+      while inputBasis do <<
+         push(lp_LabeledPolynomial1(pop(inputBasis), i), outputModule);
+         i := i + 1
+      >>;
+      % if f5statistics is ON, initialize all statistics
+      % for i - 1 input polynomials
+      if !*f5statistics then
+         stat_init(i - 1);
+      return reversip(outputModule)
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -334,28 +334,27 @@ asserted procedure core_normalForm(f: Polynomial, Gprev: List,
       return updatedToreturn . f
    end;
 
-
 % Same as the above, but all possible reducers are
 % already stored in the list `reducers` as Polynomial objects.
 asserted procedure core_normalFormReducers(f: Polynomial, reducers: List,
                                               topReduce: Boolean): DottedPair;
-  begin scalar updated, reducer, reduced, updatedToreturn;
-    updated := t;
-    while updated do <<
-      updated := nil;
-      for each reducer in reducers do <<
-        if not poly_iszero!?(reducer) and not poly_iszero!?(f) then <<
-          reduced . f := if topReduce then
-            poly_tryTopReductionStep(f, reducer)
-          else
-            poly_tryReductionStep(f, reducer);
-          updated := updated or reduced;
-          updatedToreturn := updated or reduced
-        >>
-      >>
-    >>;
-    return updatedToreturn . f
-  end;
+   begin scalar updated, reducer, reduced, updatedToreturn;
+      updated := t;
+      while updated do <<
+         updated := nil;
+         for each reducer in reducers do <<
+            if not poly_iszero!?(reducer) and not poly_iszero!?(f) then <<
+               reduced . f := if topReduce then
+                  poly_tryTopReductionStep(f, reducer)
+               else
+                  poly_tryReductionStep(f, reducer);
+               updated := updated or reduced;
+               updatedToreturn := updated or reduced
+            >>
+         >>
+      >>;
+      return updatedToreturn . f
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -363,69 +362,69 @@ asserted procedure core_normalFormReducers(f: Polynomial, reducers: List,
 % for G = {8, 4, 5} and i = 2 returns {8, 5}
 % (non mutating for `G`)
 asserted procedure core_getReducers(i: Integer, G: List): List;
-  begin scalar reducers, poly;
-        integer j;
-    j := 1;
-    while G do <<
-      poly := pop(G);
-      if not (j #= i) then
-        push(poly, reducers);
-    >>;
-    j := j #+ 1
-    return reducers
-  end;
+   begin scalar reducers, poly;
+         integer j;
+      j := 1;
+      while G do <<
+         poly := pop(G);
+         if not (j #= i) then
+            push(poly, reducers)
+      >>;
+      j := j #+ 1
+      return reducers
+   end;
 
 % Given the set of basis generators `input`,
 % applies several (possibly, not all) passes of the Autoreduction algorithm
 % until no further top-reductions happen
 asserted procedure core_interreduceInput(input: List): List;
-  begin scalar reducers, updated, reduced, f, newInput;
-    updated := t;
-    while updated do <<
+   begin scalar reducers, updated, reduced, f, newInput;
+      updated := t;
+      while updated do <<
       updated := nil;
       newInput := nil;
       while input do <<
-        f := pop(input);
-        reducers := append(newInput, input);
-        % Computing only top reductions here. The idea is that the
-        % input polynomials are (usually) relatively simple,
-        % and full interreduction will not be of any help;
-        % Still, top-reductions can help us detect input polynomials
-        % with coprime leading terms
-        reduced . f := core_normalFormReducers(f, reducers, t);
-        updated := updated or reduced;
-        if not poly_iszero!?(f) then
-          push(f, newInput)
+         f := pop(input);
+         reducers := append(newInput, input);
+         % Computing only top reductions here. The idea is that the
+         % input polynomials are (usually) relatively simple,
+         % and full interreduction will not be of any help;
+         % Still, top-reductions can help us detect input polynomials
+         % with coprime leading terms
+         reduced . f := core_normalFormReducers(f, reducers, t);
+         updated := updated or reduced;
+         if not poly_iszero!?(f) then
+            push(f, newInput)
+         >>;
+         input := newInput
       >>;
-      input := newInput
-    >>;
-    return newInput
-  end;
+      return newInput
+   end;
 
 % Same as above, but
 %   . input polynomials are stored in `Gprev` as indices to `r`,
 %   . output polynomials are fully reduced (not only top-reduced)
 asserted procedure core_interreduceBasis(Gprev: List, r: Basistracker): List;
-  begin scalar reducers, updated, reduced, f, newGprev;
-        integer i;
-    updated := t;
-    while updated do <<
-      updated := nil;
-      newGprev := nil;
-      while Gprev do <<
-        i := pop(Gprev);
-        f := lp_eval(core_getPoly(r, i));
-        reducers := append(newGprev, Gprev);
-        reduced . f := core_normalForm(f, reducers, r, nil);
-        updated := updated or reduced;
-        lp_setEval(core_getPoly(r, i), f);
-        if not poly_iszero!?(f) then
-          push(i, newGprev)
+   begin scalar reducers, updated, reduced, f, newGprev;
+         integer i;
+      updated := t;
+      while updated do <<
+         updated := nil;
+         newGprev := nil;
+         while Gprev do <<
+            i := pop(Gprev);
+            f := lp_eval(core_getPoly(r, i));
+            reducers := append(newGprev, Gprev);
+            reduced . f := core_normalForm(f, reducers, r, nil);
+            updated := updated or reduced;
+            lp_setEval(core_getPoly(r, i), f);
+            if not poly_iszero!?(f) then
+            push(i, newGprev)
+         >>;
+         Gprev := newGprev
       >>;
-      Gprev := newGprev
-    >>;
-    return newGprev
-  end;
+      return newGprev
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -435,14 +434,14 @@ asserted procedure core_interreduceBasis(Gprev: List, r: Basistracker): List;
 % If it is, returns t. Otherwise, returns nil
 asserted procedure core_isTopReducibleTerm(m: Term, Gprev: List,
                                             r: Basistracker): Boolean;
-  begin scalar glead, isReducible;
-    while Gprev and (not isReducible) do <<
-      glead := poly_leadTerm(lp_eval(core_getPoly(r, pop(Gprev))));
-      if poly_dividesTerm!?(glead, m) then
-        isReducible := t
-    >>;
-    return isReducible
-  end;
+   begin scalar glead, isReducible;
+      while Gprev and (not isReducible) do <<
+         glead := poly_leadTerm(lp_eval(core_getPoly(r, pop(Gprev))));
+         if poly_dividesTerm!?(glead, m) then
+            isReducible := t
+      >>;
+      return isReducible
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -462,30 +461,30 @@ asserted procedure core_addRule(Rule: Vector, sgn: Signature, k: Integer);
 % If there are no proper rewriters other than self, returns `k`
 asserted procedure core_findRewriting(u: Term, k: Integer,
                                 r: Basistracker, Rule: Vector): Integer;
-  begin scalar sgn, usgnt, foundRewriter, rulesAtSgn, ruleCurrent;
-        integer rewriter;
-    rewriter := k;
-    sgn      := lp_sgn(core_getPoly(r, k));
-    usgnt    := lp_termSgn(lp_mulSgn(sgn, u));
-    rulesAtSgn := getv(Rule, lp_indexSgn(sgn));
-    % Being careful with order of rules in rulesAtSgn:
-    % we want to traverse the rules for the signature `sgn`
-    % from the last to the first one in the order they were added,
-    % and terminate as soon as the first matching rule was found
-    while rulesAtSgn and (not foundRewriter) do <<
-      ruleCurrent := pop(rulesAtSgn);
-      foundRewriter := poly_dividesTerm!?(core_getRuleTerm(ruleCurrent), usgnt);
-      if foundRewriter then
-        rewriter := core_getRuleIndex(ruleCurrent)
-    >>;
-    return rewriter
-  end;
+   begin scalar sgn, usgnt, foundRewriter, rulesAtSgn, ruleCurrent;
+         integer rewriter;
+      rewriter := k;
+      sgn      := lp_sgn(core_getPoly(r, k));
+      usgnt    := lp_termSgn(lp_mulSgn(sgn, u));
+      rulesAtSgn := getv(Rule, lp_indexSgn(sgn));
+      % Being careful with order of rules in rulesAtSgn:
+      % we want to traverse the rules for the signature `sgn`
+      % from the last to the first one in the order they were added,
+      % and terminate as soon as the first matching rule was found
+      while rulesAtSgn and (not foundRewriter) do <<
+         ruleCurrent := pop(rulesAtSgn);
+         foundRewriter := poly_dividesTerm!?(core_getRuleTerm(ruleCurrent), usgnt);
+         if foundRewriter then
+            rewriter := core_getRuleIndex(ruleCurrent)
+      >>;
+      return rewriter
+   end;
 
 % The Main Rewritten Criterion:
 % Is signature u*sgn(r_k) rewritable by any rule from the `Rule`?
 asserted inline procedure core_isRewritable(u: Term, k: Integer,
                                         r: Basistracker, Rule: Vector);
-  not (core_findRewriting(u, k, r, Rule) #= k);
+   not (core_findRewriting(u, k, r, Rule) #= k);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -494,20 +493,20 @@ asserted inline procedure core_isRewritable(u: Term, k: Integer,
 % any other polynomial from `Gprev`.
 % Returns the list of indices of polynomials in the filtered list.
 asserted procedure core_filterRedundant(Gprev: List, r: Basistracker): List;
-  begin scalar Gnew, alG, Gsorted, glead;
-        integer gi;
-    % Sort indices Gprev w.r.t. the leading terms of polynomials from in `r`
-    alG := for each i in Gprev collect i . core_getPoly(r, i);
-    alG := sort(alG, 'core_assocLeadCmp);
-    Gsorted := for each pr in alG collect car pr;
-    while Gsorted do <<
-      gi := pop(Gsorted);
-      glead := poly_leadTerm(lp_eval(core_getPoly(r, gi)));
-      if not core_isTopReducibleTerm(glead, Gnew, r) then
-        push(gi, Gnew)
-    >>;
-    return Gnew
-  end;
+   begin scalar Gnew, alG, Gsorted, glead;
+         integer gi;
+      % Sort indices Gprev w.r.t. the leading terms of polynomials from in `r`
+      alG := for each i in Gprev collect i . core_getPoly(r, i);
+      alG := sort(alG, 'core_assocLeadCmp);
+      Gsorted := for each pr in alG collect car pr;
+      while Gsorted do <<
+         gi := pop(Gsorted);
+         glead := poly_leadTerm(lp_eval(core_getPoly(r, gi)));
+         if not core_isTopReducibleTerm(glead, Gnew, r) then
+            push(gi, Gnew)
+      >>;
+      return Gnew
+   end;
 
 % Normalizes each generator in the given `basis`.
 % If f5integers is OFF, then each polynomial
@@ -515,7 +514,7 @@ asserted procedure core_filterRedundant(Gprev: List, r: Basistracker): List;
 % Otherwise, this divides each polynomial in
 % the basis by the content.
 asserted procedure core_normalizeBasis(basis: List): List;
-  for each x in basis collect lp_normalize(x);
+   for each x in basis collect lp_normalize(x);
 
 % Given a Groebner `basis` standardizes it,
 % so that the output agrees with the following invariants:
@@ -523,56 +522,56 @@ asserted procedure core_normalizeBasis(basis: List): List;
 %  . the basis is normalized
 %  . the basis is sorted by the order on the leading terms of its generators
 asserted procedure core_standardizeOutput(basis: List): List;
-  begin scalar normalizedBasis;
-    normalizedBasis := core_normalizeBasis(basis);
-    % Our coefficients are integers if f5integers is ON, so
-    % we transform each coefficient back to a Standard Quotient
-    if !*f5integers then
-      for each poly in normalizedBasis do
-        lp_setEval(poly, poly_int2sqCoeffs(lp_eval(poly)));
-    return sort(normalizedBasis, 'lp_cmpLPLeadReverse)
-  end;
+   begin scalar normalizedBasis;
+      normalizedBasis := core_normalizeBasis(basis);
+      % Our coefficients are integers if f5integers is ON, so
+      % we transform each coefficient back to a Standard Quotient
+      if !*f5integers then
+         for each poly in normalizedBasis do
+            lp_setEval(poly, poly_int2sqCoeffs(lp_eval(poly)));
+      return sort(normalizedBasis, 'lp_cmpLPLeadReverse)
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Checks if the ideal generated by <polys> contains
 % in the ideal generated by <basis>, assuming `basis` is a Groebner basis
 asserted procedure core_checkIdealInclusion1(basis: List, polys: List);
-  begin scalar included, poly, nf, flag_;
-    % Computes the normal form of each polynomial from `polys`
-    % with respect to the Groebner basis from `basis`
-    included := t;
-    basis    := for each f in basis collect lp_eval(f);
-    while included and polys do <<
-      poly := lp_eval(pop(polys));
-      flag_ . nf := core_normalFormReducers(poly, basis, t);
-      if not poly_iszero!?(nf) then
-        included := nil
-    >>;
-    return included
-  end;
+   begin scalar included, poly, nf, flag_;
+      % Computes the normal form of each polynomial from `polys`
+      % with respect to the Groebner basis from `basis`
+      included := t;
+      basis    := for each f in basis collect lp_eval(f);
+      while included and polys do <<
+         poly := lp_eval(pop(polys));
+         flag_ . nf := core_normalFormReducers(poly, basis, t);
+         if not poly_iszero!?(nf) then
+            included := nil
+      >>;
+      return included
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Checks if `basis` is a Groebner basis by checking that
 % all S-polynomials reduce to zero
 asserted procedure core_isGroebner1(basis: List);
-  begin scalar isBasis, tmp, spoly, nf, flag_;
-    isBasis := t;
-    basis   := for each f in basis collect lp_eval(f);
-    while basis do <<
-      tmp := cdr basis;
-      while isBasis and tmp do <<
-        spoly := poly_spoly(car tmp, car basis);
-        flag_ . nf := core_normalFormReducers(spoly, basis, t);
-        if not poly_iszero!?(nf) then
-          isBasis := nil;
-        pop(tmp)
+   begin scalar isBasis, tmp, spoly, nf, flag_;
+      isBasis := t;
+      basis   := for each f in basis collect lp_eval(f);
+      while basis do <<
+         tmp := cdr basis;
+         while isBasis and tmp do <<
+            spoly := poly_spoly(car tmp, car basis);
+            flag_ . nf := core_normalFormReducers(spoly, basis, t);
+            if not poly_iszero!?(nf) then
+            isBasis := nil;
+            pop(tmp)
+         >>;
+         pop(basis)
       >>;
-      pop(basis)
-    >>;
-    return isBasis
-  end;
+      return isBasis
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -589,26 +588,26 @@ asserted procedure core_isGroebner1(basis: List);
 % if no such top-reducer was found, return 0
 asserted procedure core_findTopReducerF5(k: Integer, Gprev: List, newGcurr: List,
                                   r: Basistracker, Rule: Vector): Integer;
-  begin scalar tt, rk, rkEval, rkSgn, rj, u, rjSgnMult, tj;
-        integer j, reducer;
-    rk     := core_getPoly(r, k);
-    rkEval := lp_eval(rk);
-    rkSgn  := lp_sgn(rk);
-    tt := poly_leadTerm(rkEval);
-    for each j in newGcurr do <<
-      rj := core_getPoly(r, j);
-      tj := poly_leadTerm(lp_eval(rj));
-      if (reducer #= 0) and poly_dividesTerm!?(tj, tt) then <<
-        u := poly_divTerm(tt, tj);
-        rjSgnMult := lp_mulSgn(lp_sgn(rj), u);
-        if not lp_eqSgn(rjSgnMult, rkSgn) then
-          if not core_isRewritable(u, j, r, Rule) then
-            if not core_isTopReducibleTerm(lp_termSgn(rjSgnMult), Gprev, r) then
-              reducer := j
-      >>
-    >>;
-    return reducer
-  end;
+   begin scalar tt, rk, rkEval, rkSgn, rj, u, rjSgnMult, tj;
+         integer j, reducer;
+      rk     := core_getPoly(r, k);
+      rkEval := lp_eval(rk);
+      rkSgn  := lp_sgn(rk);
+      tt := poly_leadTerm(rkEval);
+      for each j in newGcurr do <<
+         rj := core_getPoly(r, j);
+         tj := poly_leadTerm(lp_eval(rj));
+         if (reducer #= 0) and poly_dividesTerm!?(tj, tt) then <<
+            u := poly_divTerm(tt, tj);
+            rjSgnMult := lp_mulSgn(lp_sgn(rj), u);
+            if not lp_eqSgn(rjSgnMult, rkSgn) then
+               if not core_isRewritable(u, j, r, Rule) then
+                  if not core_isTopReducibleTerm(lp_termSgn(rjSgnMult), Gprev, r) then
+                     reducer := j
+         >>
+      >>;
+      return reducer
+   end;
 
 % Adapted from John Perry et al.
 %   https://arxiv.org/abs/0906.2967
@@ -638,70 +637,69 @@ asserted procedure core_findTopReducerF5(k: Integer, Gprev: List, newGcurr: List
 % still be reducible by another LabeledPolynomial.
 asserted procedure core_topReductionF5(k: Integer, Gprev: List, newGcurr: List,
                       r: Basistracker, Rule: Vector): DottedPair;
-  begin scalar rk, rj, u, newpoly, reduced, reducerSgn, flag_;
-        integer j;
-    rk := core_getPoly(r, k);
-    % if reduction to zero happened in the normal form -
-    % meaning the system is not regular
-    if lp_iszero!?(rk) then <<
-      %  Reduction to zero happened!;
-      if !*f5statistics then
-        stat_incrementZeroReductions();
-      return nil . nil
-    >>;
-    j := core_findTopReducerF5(k, Gprev, newGcurr, r, Rule);
-    % no top reducers found in the previous Groebner basis --
-    % top-reduction is not possible
-    if j #= 0 then <<
-      core_setPoly(r, k, lp_normalize(rk));
-      return k . nil
-    >>;
-    % reducer rj found, perform top-reduction
-    rj := core_getPoly(r, j);
-    flag_ . reduced := poly_tryTopReductionStep(lp_eval(rk), lp_eval(rj));
-    if not poly_iszero!?(reduced) then
-      reduced := poly_normalize(reduced);
-    % we need to check that the signature of reducer
-    % is not greater than the signature of rj
-    u := poly_divTerm(poly_leadTerm(lp_eval(rk)), poly_leadTerm(lp_eval(rj)));
-    reducerSgn := lp_mulSgn(lp_sgn(rj), u);
-    return if lp_cmpSgn(reducerSgn, lp_sgn(rk)) then <<
-      % signatures OK, reduction is successful.
-      % We form the new polynomial at index k,
-      % and return it to reduction, to be reduced once again later
-      lp_setEval(rk, reduced);
-      core_setPoly(r, k, rk);
-      nil . k . nil
-    >> else <<
-      % the signature of reducer is greater, reduction cannot be performed.
-      % BUT, we still can form the new polynomial with the signature of reducer
-      % for further reduction
-      newpoly := lp_LabeledPolynomial2(reduced, reducerSgn);
-      core_addPoly(r, newpoly);
-      core_addRule(Rule, lp_sgn(newpoly), core_getBasisIdx(r));
-      nil . k . core_getBasisIdx(r) . nil
-    >>
-  end;
+   begin scalar rk, rj, u, newpoly, reduced, reducerSgn, flag_;
+         integer j;
+      rk := core_getPoly(r, k);
+      % if reduction to zero happened in the normal form -
+      % meaning the system is not regular
+      if lp_iszero!?(rk) then <<
+         %  Reduction to zero happened!;
+         if !*f5statistics then
+            stat_incrementZeroReductions();
+         return nil . nil
+      >>;
+      j := core_findTopReducerF5(k, Gprev, newGcurr, r, Rule);
+      % no top reducers found in the previous Groebner basis --
+      % top-reduction is not possible
+      if j #= 0 then <<
+         core_setPoly(r, k, lp_normalize(rk));
+         return k . nil
+      >>;
+      % reducer rj found, perform top-reduction
+      rj := core_getPoly(r, j);
+      flag_ . reduced := poly_tryTopReductionStep(lp_eval(rk), lp_eval(rj));
+      if not poly_iszero!?(reduced) then
+         reduced := poly_normalize(reduced);
+      % we need to check that the signature of reducer
+      % is not greater than the signature of rj
+      u := poly_divTerm(poly_leadTerm(lp_eval(rk)), poly_leadTerm(lp_eval(rj)));
+      reducerSgn := lp_mulSgn(lp_sgn(rj), u);
+      return if lp_cmpSgn(reducerSgn, lp_sgn(rk)) then <<
+         % signatures OK, reduction is successful.
+         % We form the new polynomial at index k,
+         % and return it to reduction, to be reduced once again later
+         lp_setEval(rk, reduced);
+         core_setPoly(r, k, rk);
+         nil . k . nil
+      >> else <<
+         % the signature of reducer is greater, reduction cannot be performed.
+         % BUT, we still can form the new polynomial with the signature of reducer
+         % for further reduction
+         newpoly := lp_LabeledPolynomial2(reduced, reducerSgn);
+         core_addPoly(r, newpoly);
+         core_addRule(Rule, lp_sgn(newpoly), core_getBasisIdx(r));
+         nil . k . core_getBasisIdx(r) . nil
+      >>
+   end;
 
 % Inserts integer j in todo and returns the new resulting list,
 % so that indices in todo are sorted increasingly by signatures
 % of labeled polynomials indexed in r by todo
 asserted procedure core_insertSorted(todo: List, j: Integer,
                                         r: Basistracker): List;
-  begin scalar tmp, sj, s;
-    if null todo then
-      return {j};
-    sj := lp_sgn(core_getPoly(r, j));
-    s  := lp_sgn(core_getPoly(r, car todo));
-    if lp_cmpSgn(sj, s) then
-      return j . todo;
-    tmp := todo;
-    while cdr todo and lp_cmpSgn(sj, lp_sgn(core_getPoly(r, cadr todo))) do <<
-      pop(todo)
-    >>;
-    cdr todo := j . cdr todo;
-    return tmp
-  end;
+   begin scalar tmp, sj, s;
+      if null todo then
+         return {j};
+      sj := lp_sgn(core_getPoly(r, j));
+      s  := lp_sgn(core_getPoly(r, car todo));
+      if lp_cmpSgn(sj, s) then
+         return j . todo;
+      tmp := todo;
+      while cdr todo and lp_cmpSgn(sj, lp_sgn(core_getPoly(r, cadr todo))) do
+         pop(todo);
+      cdr todo := j . cdr todo;
+      return tmp
+   end;
 
 % The main reduction function.
 % Given indices of S-polynomials in the list S, computes
@@ -712,47 +710,47 @@ asserted procedure core_insertSorted(todo: List, j: Integer,
 % combined with a top-reduction that does not change the signature.
 asserted procedure core_reduction(S: List, Gprev: List, Gcurr: List,
                                     r: Basistracker, Rule: Vector): List;
-  begin scalar todo, S, completed, newGcurr, rk, reduced,
-                newcompleted, redo, flag_;
-        integer k, j, nNormalForms;
-    % For each polynomial f the reduction process is the following.
-    % First, this polynomial is placed in the `todo` list from the beginning.
-    % Secondly, when f is popped from the list, the normal form of f with
-    % respect to the basis computed up to this module index (in Gprev) is produced.
-    % Since during the normal form computation it is possible that not all feasible
-    % reducers were handled, a separate top-reduction step is needed.
-    % This is handled by the core_topReductionF5, which is called on the
-    % result of the normal form.
-    %
-    % The core_topReductionF5 returns a pair of two lists:
-    %   newcompleted and redo
-    % Elements from redo are inserted back to the todo list,
-    % and the elements of newcompleted are considered fully reduced.
-    todo := S;
-    newGcurr := copy(Gcurr);
-    while todo do <<
-      k := pop(todo);
-      rk := core_getPoly(r, k);
-      % Compute the normal form;
-      % If full reduction is not needed, computes only the top normal form.
-      % Otherwise, reduces all terms in the polynomial.
-      flag_ . reduced := core_normalForm(lp_eval(rk), Gprev, r, t);
-      nNormalForms := nNormalForms + 1;
-      lp_setEval(rk, reduced);
-      core_setPoly(r, k, rk);
-      % Compute the F5-style top-reduction;
-      newcompleted . redo := core_topReductionF5(k, Gprev, newGcurr, r, Rule);
-      if newcompleted then <<
-        push(newcompleted, completed);
-        push(newcompleted, newGcurr)
+   begin scalar todo, S, completed, newGcurr, rk, reduced,
+         newcompleted, redo, flag_;
+         integer k, j, nNormalForms;
+      % For each polynomial f the reduction process is the following.
+      % First, this polynomial is placed in the `todo` list from the beginning.
+      % Secondly, when f is popped from the list, the normal form of f with
+      % respect to the basis computed up to this module index (in Gprev) is produced.
+      % Since during the normal form computation it is possible that not all feasible
+      % reducers were handled, a separate top-reduction step is needed.
+      % This is handled by the core_topReductionF5, which is called on the
+      % result of the normal form.
+      %
+      % The core_topReductionF5 returns a pair of two lists:
+      %   newcompleted and redo
+      % Elements from redo are inserted back to the todo list,
+      % and the elements of newcompleted are considered fully reduced.
+      todo := S;
+      newGcurr := copy(Gcurr);
+      while todo do <<
+         k := pop(todo);
+         rk := core_getPoly(r, k);
+         % Compute the normal form;
+         % If full reduction is not needed, computes only the top normal form.
+         % Otherwise, reduces all terms in the polynomial.
+         flag_ . reduced := core_normalForm(lp_eval(rk), Gprev, r, t);
+         nNormalForms := nNormalForms + 1;
+         lp_setEval(rk, reduced);
+         core_setPoly(r, k, rk);
+         % Compute the F5-style top-reduction;
+         newcompleted . redo := core_topReductionF5(k, Gprev, newGcurr, r, Rule);
+         if newcompleted then <<
+            push(newcompleted, completed);
+            push(newcompleted, newGcurr)
+         >>;
+         for each j in redo do
+            todo := core_insertSorted(todo, j, r)
       >>;
-      for each j in redo do
-        todo := core_insertSorted(todo, j, r);
-    >>;
-    if !*f5statistics then
-      stat_updateReductions(length(S), nNormalForms);
-    return completed
-  end;
+      if !*f5statistics then
+         stat_updateReductions(length(S), nNormalForms);
+      return completed
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -767,33 +765,33 @@ asserted procedure core_reduction(S: List, Gprev: List, Gcurr: List,
 % polynomials will always be of the form u_k*sgn(r_k) in core_computeSpolys.
 asserted procedure core_computeSpolys(pairs: List, r: Basistracker,
                                         Rule: Vector): List;
-  begin scalar S, p, u, v, lpk, lpl, alS, seval, ssgn;
-        integer l, k;
-    pairs := sort(pairs, 'core_pairLcmCmp);
-    while pairs do <<
-      p := pop(pairs);
-      k . u := core_getPairFirst(p);
-      l . v := core_getPairSecond(p);
-      % Rewritten criterion
-      if (not core_isRewritable(u, k, r, Rule)) and (not core_isRewritable(v, l, r, Rule)) then <<
-        lpk := core_getPoly(r, k);
-        lpl := core_getPoly(r, l);
-        seval := poly_spoly(lp_eval(lpk), lp_eval(lpl));
-        ssgn  := lp_mulSgn(lp_sgn(lpk), u);
-        if not poly_iszero!?(seval) then
-          seval := poly_normalize(seval);
-        core_addPoly(r, lp_LabeledPolynomial2(seval, ssgn));
-        core_addRule(Rule, ssgn, core_getBasisIdx(r));
-        if not poly_iszero!?(seval) then
-          push(core_getBasisIdx(r), S)
-      >>
-    >>;
-    % Sort indices S w.r.t. signatures of polynomials stored in r
-    alS := for each i in S collect i . core_getPoly(r, i);
-    alS := sort(alS, 'core_assocSgnCmp);
-    S := for each pr in alS collect car pr;
-    return S
-  end;
+   begin scalar S, p, u, v, lpk, lpl, alS, seval, ssgn;
+         integer l, k;
+      pairs := sort(pairs, 'core_pairLcmCmp);
+      while pairs do <<
+         p := pop(pairs);
+         k . u := core_getPairFirst(p);
+         l . v := core_getPairSecond(p);
+         % Rewritten criterion
+         if (not core_isRewritable(u, k, r, Rule)) and (not core_isRewritable(v, l, r, Rule)) then <<
+            lpk := core_getPoly(r, k);
+            lpl := core_getPoly(r, l);
+            seval := poly_spoly(lp_eval(lpk), lp_eval(lpl));
+            ssgn  := lp_mulSgn(lp_sgn(lpk), u);
+            if not poly_iszero!?(seval) then
+               seval := poly_normalize(seval);
+            core_addPoly(r, lp_LabeledPolynomial2(seval, ssgn));
+            core_addRule(Rule, ssgn, core_getBasisIdx(r));
+            if not poly_iszero!?(seval) then
+            push(core_getBasisIdx(r), S)
+         >>
+      >>;
+      % Sort indices S w.r.t. signatures of polynomials stored in r
+      alS := for each i in S collect i . core_getPoly(r, i);
+      alS := sort(alS, 'core_assocSgnCmp);
+      S := for each pr in alS collect car pr;
+      return S
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -802,35 +800,35 @@ asserted procedure core_computeSpolys(pairs: List, r: Basistracker,
 % the F5 or by the rewritten criterion, the CriticalPair is nil.
 asserted procedure core_makeCriticalPair(i: Integer, k: Integer, l: Integer,
                     Gprev: List, r: Basistracker, Rule: Vector): CriticalPair;
-  begin scalar rk, rl, tk, tl, tt, u1, u2, usgn1, usgn2;
-        integer i;
-    rk := core_getPoly(r, k);
-    rl := core_getPoly(r, l);
-    tk := poly_leadTerm(lp_eval(rk));
-    tl := poly_leadTerm(lp_eval(rl));
-    % tt = lcm(leadTerm(rk), leadTerm(rl))
-    tt := poly_lcmTerm(tk, tl);
-    % so that u1*rk - u2*rl is S-polynomial
-    u1 := poly_subExp(tt, tk);
-    u2 := poly_subExp(tt, tl);
-    % signatures of u1*rk and u2*rl
-    usgn1 := lp_mulSgn(lp_sgn(rk), u1);
-    usgn2 := lp_mulSgn(lp_sgn(rl), u2);
-    % F5 criterion
-    if (lp_indexSgn(usgn1) #= i) and core_isTopReducibleTerm(lp_termSgn(usgn1), Gprev, r) then
-      return nil;
-    if (lp_indexSgn(usgn2) #= i) and core_isTopReducibleTerm(lp_termSgn(usgn2), Gprev, r) then
-      return nil;
-    % Rewritten criterion
-    if core_isRewritable(u1, k, r, Rule) or core_isRewritable(u2, l, r, Rule) then
-      return nil;
-    % the pair should be ordered
-    if lp_cmpSgn(usgn1, usgn2) then <<
-      u1 . u2 := u2 . u1;
-      k . l := l . k
-    >>;
-    return core_criticalPair(tt, k, u1, l, u2)
-  end;
+   begin scalar rk, rl, tk, tl, tt, u1, u2, usgn1, usgn2;
+         integer i;
+      rk := core_getPoly(r, k);
+      rl := core_getPoly(r, l);
+      tk := poly_leadTerm(lp_eval(rk));
+      tl := poly_leadTerm(lp_eval(rl));
+      % tt = lcm(leadTerm(rk), leadTerm(rl))
+      tt := poly_lcmTerm(tk, tl);
+      % so that u1*rk - u2*rl is S-polynomial
+      u1 := poly_subExp(tt, tk);
+      u2 := poly_subExp(tt, tl);
+      % signatures of u1*rk and u2*rl
+      usgn1 := lp_mulSgn(lp_sgn(rk), u1);
+      usgn2 := lp_mulSgn(lp_sgn(rl), u2);
+      % F5 criterion
+      if (lp_indexSgn(usgn1) #= i) and core_isTopReducibleTerm(lp_termSgn(usgn1), Gprev, r) then
+         return nil;
+      if (lp_indexSgn(usgn2) #= i) and core_isTopReducibleTerm(lp_termSgn(usgn2), Gprev, r) then
+         return nil;
+      % Rewritten criterion
+      if core_isRewritable(u1, k, r, Rule) or core_isRewritable(u2, l, r, Rule) then
+         return nil;
+      % the pair should be ordered
+      if lp_cmpSgn(usgn1, usgn2) then <<
+         u1 . u2 := u2 . u1;
+         k . l := l . k
+      >>;
+      return core_criticalPair(tt, k, u1, l, u2)
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -838,70 +836,70 @@ asserted procedure core_makeCriticalPair(i: Integer, k: Integer, l: Integer,
 % constructs the basis of {f1..fi} and returns the list of new basis indices
 asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
                           r: Basistracker, Rule: Vector): List;
-  begin scalar Gcurr, pairs, p, S, dpairs, reduced, k, tmp;
-        integer i, j, d, currIdx;
-    % The function is organized in the following way.
-    % In the very beginning, some initial critical pairs are constructed
-    % and added to the list `pairs`. Pairs are formed using
-    % the r_currIdx polynomial and the generators of {f1..fi-1}.
-    % Then, while the `pairs` list is not empty, all pairs of the smallest
-    % degree of the lcm part are chosen and deleted from `pairs`. These pairs
-    % are then transformed into S-polynomials with the `core_computeSpolys`.
-    % S-polynomials are passed into the `core_reduction`, which returns
-    % the indices of new basis members. These new polynomials
-    % are used to produce new critical pairs, which are inserted in `pairs`.
-    currIdx := core_getBasisIdx(r);
-    Gcurr   := copy(Gprev);
-    % received new generator at index currIdx, add it to the list..
-    push(currIdx, Gcurr);
-    % and produce critical pairs with currIdx and every previous generator
-    for each j in Gprev do <<
-      p := core_makeCriticalPair(i, currIdx, j, Gprev, r, Rule);
-      if p then
-        push(p, pairs)
-    >>;
-    % A heuristic: sort generators by their length, ascending;
-    % In that way polynomial reductions with less number of terms
-    % will happen first 
-    alGprev := for each i in Gprev collect i . core_getPoly(r, i);
-    alGprev := sort(alGprev, 'core_assocLengthCmp);
-    Gprev := for each pr in alGprev collect car pr;
-    if !*f5statistics then
-      stat_updatePairs(length(pairs));
-    % construct d-Groebner bases for d=0,1,2,..., incrementally
-    while pairs do <<
-      % first, select critical pairs of the smallest degree, d,
-      % and store them to dpairs
-      pairs := sort(pairs, 'core_pairTotalDegreeCmp);
-      p := pop(pairs);
-      d := poly_totalDegTerm(core_getPairLcm(p));
-      dpairs := {p};
-      while pairs and (poly_totalDegTerm(core_getPairLcm(car pairs)) #= d) do <<
-        push(pop(pairs), dpairs)
-      >>;
-      % compute S-polynomials of selected critical pairs of degree d..
-      S := core_computeSpolys(dpairs, r, Rule);
-      % and reduce S-polynomials by the previously computed
-      % Groebner basis (Gprev), and the current generators (Gcurr)
-      reduced := core_reduction(S, Gprev, Gcurr, r, Rule);
-      reduced := reversip(reduced);
-      if !*f5statistics then
-        stat_updateIncremental(d, length(Gcurr)*length(reduced) + length(reduced)*(length(reduced)-1) / 2);
-      % form new critical pairs and insert them in the `pairs` list
-      while reduced do <<
-        k := pop(reduced);
-        tmp := Gcurr;
-        while tmp do <<
-          j := pop(tmp);
-          p := core_makeCriticalPair(i, j, k, Gprev, r, Rule);
-          if p then
+   begin scalar Gcurr, pairs, p, S, dpairs, reduced, k, tmp;
+         integer i, j, d, currIdx;
+      % The function is organized in the following way.
+      % In the very beginning, some initial critical pairs are constructed
+      % and added to the list `pairs`. Pairs are formed using
+      % the r_currIdx polynomial and the generators of {f1..fi-1}.
+      % Then, while the `pairs` list is not empty, all pairs of the smallest
+      % degree of the lcm part are chosen and deleted from `pairs`. These pairs
+      % are then transformed into S-polynomials with the `core_computeSpolys`.
+      % S-polynomials are passed into the `core_reduction`, which returns
+      % the indices of new basis members. These new polynomials
+      % are used to produce new critical pairs, which are inserted in `pairs`.
+      currIdx := core_getBasisIdx(r);
+      Gcurr   := copy(Gprev);
+      % received new generator at index currIdx, add it to the list..
+      push(currIdx, Gcurr);
+      % and produce critical pairs with currIdx and every previous generator
+      for each j in Gprev do <<
+         p := core_makeCriticalPair(i, currIdx, j, Gprev, r, Rule);
+         if p then
             push(p, pairs)
-        >>;
-        push(k, Gcurr)
-      >>
-    >>;
-    return Gcurr
-  end;
+      >>;
+      % A heuristic: sort generators by their length, ascending;
+      % In that way polynomial reductions with less number of terms
+      % will happen first
+      alGprev := for each i in Gprev collect i . core_getPoly(r, i);
+      alGprev := sort(alGprev, 'core_assocLengthCmp);
+      Gprev := for each pr in alGprev collect car pr;
+      if !*f5statistics then
+         stat_updatePairs(length(pairs));
+      % construct d-Groebner bases for d=0,1,2,..., incrementally
+      while pairs do <<
+         % first, select critical pairs of the smallest degree, d,
+         % and store them to dpairs
+         pairs := sort(pairs, 'core_pairTotalDegreeCmp);
+         p := pop(pairs);
+         d := poly_totalDegTerm(core_getPairLcm(p));
+         dpairs := {p};
+         while pairs and (poly_totalDegTerm(core_getPairLcm(car pairs)) #= d) do <<
+            push(pop(pairs), dpairs)
+         >>;
+         % compute S-polynomials of selected critical pairs of degree d..
+         S := core_computeSpolys(dpairs, r, Rule);
+         % and reduce S-polynomials by the previously computed
+         % Groebner basis (Gprev), and the current generators (Gcurr)
+         reduced := core_reduction(S, Gprev, Gcurr, r, Rule);
+         reduced := reversip(reduced);
+         if !*f5statistics then
+            stat_updateIncremental(d, length(Gcurr)*length(reduced) + length(reduced)*(length(reduced)-1) / 2);
+         % form new critical pairs and insert them in the `pairs` list
+         while reduced do <<
+            k := pop(reduced);
+            tmp := Gcurr;
+            while tmp do <<
+               j := pop(tmp);
+               p := core_makeCriticalPair(i, j, k, Gprev, r, Rule);
+               if p then
+                  push(p, pairs)
+            >>;
+            push(k, Gcurr)
+         >>
+      >>;
+      return Gcurr
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -915,41 +913,41 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
 %   . the output basis contains only normalized polynomials,
 %   . if f5interreduce is ON, then the output basis is fully reduced
 asserted procedure core_groebner1(basis: List): List;
-  begin scalar f1, r, Gprev, Rule, fi;
-        integer m, i;
-    m  := length(basis);
-    % f1 - first polynomial added to the basis
-    f1 := pop(basis);
-    f1 := lp_normalize(f1);
-    r := core_Basistracker(core_initialBasisSize!*);
-    core_addPoly(r, f1);
-    % Gprev indexes generators of the current basis in the Basistracker `r`,
-    % So, Gprev := {0} indexes the basis of {f1}
-    Gprev := {0};
-    % Vector of RewriteRules
-    Rule := mkvect(m);
-    i := 1;
-    % Incremental construction from index 1 to index m-1
-    while i #< m do <<
-      fi := pop(basis);
-      fi := lp_normalize(fi);
-      core_addPoly(r, fi);
-      putv(Rule, i, nil);
+   begin scalar f1, r, Gprev, Rule, fi;
+         integer m, i;
+      m  := length(basis);
+      % f1 - first polynomial added to the basis
+      f1 := pop(basis);
+      f1 := lp_normalize(f1);
+      r := core_Basistracker(core_initialBasisSize!*);
+      core_addPoly(r, f1);
+      % Gprev indexes generators of the current basis in the Basistracker `r`,
+      % So, Gprev := {0} indexes the basis of {f1}
+      Gprev := {0};
+      % Vector of RewriteRules
+      Rule := mkvect(m);
+      i := 1;
+      % Incremental construction from index 1 to index m-1
+      while i #< m do <<
+         fi := pop(basis);
+         fi := lp_normalize(fi);
+         core_addPoly(r, fi);
+         putv(Rule, i, nil);
+         if !*f5statistics then
+            stat_updateModuleIndex();
+         % construct the basis for {f1...fi} using the basis for {f1...fi-1}
+         Gprev := core_incrementalBasis(i, Gprev, r, Rule);
+         i := i #+ 1
+      >>;
+      % filter redundant generators
+      Gprev := core_filterRedundant(Gprev, r);
+      if !*f5interreduce then
+         Gprev := core_interreduceBasis(Gprev, r);
+      basis := for each i in Gprev collect core_getPoly(r, i);
       if !*f5statistics then
-        stat_updateModuleIndex();
-      % construct the basis for {f1...fi} using the basis for {f1...fi-1}
-      Gprev := core_incrementalBasis(i, Gprev, r, Rule);
-      i := i #+ 1
-    >>;
-    % filter redundant generators
-    Gprev := core_filterRedundant(Gprev, r);
-    if !*f5interreduce then
-      Gprev := core_interreduceBasis(Gprev, r);
-    basis := for each i in Gprev collect core_getPoly(r, i);
-    if !*f5statistics then
-      stat_print();
-    return core_standardizeOutput(basis)
-  end;
+         stat_print();
+      return core_standardizeOutput(basis)
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
