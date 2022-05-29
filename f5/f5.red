@@ -187,11 +187,6 @@ struct Basistracker checked by f5_isBasistracker;
 struct CriticalPair checked by f5_isCriticalPair;
 struct RewriteRule checked by f5_isRewriteRule;
 
-in "C:\data\projects\mpi\try2\signature-based-gb\f5\f5core.red";
-in "C:\data\projects\mpi\try2\signature-based-gb\f5\f5lp.red";
-in "C:\data\projects\mpi\try2\signature-based-gb\f5\f5poly.red";
-in "C:\data\projects\mpi\try2\signature-based-gb\f5\f5stat.red";
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % The main function that parses input arguments and calls the f5 routine

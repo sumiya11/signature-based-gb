@@ -871,8 +871,6 @@ asserted procedure core_selectPairsSugar(pairs: List): List;
       deg := core_getPairSugar(p);
       while pairs and (core_getPairSugar(car pairs) #= deg) do
          push(pop(pairs), selectedPairs);
-      prin2t("sugar");
-      prin2t({length(selectedPairs), " / ", length(pairs)});
       return selectedPairs . pairs
    end;
 
@@ -886,8 +884,6 @@ asserted procedure core_selectPairsNormal(pairs: List): List;
       deg := poly_totalDegTerm(core_getPairLcm(p));
       while pairs and (poly_totalDegTerm(core_getPairLcm(car pairs)) #= deg) do
          push(pop(pairs), selectedPairs);
-      prin2t("normal");
-      prin2t({length(selectedPairs), " / ", length(pairs)});
       return selectedPairs . pairs
    end;
 
@@ -906,48 +902,6 @@ asserted inline procedure core_selectPairs(pairs: List): DottedPair;
 % constructs the basis of {f1..fi} and returns the list of new basis indices
 asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
                           r: Basistracker, Rule: Vector): List;
-<<<<<<< HEAD
-  begin scalar Gcurr, pairs, p, S, dpairs, reduced, k, tmp;
-        integer i, j, d, currIdx;
-    % The function is organized in the following way.
-    % In the very beginning, some initial critical pairs are constructed
-    % and added to the list `pairs`. Pairs are formed using
-    % the r_currIdx polynomial and the generators of {f1..fi-1}.
-    % Then, while the `pairs` list is not empty, all pairs of the smallest
-    % degree of the lcm part are chosen and deleted from `pairs`. These pairs
-    % are then transformed into S-polynomials with the `core_computeSpolys`.
-    % S-polynomials are passed into the `core_reduction`, which returns
-    % the indices of new basis members. These new polynomials
-    % are used to produce new critical pairs, which are inserted in `pairs`.
-    currIdx := core_getBasisIdx(r);
-    Gcurr   := copy(Gprev);
-    % received new generator at index currIdx, add it to the list..
-    push(currIdx, Gcurr);
-    % and produce critical pairs with currIdx and every previous generator
-    for each j in Gprev do <<
-      p := core_makeCriticalPair(i, currIdx, j, Gprev, r, Rule);
-      if p then
-        push(p, pairs)
-    >>;
-    % A heuristic: sort generators by their length, ascending;
-    % In that way polynomial reductions with less number of terms
-    % will happen first 
-    % alGprev := for each i in Gprev collect i . core_getPoly(r, i);
-    % alGprev := sort(alGprev, 'core_assocLengthCmp);
-    % Gprev := for each pr in alGprev collect car pr;
-    if !*f5statistics then
-      stat_updatePairs(length(pairs));
-    % construct d-Groebner bases for d=0,1,2,..., incrementally
-    while pairs do <<
-      % first, select critical pairs of the smallest degree, d,
-      % and store them to dpairs
-      pairs := sort(pairs, 'core_pairTotalDegreeCmp);
-      p := pop(pairs);
-      d := poly_totalDegTerm(core_getPairLcm(p));
-      dpairs := {p};
-      while pairs and (poly_totalDegTerm(core_getPairLcm(car pairs)) #= d) do <<
-        push(pop(pairs), dpairs)
-=======
    begin scalar Gcurr, pairs, p, S, selectedPairs, reduced, k, tmp;
          integer i, j, d, currIdx;
       % The function is organized in the following way.
@@ -969,7 +923,6 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
          p := core_makeCriticalPair(i, currIdx, j, Gprev, r, Rule);
          if p then
             push(p, pairs)
->>>>>>> 033d5c03f502b7123a9899ea30ae604f2a67943c
       >>;
       % A heuristic: sort previous generators by their length, ascending;
       % In that way polynomial reductions with less number of terms
