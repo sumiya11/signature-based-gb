@@ -863,7 +863,7 @@ asserted procedure core_makeCriticalPair(i: Integer, k: Integer, l: Integer,
 
 % Sugar selection strategy for core_selectPairs
 asserted procedure core_selectPairsSugar(pairs: List): List;
-   begin scalar selectedPairs;
+   begin scalar selectedPairs, p;
          integer deg;
       pairs := sort(pairs, 'core_pairSugarCmp);
       p := pop(pairs);
@@ -876,7 +876,7 @@ asserted procedure core_selectPairsSugar(pairs: List): List;
 
 % Normal selection strategy for core_selectPairs
 asserted procedure core_selectPairsNormal(pairs: List): List;
-   begin scalar selectedPairs;
+   begin scalar selectedPairs, p;
          integer deg;
       pairs := sort(pairs, 'core_pairTotalDegreeCmp);
       p := pop(pairs);
@@ -902,7 +902,7 @@ asserted inline procedure core_selectPairs(pairs: List): DottedPair;
 % constructs the basis of {f1..fi} and returns the list of new basis indices
 asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
                           r: Basistracker, Rule: Vector): List;
-   begin scalar Gcurr, pairs, p, S, selectedPairs, reduced, k, tmp;
+   begin scalar Gcurr, pairs, p, S, selectedPairs, reduced, k, tmp, alGprev;
          integer i, j, d, currIdx;
       % The function is organized in the following way.
       % In the very beginning, some initial critical pairs are constructed

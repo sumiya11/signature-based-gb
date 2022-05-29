@@ -761,7 +761,7 @@ asserted procedure poly_reconstructCoeffs(poly: Polynomial,
   begin scalar newcoeffs;
     newcoeffs := for each cf in poly_getCoeffs(poly)
       collect mod_reconstruction(cf, prime);
-      return poly_PolynomialWithSugar(poly_getTerms(poly), newcoeffs, poly_getSugar(f))
+      return poly_PolynomialWithSugar(poly_getTerms(poly), newcoeffs, poly_getSugar(poly))
   end;
 
 % Applis CRT to coefficients of (polyaccum mod modulo) and (polycomp mod prime)
@@ -775,7 +775,7 @@ asserted procedure poly_crtCoeffs(polyaccum: Polynomial, modulo: Integer,
       c := mod_crt(pop(coeffsaccum), modulo, pop(coeffscomp), prime);
       push(c, newcoeffs)
     >>;
-    return poly_PolynomialWithSugar(poly_getTerms(polyaccum), reversip(newcoeffs), poly_getSugar(poly))
+    return poly_PolynomialWithSugar(poly_getTerms(polyaccum), reversip(newcoeffs), poly_getSugar(polyaccum))
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
