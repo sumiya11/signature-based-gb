@@ -129,6 +129,8 @@ if not (gb = {x1^5 - x2^2 - 3, x1*x2^4 + x2^8, x2^24 + x2^6 + 3*x2^4}) then
 
 % Test from `groebner` Reduce package
 
+on f5sugar;
+
 vars := {q1,q2,q3,q4,q5,q6}$
 system := {q1,
           q2^2 + q3^2 + q4^2,
@@ -157,6 +159,13 @@ gb := f5(system, vars, lex)$
 if not (length(gb) = 20) then
   errorMessage("Bad length for model system");
 
+off f5sugar;
+
+gb := f5(system, vars, lex)$
+
+if not (length(gb) = 20) then
+  errorMessage("Bad length for model system");
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % s9_1, regular? NA
@@ -170,6 +179,15 @@ system := {-e*g - 2*d*h,
         -5*d - 6*c*f - 7*g + 9*b,
         9*d + 6*a - 5*b,
         9*c - 7*a + 8}$
+
+on f5sugar;
+
+gb := f5(system, vars, revgradlex)$
+
+if not (length(gb) = 15) then
+  errorMessage("Bad length for model system");
+
+off f5sugar;
 
 gb := f5(system, vars, revgradlex)$
 
@@ -260,6 +278,15 @@ system := { 10*x1*x2^2 + 10*x1*x3^2 + 10*x1*x4^2 - 11*x1 + 10,
             10*x1^2*x3 + 10*x2^2*x3 + 10*x3*x4^2 - 11*x3 + 10,
             10*x1^2*x4 + 10*x2^2*x4 + 10*x3^2*x4 - 11*x4 + 10}$
 vars := {x1, x2, x3, x4}$
+
+on f5sugar;
+
+gb := f5(system, vars, revgradlex);
+
+if not (length(gb) = 28) then
+  errorMessage("noon 4 revgradlex");
+
+off f5sugar;
 
 gb := f5(system, vars, revgradlex);
 
