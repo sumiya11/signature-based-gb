@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 
-REDUCE = r"redcsl"
+REDUCE = r"bootstrapreduce"
 ARG1 = '~/signature-based-gb/f5/correctness/{0}.red'
 ARG2 = '-w ~/signature-based-gb/f5/correctness/output.rlg'
 

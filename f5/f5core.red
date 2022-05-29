@@ -863,9 +863,9 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
     % A heuristic: sort generators by their length, ascending;
     % In that way polynomial reductions with less number of terms
     % will happen first 
-    alGprev := for each i in Gprev collect i . core_getPoly(r, i);
-    alGprev := sort(alGprev, 'core_assocLengthCmp);
-    Gprev := for each pr in alGprev collect car pr;
+    % alGprev := for each i in Gprev collect i . core_getPoly(r, i);
+    % alGprev := sort(alGprev, 'core_assocLengthCmp);
+    % Gprev := for each pr in alGprev collect car pr;
     if !*f5statistics then
       stat_updatePairs(length(pairs));
     % construct d-Groebner bases for d=0,1,2,..., incrementally
