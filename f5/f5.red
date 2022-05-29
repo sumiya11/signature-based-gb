@@ -106,6 +106,9 @@ off1 'f5interreduce;
 switch f5integers;
 off1 'f5integers;
 
+switch f5sugar;
+on1 'f5sugar;
+
 % f5statistics - If this is ON, collects and prints the following statistics
 %                after each f5 call:
 %                the number of polynomials reduced,
@@ -183,6 +186,11 @@ procedure f5_isRewriteRule(x); eqcar(x, 'rr);
 struct Basistracker checked by f5_isBasistracker;
 struct CriticalPair checked by f5_isCriticalPair;
 struct RewriteRule checked by f5_isRewriteRule;
+
+in "C:\data\projects\mpi\try2\signature-based-gb\f5\f5core.red";
+in "C:\data\projects\mpi\try2\signature-based-gb\f5\f5lp.red";
+in "C:\data\projects\mpi\try2\signature-based-gb\f5\f5poly.red";
+in "C:\data\projects\mpi\try2\signature-based-gb\f5\f5stat.red";
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -278,7 +286,6 @@ asserted procedure f5_argumentError();
 
           > torder({x, y, z}, lex);
           > f5({x*y + 1, y*z + 1});
-
           ";
 
 endmodule;  % end of module f5
