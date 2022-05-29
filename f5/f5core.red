@@ -106,6 +106,22 @@ module f5core;
 % stored in the Basistracker `r` at index k (our notation for this is `r_k`).
 % To get the polynomial at the given index in `r`, `core_getPoly` is used.
 
+% *** Approach to normal vs. sugar strategy, and additional sorting.
+%
+% There are several points where polynomials or critical pairs are sorted:
+% 1. In the very beginning (before passing to core_groebner1), polynomials are sorted
+%    by the leading term w.r.t. the current term order (before assigning signatures).
+% 2. In each signature index (for each call of `core_incrementalBasis`),
+%    critical pairs are sorted either by
+%    * the total degree of the pair lcm (Normal strategy, f5sugar OFF)
+%    * the sugar degree (Sugar strategy, f5sugar ON)
+%    and a set of pairs with same degree is selected.
+% 3. Pairs are passed to core_computeSpolys, where they are
+%    * first, sorted by the pair lcm w.r.t. the current term order
+%    * on output, S-polynomials are sorted by signature
+% 4. The above ensures that S-polynomials are traversed in the order of
+%    increasing signatures in core_reduction.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CriticalPair
 
@@ -114,20 +130,21 @@ module f5core;
 % an S-polynomial from it later.
 % Assuming there exist two polynomials `f1` and `f2` and their S-polynomial is
 %   u*f1 - v*f2
-% then CriticalPair object is represented with a 6-item list
-%   {'cp, tt, k, u, l, v}
+% then CriticalPair object is represented with a 7-item list
+%   {'cp, tt, k, u, l, v, sugar}
 % Where
 %   tt is a Term, the lcm of the leading term of f1 and the leading term of f2,
 %   k is an Integer, the index of `f1` in the Basistracker,
 %   u is a Term, the multiplier of `f1`,
 %   l is an Integer, the index of `f2` in the Basistracker,
-%   v is a Term, the multiplier of `f2`.
+%   v is a Term, the multiplier of `f2`,
+%   sugar is an Integer, the sugar degree of corresponding S-polynomial.
 %
 % It is safe to assume that (k > l), or (k = l and u >= v).
 
 asserted inline procedure core_CriticalPair(tt: Term, k: Integer, u: Term,
-                                    l: Integer, v: Term): CriticalPair;
-  {'cp, tt, k, u, l, v};
+                                    l: Integer, v: Term, sugar: Integer): CriticalPair;
+  {'cp, tt, k, u, l, v, sugar};
 
 % Returns tt
 asserted inline procedure core_getPairLcm(p: CriticalPair): Term;
@@ -140,6 +157,10 @@ asserted inline procedure core_getPairFirst(p: CriticalPair): DottedPair;
 % Returns l . u2
 asserted inline procedure core_getPairSecond(p: CriticalPair): DottedPair;
    (car cddddr p) . (cadr cddddr p);
+
+% Returns sugar!
+asserted inline procedure core_getPairSugar(p: CriticalPair): Integer;
+   caddr cddddr p;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RewriteRule
@@ -237,6 +258,10 @@ asserted inline procedure core_getBasisIdx(r: Basistracker): Integer;
 asserted procedure core_pairTotalDegreeCmp(p1: CriticalPair,
                                             p2: CriticalPair): Boolean;
    poly_totalDegTerm(core_getPairLcm(p1)) #< poly_totalDegTerm(core_getPairLcm(p2));
+
+asserted procedure core_pairSugarCmp(p1: CriticalPair,
+                                            p2: CriticalPair): Boolean;
+   core_getPairSugar(p1) #< core_getPairSugar(p2);
 
 % Compares critical pairs by lcm term according to the current term order
 asserted procedure core_pairLcmCmp(p1: CriticalPair,
@@ -722,10 +747,11 @@ asserted procedure core_reduction(S: List, Gprev: List, Gcurr: List,
       % This is handled by the core_topReductionF5, which is called on the
       % result of the normal form.
       %
-      % The core_topReductionF5 returns a pair of two lists:
+      % core_topReductionF5 returns a pair of two lists:
       %   newcompleted and redo
       % Elements from redo are inserted back to the todo list,
       % and the elements of newcompleted are considered fully reduced.
+      %
       todo := S;
       newGcurr := copy(Gcurr);
       while todo do <<
@@ -767,6 +793,7 @@ asserted procedure core_computeSpolys(pairs: List, r: Basistracker,
                                         Rule: Vector): List;
    begin scalar S, p, u, v, lpk, lpl, alS, seval, ssgn;
          integer l, k;
+      % TODO: Try sorting pairs by total degree>?
       pairs := sort(pairs, 'core_pairLcmCmp);
       while pairs do <<
          p := pop(pairs);
@@ -801,7 +828,7 @@ asserted procedure core_computeSpolys(pairs: List, r: Basistracker,
 asserted procedure core_makeCriticalPair(i: Integer, k: Integer, l: Integer,
                     Gprev: List, r: Basistracker, Rule: Vector): CriticalPair;
    begin scalar rk, rl, tk, tl, tt, u1, u2, usgn1, usgn2;
-         integer i;
+         integer i, sugar;
       rk := core_getPoly(r, k);
       rl := core_getPoly(r, l);
       tk := poly_leadTerm(lp_eval(rk));
@@ -827,8 +854,51 @@ asserted procedure core_makeCriticalPair(i: Integer, k: Integer, l: Integer,
          u1 . u2 := u2 . u1;
          k . l := l . k
       >>;
-      return core_criticalPair(tt, k, u1, l, u2)
+      sugar := max(poly_totalDegTerm(u1) + poly_getSugar(lp_eval(rk)),
+                     poly_totalDegTerm(u2) + poly_getSugar(lp_eval(rl)));
+      return core_criticalPair(tt, k, u1, l, u2, sugar)
    end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Sugar selection strategy for core_selectPairs
+asserted procedure core_selectPairsSugar(pairs: List): List;
+   begin scalar selectedPairs;
+         integer deg;
+      pairs := sort(pairs, 'core_pairSugarCmp);
+      p := pop(pairs);
+      selectedPairs := {p};
+      deg := core_getPairSugar(p);
+      while pairs and (core_getPairSugar(car pairs) #= deg) do
+         push(pop(pairs), selectedPairs);
+      prin2t("sugar");
+      prin2t({length(selectedPairs), " / ", length(pairs)});
+      return selectedPairs . pairs
+   end;
+
+% Normal selection strategy for core_selectPairs
+asserted procedure core_selectPairsNormal(pairs: List): List;
+   begin scalar selectedPairs;
+         integer deg;
+      pairs := sort(pairs, 'core_pairTotalDegreeCmp);
+      p := pop(pairs);
+      selectedPairs := {p};
+      deg := poly_totalDegTerm(core_getPairLcm(p));
+      while pairs and (poly_totalDegTerm(core_getPairLcm(car pairs)) #= deg) do
+         push(pop(pairs), selectedPairs);
+      prin2t("normal");
+      prin2t({length(selectedPairs), " / ", length(pairs)});
+      return selectedPairs . pairs
+   end;
+
+% Given a list of critical pairs, selects several (at least one) pairs
+% according to current selection strategy and returns them as a new list.
+% Also returns the input list, but without selected pairs.
+asserted inline procedure core_selectPairs(pairs: List): DottedPair;
+   if !*f5sugar then
+      core_selectPairsSugar(pairs)
+   else
+      core_selectPairsNormal(pairs);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -836,7 +906,7 @@ asserted procedure core_makeCriticalPair(i: Integer, k: Integer, l: Integer,
 % constructs the basis of {f1..fi} and returns the list of new basis indices
 asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
                           r: Basistracker, Rule: Vector): List;
-   begin scalar Gcurr, pairs, p, S, dpairs, reduced, k, tmp;
+   begin scalar Gcurr, pairs, p, S, selectedPairs, reduced, k, tmp;
          integer i, j, d, currIdx;
       % The function is organized in the following way.
       % In the very beginning, some initial critical pairs are constructed
@@ -858,33 +928,29 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
          if p then
             push(p, pairs)
       >>;
-      % A heuristic: sort generators by their length, ascending;
+      % A heuristic: sort previous generators by their length, ascending;
       % In that way polynomial reductions with less number of terms
       % will happen first
       alGprev := for each i in Gprev collect i . core_getPoly(r, i);
       alGprev := sort(alGprev, 'core_assocLengthCmp);
-      Gprev := for each pr in alGprev collect car pr;
+      Gprev   := for each pr in alGprev collect car pr;
       if !*f5statistics then
          stat_updatePairs(length(pairs));
       % construct d-Groebner bases for d=0,1,2,..., incrementally
       while pairs do <<
-         % first, select critical pairs of the smallest degree, d,
-         % and store them to dpairs
-         pairs := sort(pairs, 'core_pairTotalDegreeCmp);
-         p := pop(pairs);
-         d := poly_totalDegTerm(core_getPairLcm(p));
-         dpairs := {p};
-         while pairs and (poly_totalDegTerm(core_getPairLcm(car pairs)) #= d) do <<
-            push(pop(pairs), dpairs)
-         >>;
-         % compute S-polynomials of selected critical pairs of degree d..
-         S := core_computeSpolys(dpairs, r, Rule);
+         % first, select critical pairs and store them to selectedPairs list
+         selectedPairs . pairs := core_selectPairs(pairs);
+         % compute S-polynomials of selected critical pairs..
+         S := core_computeSpolys(selectedPairs, r, Rule);
          % and reduce S-polynomials by the previously computed
          % Groebner basis (Gprev), and the current generators (Gcurr)
          reduced := core_reduction(S, Gprev, Gcurr, r, Rule);
          reduced := reversip(reduced);
          if !*f5statistics then
-            stat_updateIncremental(d, length(Gcurr)*length(reduced) + length(reduced)*(length(reduced)-1) / 2);
+            stat_updateIncremental(
+               poly_totalDegTerm(core_getPairLcm(car selectedPairs)),
+               length(Gcurr)*length(reduced) + length(reduced)*(length(reduced)-1) / 2
+            );
          % form new critical pairs and insert them in the `pairs` list
          while reduced do <<
             k := pop(reduced);
