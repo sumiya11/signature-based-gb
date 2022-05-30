@@ -106,6 +106,9 @@ off1 'f5interreduce;
 switch f5integers;
 off1 'f5integers;
 
+switch f5sugar;
+on1 'f5sugar;
+
 % f5statistics - If this is ON, collects and prints the following statistics
 %                after each f5 call:
 %                the number of polynomials reduced,

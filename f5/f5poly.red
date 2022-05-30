@@ -2,8 +2,8 @@ module f5poly;
 % Polynomial interface module to be used in f5.
 % The module provides procedures for basic operations with the `Polynomial` type.
 
-% Polynomial `p` is stored as a list of 3 items:
-%     {'p, Terms, Coeffs}
+% Polynomial `p` is stored as a list of 4 items:
+%     {'p, Terms, Coeffs, Sugar}
 % Where `p` is a convenience tag,
 %       `Terms` is a list of `Term`s. Each `Term` is an exponent list of
 %         non-negative integers of form
@@ -12,7 +12,8 @@ module f5poly;
 %              the interface is defined further in this file.
 %       `Coeffs` is a list of `Coeff`s,
 %         where `Coeff` can be either a SQ or an Integer.
-%   Some relevant functions on `Coeff` are defined further in this file:
+%       `Sugar` is an Integer, the sugar degree.
+% Some relevant functions on `Coeff` are defined further in this file:
 %     . poly_addCoeff(x, y)  -- addition x + y
 %     . poly_divCoeff(x, y)  -- division x / y
 %     . poly_invCoeff(x)     -- inverse  x^(-1)
@@ -24,10 +25,13 @@ module f5poly;
 %  and `Coeffs` are ordered respectively.
 %
 % For example, xy^2 + 3x is stored as
-%   {'p, {{3, 1, 2}, {1, 1, 0}}, {1, 3}}
+%   {'p, {{3, 1, 2}, {1, 1, 0}}, {1, 3}, 3}
 % if f5integers is ON. It is stored as
-%   {'p, {{3, 1, 2}, {1, 1, 0}}, {1 ./ 1, 3 ./ 1}}
+%   {'p, {{3, 1, 2}, {1, 1, 0}}, {1 ./ 1, 3 ./ 1}, 3}
 % otherwise (using SQ).
+%
+% Zero polynomial is represented as
+%   {'p, nil, nil, anything}
 %
 % The global polynomial ring should be initialized before constructing polynomials.
 % To initialize the ring in variables `vars` and term order `ord`
@@ -41,7 +45,7 @@ load!-package 'dipoly;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Returns the current torder
-asserted inline procedure poly_extractTorder();
+asserted procedure poly_extractTorder(): List;
    begin scalar oldTorder;
       oldTorder := torder('(list));
       torder(cdr oldTorder);
@@ -75,10 +79,14 @@ asserted procedure poly_initRing(u: List): List;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% POLYNOMIAL INTERFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Standard Polynomial constructor, forms a polynomial
-% from a list of `Term`s (`Terms` object) and list of `Coeff`s (`Coeffs` object)
+% Constructor of Polynomial, forms a Polynomial
+% from a list of `Term`s, a list of `Coeff`s, and a sugar degree.
+asserted inline procedure poly_PolynomialWithSugar(ts: Terms, cfs: Coeffs, sugar: Integer): Polynomial;
+   {'p, ts, cfs, sugar};
+
+% Same as above, but doesn't care about sugar
 asserted inline procedure poly_Polynomial(ts: Terms, cfs: Coeffs): Polynomial;
-   {'p, ts, cfs};
+   poly_PolynomialWithSugar(ts, cfs, 0);
 
 asserted inline procedure poly_getTerms(poly: Polynomial): Terms;
    cadr poly;
@@ -86,8 +94,10 @@ asserted inline procedure poly_getTerms(poly: Polynomial): Terms;
 asserted inline procedure poly_getCoeffs(poly: Polynomial): Coeffs;
    caddr poly;
 
-% Returns zero polynomial, represented as
-%   {'p, nil, nil}
+asserted inline procedure poly_getSugar(poly: Polynomial): Integer;
+   cadddr poly;
+
+% Returns zero polynomial
 asserted inline procedure poly_zero(): Polynomial;
    poly_Polynomial(nil, nil);
 
@@ -108,13 +118,13 @@ asserted procedure poly_f2poly1(u: SF, ev: List, bc: Coeff): Polynomial;
   if null u then
      poly_zero()
   else if domainp u then
-     poly_Polynomial({ev}, {poly_mulCoeff(bc, poly_2Coeff(u))})
+     poly_PolynomialWithSugar({ev}, {poly_mulCoeff(bc, poly_2Coeff(u))}, poly_totalDegExp(ev))
   else
      poly_sumPoly(poly_f2poly2(mvar u,ldeg u,lc u,ev,bc), poly_f2poly1(red u,ev,bc));
 
 % Conversion to Polynomial: multiply leading power either into exponent vector
 asserted procedure poly_f2poly2(var,dg,c,ev,bc): Polynomial;
-   poly_f2poly1(c,poly_insertExp(ev, var,dg, cdr global!-dipvars!*), bc);
+   poly_f2poly1(c,poly_insertExp(ev, var, dg, cdr global!-dipvars!*), bc);
 
 % Returns prefix equivalent to the sum of elements of u
 asserted procedure poly_replus(u: List): List;
@@ -130,10 +140,7 @@ procedure poly_retimes(u: List): List;
    else
       'times . u;
 
-% Returns prefix equivalent to the Polynomial f.
-asserted procedure poly_2a(f: Polynomial): List;
-   if poly_iszero!?(f) then 0 else poly_replus poly_2a1(f);
-
+% Returns prefix equivalent to the Polynomial u.
 asserted procedure poly_2a1(u: Polynomial): List;
    begin scalar x,y;
       if poly_iszero!?(u) then
@@ -141,9 +148,14 @@ asserted procedure poly_2a1(u: Polynomial): List;
       x := poly_leadCoeff u;
       y := poly_2aExp poly_leadTerm u;
       if poly_isNegCoeff!?(x) then <<
-         return {'minus,poly_retimes(poly_2aCoeff(poly_negCoeff(x)) . y)} . poly_2a1 poly_tail(u) >>;
+         return {'minus,poly_retimes(poly_2aCoeff(poly_negCoeff(x)) . y)} . poly_2a1 poly_tail(u)
+      >>;
       return poly_retimes(poly_2aCoeff x . y) . poly_2a1 poly_tail(u)
    end;
+
+% Returns prefix equivalent to the Polynomial f.
+asserted procedure poly_2a(f: Polynomial): List;
+   if poly_iszero!?(f) then 0 else poly_replus poly_2a1(f);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% EXPONENT LISTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -276,7 +288,7 @@ asserted inline procedure poly_tdegCmpExp(e1: List, e2: List): Boolean;
    car e1 #< car e2;
 
 % Checks that e1 = e2 elementwise
-asserted procedure poly_eqExp!?(e1: List, e2: List): Boolean;
+asserted inline procedure poly_eqExp!?(e1: List, e2: List): Boolean;
    e1 = e2;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -327,13 +339,14 @@ asserted inline procedure poly_eqTerm!?(a: Term, b: Term): Boolean;
 %%%%%%%%%% POLYNOMIALS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Returns the tail of the polynomial `poly`.
-% That is, `poly - lead(poly)`
+% That is, `poly - lead(poly)`,
+% and preserves the sugar degree.
 asserted inline procedure poly_tail(poly: Polynomial): Polynomial;
-   poly_Polynomial(poly_tailTerms(poly), poly_tailCoeffs(poly));
+   poly_PolynomialWithSugar(poly_tailTerms(poly), poly_tailCoeffs(poly), poly_getSugar(poly));
 
 % Returns the leading term of `poly`
 asserted inline procedure poly_leadTerm(poly: Polynomial): Term;
-  car poly_getTerms(poly);
+   car poly_getTerms(poly);
 
 % Returns the leading coefficient of `poly`
 asserted inline procedure poly_leadCoeff(poly: Polynomial): Coeff;
@@ -452,7 +465,7 @@ asserted inline procedure poly_invCoeff(a: Coeff): Coeff;
 asserted inline procedure poly_paircombTail(f: Polynomial, fmult: Term,
                                                 fcoeff: Coeff, g: Polynomial,
                                                 gmult: Term): Polynomial;
-   % Assuming the leading monomials of `gcoeff*fmult*f` and `fcoeff*gmult*g`
+   % Assuming the leading monomials of `fmult*f` and `fcoeff*gmult*g`
    % are mutually canceled, we can use the general reduction applied to
    % the tails of input polynomials
    poly_paircomb(poly_tail(f), fmult, fcoeff, poly_tail(g), gmult);
@@ -462,7 +475,7 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
                                  fcoeff: Coeff, g: Polynomial,
                                  gmult: Term): Polynomial;
    begin scalar fterms, fcoeffs, gterms, gcoeffs, gmultcoeff,
-                sterms, scoeffs, ft, gt, fc, gc, newc;
+                sterms, scoeffs, ft, gt, fc, gc, newc, sugar;
       % We return s, a new polynomial,
       % constructed as s = gcoeff*fmult*f - fcoeff*gmult*g.
       % We form two lists, sterms and scoeffs, which would be the list of
@@ -473,7 +486,7 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
       % In parallel (in the same loop), scoeffs list is formed
       % by merging the list of coefficients of f each multiplied by fmultcoeff,
       % with the list of coefficients of g each multiplied by gmultcoeff,
-      % *in the same merge order as for the terms*.
+      % in the same merge order as for the terms.
       %
       fterms  := poly_getTerms(f);
       fcoeffs := poly_getCoeffs(f);
@@ -483,7 +496,7 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
 
       % Merge two sorted lists: fterms and gterms, multiplied by fmult and gmult, respectively.
       % Merge in the same order two other lists:
-          % fcoeffs and gcoeffs, multiplied by gmultcoeff and fmultcoeff, respectively.
+      % fcoeffs and gcoeffs, multiplied by gmultcoeff and fmultcoeff, respectively.
       %
       % if n = length(fterms), m = length(gterms), then in the worst case
       %   2(n+m)*E  +    m*E     +     2m*C    +   (n+m)
@@ -553,7 +566,9 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
          >>;
          scoeffs := nconc(reversip scoeffs, fcoeffs)
       >>;
-      return poly_Polynomial(sterms, scoeffs)
+      sugar := max(poly_getSugar(f) + poly_totalDegTerm(fmult),
+                        poly_getSugar(g) + poly_totalDegTerm(gmult));
+      return poly_PolynomialWithSugar(sterms, scoeffs, sugar)
    end;
 
 % for history
@@ -596,7 +611,7 @@ asserted procedure poly_normalizeByContent(poly: Polynomial): Polynomial;
          cnt := -cnt;
       newcoeffs := for each cf in poly_getCoeffs(poly)
          collect poly_divCoeff(cf, cnt);
-      return poly_Polynomial(poly_getTerms(poly), newcoeffs)
+      return poly_PolynomialWithSugar(poly_getTerms(poly), newcoeffs, poly_getSugar(poly))
    end;
 
 % Constructs a new polynomial as a copy of `poly`
@@ -606,7 +621,7 @@ asserted procedure poly_normalizeByLead(poly: Polynomial): Polynomial;
       mult1 := poly_invCoeff(poly_leadCoeff(poly));
       newcoeffs := for each cf in poly_getCoeffs(poly)
          collect poly_mulCoeff(cf, mult1);
-      return poly_Polynomial(poly_getTerms(poly), newcoeffs)
+      return poly_PolynomialWithSugar(poly_getTerms(poly), newcoeffs, poly_getSugar(poly))
    end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -680,9 +695,10 @@ asserted procedure poly_tryReductionStep(f: Polynomial,
 % Assuming coefficients of `poly` are Integers,
 % transforms them into Standard Quotients and returns the resulting polynomial
 asserted procedure poly_int2sqCoeffs(poly: Polynomial): Polynomial;
-   poly_Polynomial(
+   poly_PolynomialWithSugar(
       poly_getTerms(poly),
-      for each c in poly_getCoeffs(poly) collect c . 1
+      for each c in poly_getCoeffs(poly) collect c . 1,
+      poly_getSugar(poly)
    );
 
 % Returns the lcm of denominators of coefficients of `f`
@@ -698,42 +714,42 @@ asserted procedure poly_commonDenominator(f: Polynomial): Integer;
 
 % Returns the content of `f`
 asserted procedure poly_content(f: Polynomial): Integer;
-  begin scalar fcoeffs, cnt;
-    cnt := poly_leadCoeff(f);
-    fcoeffs := poly_tailCoeffs(f);
-    while fcoeffs do <<
-      cnt := mod_euclid(cnt, pop(fcoeffs))
-    >>;
-    return abs(cnt)
-  end;
+   begin scalar fcoeffs, cnt;
+      cnt := poly_leadCoeff(f);
+      fcoeffs := poly_tailCoeffs(f);
+      while fcoeffs do <<
+         cnt := mod_euclid(cnt, pop(fcoeffs))
+      >>;
+      return abs(cnt)
+   end;
 
 % Constructs a new polynomial in the following way:
 %   f * inv(poly_commonDenominator(f))
 asserted procedure poly_scaleDenominators(f: Polynomial): Polynomial;
-  begin scalar fcoeffs, newcoeffs, c, den;
-    den := poly_commonDenominator(f);
-    fcoeffs := poly_getCoeffs(f);
-    while fcoeffs do <<
-      c := pop(fcoeffs);
-      push(numr(c) * (den / denr(c)), newcoeffs)
-    >>;
-    return poly_Polynomial(poly_getTerms(f), reversip(newcoeffs))
-  end;
+   begin scalar fcoeffs, newcoeffs, c, den;
+      den := poly_commonDenominator(f);
+      fcoeffs := poly_getCoeffs(f);
+      while fcoeffs do <<
+         c := pop(fcoeffs);
+         push(numr(c) * (den / denr(c)), newcoeffs)
+      >>;
+      return poly_PolynomialWithSugar(poly_getTerms(f), reversip(newcoeffs), poly_getSugar(f))
+   end;
 
 % Reduces coefficients of `f` by the given `prime`
 asserted procedure poly_reduceCoeffs(f: Polynomial, prime: Integer): Polynomial;
-  begin scalar fcoeffs, newcoeffs, c;
-    % note that prime is not used here, since `modular!-number` works globally,
-    % to elide warning
-    prime := prime;
-    fcoeffs := poly_getCoeffs(f);
-    while fcoeffs do <<
+   begin scalar fcoeffs, newcoeffs, c;
+      % note that prime is not used here, since `modular!-number` works globally,
+      % to omit warning
+      prime := prime;
+      fcoeffs := poly_getCoeffs(f);
+      while fcoeffs do <<
          c  := pop(fcoeffs);
          % ASSERT(denr(c) = 1);
          c := modular!-number(c);
          push(c, newcoeffs)
       >>;
-      return poly_Polynomial(poly_getTerms(f), reversip(newcoeffs))
+      return poly_PolynomialWithSugar(poly_getTerms(f), reversip(newcoeffs), poly_getSugar(f))
    end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -742,25 +758,25 @@ asserted procedure poly_reduceCoeffs(f: Polynomial, prime: Integer): Polynomial;
 % Reconstructs each coefficient of `poly` modulo the given prime
 asserted procedure poly_reconstructCoeffs(poly: Polynomial,
                                           prime: Integer): Polynomial;
-  begin scalar newcoeffs;
-    newcoeffs := for each cf in poly_getCoeffs(poly)
-      collect mod_reconstruction(cf, prime);
-      return poly_Polynomial(poly_getTerms(poly), newcoeffs)
-  end;
+   begin scalar newcoeffs;
+      newcoeffs := for each cf in poly_getCoeffs(poly)
+         collect mod_reconstruction(cf, prime);
+      return poly_PolynomialWithSugar(poly_getTerms(poly), newcoeffs, poly_getSugar(poly))
+   end;
 
 % Applis CRT to coefficients of (polyaccum mod modulo) and (polycomp mod prime)
 % to obtain new polynomial over modulo*prime
 asserted procedure poly_crtCoeffs(polyaccum: Polynomial, modulo: Integer,
                           polycomp: Polynomial, prime: Integer): Polynomial;
-  begin scalar coeffsaccum, coeffscomp, newcoeffs, c;
-    coeffsaccum := poly_getCoeffs(polyaccum);
-    coeffscomp  := poly_getCoeffs(polycomp);
-    while coeffsaccum do <<
-      c := mod_crt(pop(coeffsaccum), modulo, pop(coeffscomp), prime);
-      push(c, newcoeffs)
-    >>;
-    return poly_Polynomial(poly_getTerms(polyaccum), reversip(newcoeffs))
-  end;
+   begin scalar coeffsaccum, coeffscomp, newcoeffs, c;
+      coeffsaccum := poly_getCoeffs(polyaccum);
+      coeffscomp  := poly_getCoeffs(polycomp);
+      while coeffsaccum do <<
+         c := mod_crt(pop(coeffsaccum), modulo, pop(coeffscomp), prime);
+         push(c, newcoeffs)
+      >>;
+      return poly_PolynomialWithSugar(poly_getTerms(polyaccum), reversip(newcoeffs), poly_getSugar(polyaccum))
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Polynomial sorting ad-hoc

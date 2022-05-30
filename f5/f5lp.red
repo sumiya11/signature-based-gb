@@ -33,75 +33,75 @@ module f5lp;
 
 % Constructs a Signature from the given index and the given term
 asserted inline procedure lp_Signature(idx: Integer, st: Term): Signature;
-  {'sgn, idx, st};
+   {'sgn, idx, st};
 
 % Instantiates LabeledPolynomial from the given Polynomial
 % and the given Signature index
 asserted inline procedure lp_LabeledPolynomial1(
                               poly: Polynomial,
                               idx: Integer): LabeledPolynomial;
-  lp_LabeledPolynomial2(poly, lp_Signature(idx, poly_identityTerm()));
+   lp_LabeledPolynomial2(poly, lp_Signature(idx, poly_identityTerm()));
 
 % Instantiates LabeledPolynomial from the given Polynomial
 % and the given Signature
 asserted inline procedure lp_LabeledPolynomial2(
                               poly: Polynomial,
                               sgn: Signature): LabeledPolynomial;
-  {'lp, poly, sgn};
+   {'lp, poly, sgn};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% LP & SIGNATURE INTERFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Returns the signature of f
 asserted inline procedure lp_sgn(f: LabeledPolynomial): Signature;
-  caddr f;
+   caddr f;
 
 % Returns the evaluation of f
 asserted inline procedure lp_eval(f: LabeledPolynomial): Polynomial;
-  cadr f;
+   cadr f;
 
 % Sets the evaluation of lp to ev
 asserted inline procedure lp_setEval(lp: LabeledPolynomial, ev: Polynomial);
-  cadr lp := ev;
+   cadr lp := ev;
 
 % Sets the signature of lp to ev
 asserted inline procedure lp_setSgn(lp: LabeledPolynomial, s: Signature);
-  caddr lp := s;
+   caddr lp := s;
 
 % Returns the index of signature s
 asserted inline procedure lp_indexSgn(s: Signature): Integer;
-  cadr s;
+   cadr s;
 
 % Returns the term of signature s
 asserted inline procedure lp_termSgn(s: Signature): Term;
-  caddr s;
+   caddr s;
 
 % Checks if signatures s1 and s2 are equal
 asserted inline procedure lp_eqSgn(s1: Signature, s2: Signature): Boolean;
-  lp_indexSgn(s1) #= lp_indexSgn(s2) and
-    poly_eqTerm!?(lp_termSgn(s1), lp_termSgn(s2));
+   lp_indexSgn(s1) #= lp_indexSgn(s2) and
+      poly_eqTerm!?(lp_termSgn(s1), lp_termSgn(s2));
 
 % Checks if `lp` is zero as a LabeledPolynomial.
 % Zero LabeledPolynomial is represented as
 %   {'lp, zero `Polynomial`, any `Signature`}
 % so we just check if the polynomial part is zero.
 asserted inline procedure lp_iszero!?(lp: LabeledPolynomial): Boolean;
-  poly_iszero!?(lp_eval(lp));
+   poly_iszero!?(lp_eval(lp));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% SIGNATURE MANIPULATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Returns the result of multiplication of the signature `sgn` by the term `ev`
 asserted inline procedure lp_mulSgn(sgn: Signature, ev: Term): Signature;
-  lp_Signature(lp_indexSgn(sgn), poly_mulTerm(lp_termSgn(sgn), ev));
+   lp_Signature(lp_indexSgn(sgn), poly_mulTerm(lp_termSgn(sgn), ev));
 
 % Compares signatures `s1` and `s2` with the
 % (reversed) Position over term order extension
 asserted procedure lp_cmpSgn(s1: Signature, s2: Signature): Boolean;
-  if lp_indexSgn(s1) #= lp_indexSgn(s2) then
-    poly_cmpTerm(lp_termSgn(s1), lp_termSgn(s2))
-  else
-    lp_indexSgn(s1) #< lp_indexSgn(s2);
+   if lp_indexSgn(s1) #= lp_indexSgn(s2) then
+      poly_cmpTerm(lp_termSgn(s1), lp_termSgn(s2))
+   else
+      lp_indexSgn(s1) #< lp_indexSgn(s2);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% LP COEFFICIENTS MANIPULATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -111,30 +111,30 @@ asserted procedure lp_cmpSgn(s1: Signature, s2: Signature): Boolean;
 
 % Normalizes the evaluation of `f`
 asserted inline procedure lp_normalize(f: LabeledPolynomial): LabeledPolynomial;
-  lp_LabeledPolynomial2(poly_normalize(lp_eval(f)), lp_sgn(f));
+   lp_LabeledPolynomial2(poly_normalize(lp_eval(f)), lp_sgn(f));
 
 % Scales coefficients of the evaluation of `f` by their common denominator.
 % The coefficients of the resulting polynomial part are in the Standard Form
 asserted inline procedure lp_scaleDenominators(f: LabeledPolynomial): LabeledPolynomial;
-  lp_LabeledPolynomial2(poly_scaleDenominators(lp_eval(f)), lp_sgn(f));
+   lp_LabeledPolynomial2(poly_scaleDenominators(lp_eval(f)), lp_sgn(f));
 
 % Reduces coefficients of the evaluation of `f` modulo `prime`.
 asserted inline procedure lp_reduceCoeffs(f: LabeledPolynomial,
                                           prime: Integer): LabeledPolynomial;
-  lp_LabeledPolynomial2(poly_reduceCoeffs(lp_eval(f), prime), lp_sgn(f));
+   lp_LabeledPolynomial2(poly_reduceCoeffs(lp_eval(f), prime), lp_sgn(f));
 
 % Reconstructs coefficients of the evaluation of `f` modulo `prime`.
 % The coefficients of the resulting polynomial part are in the Standard Quotient
 asserted inline procedure lp_reconstructCoeffs(f: LabeledPolynomial,
                                                prime: Integer): LabeledPolynomial;
-  lp_LabeledPolynomial2(poly_reconstructCoeffs(lp_eval(f), prime), lp_sgn(f));
+   lp_LabeledPolynomial2(poly_reconstructCoeffs(lp_eval(f), prime), lp_sgn(f));
 
 % Given two LPs (polyaccum and polycomp) and two Integers (modulo and prime)
 % constructs a new LP with the evaluation part equal to the modular reconstruction
 % of evaluations of polyaccum and polycomp modulo modulo and prime respectively.
 asserted inline procedure lp_crtCoeffs(polyaccum: Polynomial, modulo: Integer,
                       polycomp: Polynomial, prime: Integer): LabeledPolynomial;
-  lp_LabeledPolynomial2(
+   lp_LabeledPolynomial2(
       poly_crtCoeffs(lp_eval(polyaccum), modulo, lp_eval(polycomp), prime),
       lp_sgn(polyaccum)
   );
@@ -145,17 +145,17 @@ asserted inline procedure lp_crtCoeffs(polyaccum: Polynomial, modulo: Integer,
 % Returns t if lead(eval(lp1)) < lead(eval(lp2))
 asserted procedure lp_cmpLPLead(lp1: LabeledPolynomial,
                                   lp2: LabeledPolynomial): Boolean;
-  poly_cmpPolyLead(lp_eval(lp1), lp_eval(lp2));
+   poly_cmpPolyLead(lp_eval(lp1), lp_eval(lp2));
 
 % Returns t if lead(eval(lp2)) < lead(eval(lp1))
 asserted procedure lp_cmpLPLeadReverse(lp1: LabeledPolynomial,
                                         lp2: LabeledPolynomial): Boolean;
-  lp_cmpLPLead(lp2, lp1);
+   lp_cmpLPLead(lp2, lp1);
 
 % Returns t if total_degree(lead(eval(lp1))) < total_degree(lead(eval(lp2)))
 asserted procedure lp_leadTotalDegreeCmp(lp1: LabeledPolynomial,
                                           lp2: LabeledPolynomial): Boolean;
-  poly_leadTotalDegreeCmp(lp_eval(lp1), lp_eval(lp2));
+   poly_leadTotalDegreeCmp(lp_eval(lp1), lp_eval(lp2));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
