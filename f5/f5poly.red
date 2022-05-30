@@ -714,36 +714,36 @@ asserted procedure poly_commonDenominator(f: Polynomial): Integer;
 
 % Returns the content of `f`
 asserted procedure poly_content(f: Polynomial): Integer;
-  begin scalar fcoeffs, cnt;
-    cnt := poly_leadCoeff(f);
-    fcoeffs := poly_tailCoeffs(f);
-    while fcoeffs do <<
-      cnt := mod_euclid(cnt, pop(fcoeffs))
-    >>;
-    return abs(cnt)
-  end;
+   begin scalar fcoeffs, cnt;
+      cnt := poly_leadCoeff(f);
+      fcoeffs := poly_tailCoeffs(f);
+      while fcoeffs do <<
+         cnt := mod_euclid(cnt, pop(fcoeffs))
+      >>;
+      return abs(cnt)
+   end;
 
 % Constructs a new polynomial in the following way:
 %   f * inv(poly_commonDenominator(f))
 asserted procedure poly_scaleDenominators(f: Polynomial): Polynomial;
-  begin scalar fcoeffs, newcoeffs, c, den;
-    den := poly_commonDenominator(f);
-    fcoeffs := poly_getCoeffs(f);
-    while fcoeffs do <<
-      c := pop(fcoeffs);
-      push(numr(c) * (den / denr(c)), newcoeffs)
-    >>;
-    return poly_PolynomialWithSugar(poly_getTerms(f), reversip(newcoeffs), poly_getSugar(f))
-  end;
+   begin scalar fcoeffs, newcoeffs, c, den;
+      den := poly_commonDenominator(f);
+      fcoeffs := poly_getCoeffs(f);
+      while fcoeffs do <<
+         c := pop(fcoeffs);
+         push(numr(c) * (den / denr(c)), newcoeffs)
+      >>;
+      return poly_PolynomialWithSugar(poly_getTerms(f), reversip(newcoeffs), poly_getSugar(f))
+   end;
 
 % Reduces coefficients of `f` by the given `prime`
 asserted procedure poly_reduceCoeffs(f: Polynomial, prime: Integer): Polynomial;
-  begin scalar fcoeffs, newcoeffs, c;
-    % note that prime is not used here, since `modular!-number` works globally,
-    % to elide warning
-    prime := prime;
-    fcoeffs := poly_getCoeffs(f);
-    while fcoeffs do <<
+   begin scalar fcoeffs, newcoeffs, c;
+      % note that prime is not used here, since `modular!-number` works globally,
+      % to omit warning
+      prime := prime;
+      fcoeffs := poly_getCoeffs(f);
+      while fcoeffs do <<
          c  := pop(fcoeffs);
          % ASSERT(denr(c) = 1);
          c := modular!-number(c);
@@ -758,25 +758,25 @@ asserted procedure poly_reduceCoeffs(f: Polynomial, prime: Integer): Polynomial;
 % Reconstructs each coefficient of `poly` modulo the given prime
 asserted procedure poly_reconstructCoeffs(poly: Polynomial,
                                           prime: Integer): Polynomial;
-  begin scalar newcoeffs;
-    newcoeffs := for each cf in poly_getCoeffs(poly)
-      collect mod_reconstruction(cf, prime);
+   begin scalar newcoeffs;
+      newcoeffs := for each cf in poly_getCoeffs(poly)
+         collect mod_reconstruction(cf, prime);
       return poly_PolynomialWithSugar(poly_getTerms(poly), newcoeffs, poly_getSugar(poly))
-  end;
+   end;
 
 % Applis CRT to coefficients of (polyaccum mod modulo) and (polycomp mod prime)
 % to obtain new polynomial over modulo*prime
 asserted procedure poly_crtCoeffs(polyaccum: Polynomial, modulo: Integer,
                           polycomp: Polynomial, prime: Integer): Polynomial;
-  begin scalar coeffsaccum, coeffscomp, newcoeffs, c;
-    coeffsaccum := poly_getCoeffs(polyaccum);
-    coeffscomp  := poly_getCoeffs(polycomp);
-    while coeffsaccum do <<
-      c := mod_crt(pop(coeffsaccum), modulo, pop(coeffscomp), prime);
-      push(c, newcoeffs)
-    >>;
-    return poly_PolynomialWithSugar(poly_getTerms(polyaccum), reversip(newcoeffs), poly_getSugar(polyaccum))
-  end;
+   begin scalar coeffsaccum, coeffscomp, newcoeffs, c;
+      coeffsaccum := poly_getCoeffs(polyaccum);
+      coeffscomp  := poly_getCoeffs(polycomp);
+      while coeffsaccum do <<
+         c := mod_crt(pop(coeffsaccum), modulo, pop(coeffscomp), prime);
+         push(c, newcoeffs)
+      >>;
+      return poly_PolynomialWithSugar(poly_getTerms(polyaccum), reversip(newcoeffs), poly_getSugar(polyaccum))
+   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Polynomial sorting ad-hoc
