@@ -1,6 +1,4 @@
 *.rlg
 rbench-experiments/benchmark-results/
-experiments/
-correctness/
+correctness/*.rlg
 benchmarks/
-rbench-data/
