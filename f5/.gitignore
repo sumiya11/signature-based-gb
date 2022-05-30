@@ -1,6 +1,6 @@
 *.rlg
 rbench-experiments/benchmark-results/
-rbench-experiments/jupyter/
 experiments/
 correctness/
-
+benchmarks/
+rbench-data/
