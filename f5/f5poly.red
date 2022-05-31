@@ -474,8 +474,8 @@ asserted inline procedure poly_paircombTail(f: Polynomial, fmult: Term,
 asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
                                  fcoeff: Coeff, g: Polynomial,
                                  gmult: Term): Polynomial;
-   begin scalar fterms, fcoeffs, gterms, gcoeffs, gmultcoeff,
-                sterms, scoeffs, ft, gt, fc, gc, newc, sugar;
+   begin scalar fterms, fcoeffs, gterms, gcoeffs, gmultcoeff, isOneFmult,
+                sterms, scoeffs, ft, gt, fc, gc, newc, sugar, isOneGmult;
       % We return s, a new polynomial,
       % constructed as s = gcoeff*fmult*f - fcoeff*gmult*g.
       % We form two lists, sterms and scoeffs, which would be the list of
@@ -487,12 +487,14 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
       % by merging the list of coefficients of f each multiplied by fmultcoeff,
       % with the list of coefficients of g each multiplied by gmultcoeff,
       % in the same merge order as for the terms.
-      %
       fterms  := poly_getTerms(f);
       fcoeffs := poly_getCoeffs(f);
       gterms  := poly_getTerms(g);
       gcoeffs := poly_getCoeffs(g);
       gmultcoeff := poly_negCoeff(fcoeff);
+      % identity check is 1 car and 1 comparison
+      isOneFmult := poly_isIdentityTerm!?(fmult);
+      isOneGmult := poly_isIdentityTerm!?(gmult);
 
       % Merge two sorted lists: fterms and gterms, multiplied by fmult and gmult, respectively.
       % Merge in the same order two other lists:
@@ -507,12 +509,13 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
       while fterms and gterms do <<
          if null ft then <<
             ft := car fterms;
-            % identity check is 1 car and 1 comparison
-            if not poly_isIdentityTerm!?(fmult) then
+            if not isOneFmult then
                ft := poly_mulTerm(ft, fmult)
          >>;
          if null gt then
-            gt := poly_mulTerm(car gterms, gmult);
+            gt := car gterms;
+            if not isOneGmult then
+               gt := poly_mulTerm(gt, gmult)
          % Optimization: return -1,0,1 just as C comparator;
          if poly_cmpTerm(gt, ft) then <<   % if term gt < term ft
             push(ft, sterms);
@@ -557,7 +560,7 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
       >>;
       % Merge what is left from fterms and fcoeffs
       if not null fterms then <<
-         if poly_isIdentityTerm!?(fmult) then
+         if isOneFmult then
             sterms := nconc(reversip sterms, fterms)
          else <<
             while fterms do
