@@ -119,7 +119,7 @@ off1 'f5sugar;
 %                By default, this is OFF, the information
 %                is neither collected nor printed.
 switch f5statistics;
-on1 'f5statistics;
+off1 'f5statistics;
 
 % NOT exported and should NOT be used directly.
 % Currently, f5modular is not available as an option mainly for two reasons:
