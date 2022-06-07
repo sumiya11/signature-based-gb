@@ -720,7 +720,7 @@ asserted procedure core_insertSorted(todo: List, j: Integer,
       if lp_cmpSgn(sj, s) then
          return j . todo;
       tmp := todo;
-      while cdr todo and lp_cmpSgn(sj, lp_sgn(core_getPoly(r, cadr todo))) do
+      while cdr todo and lp_cmpSgn(lp_sgn(core_getPoly(r, cadr todo)), sj) do
          pop(todo);
       cdr todo := j . cdr todo;
       return tmp
@@ -903,7 +903,7 @@ asserted inline procedure core_selectPairs(pairs: List): DottedPair;
 asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
                           r: Basistracker, Rule: Vector): List;
    begin scalar Gcurr, pairs, p, S, selectedPairs, reduced, k, tmp, alGprev;
-         integer i, j, d, currIdx;
+         integer i, j, d, currIdx, nCurrentPairs;
       % The function is organized in the following way.
       % In the very beginning, some initial critical pairs are constructed
       % and added to the list `pairs`. Pairs are formed using
@@ -942,11 +942,10 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
          % Groebner basis (Gprev), and the current generators (Gcurr)
          reduced := core_reduction(S, Gprev, Gcurr, r, Rule);
          reduced := reversip(reduced);
-         if !*f5statistics then
-            stat_updateIncremental(
-               poly_totalDegTerm(core_getPairLcm(car selectedPairs)),
-               length(Gcurr)*length(reduced) + length(reduced)*(length(reduced)-1) / 2
-            );
+         nCurrentPairs := 0;
+         if !*f5statistics then <<
+            nCurrentPairs := length(pairs)
+         >>;
          % form new critical pairs and insert them in the `pairs` list
          while reduced do <<
             k := pop(reduced);
@@ -958,6 +957,12 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
                   push(p, pairs)
             >>;
             push(k, Gcurr)
+         >>;
+         if !*f5statistics then <<
+            stat_updateIncremental(
+               poly_totalDegTerm(core_getPairLcm(car selectedPairs)),
+               length(pairs) - nCurrentPairs
+            )
          >>
       >>;
       return Gcurr

@@ -512,10 +512,11 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
             if not isOneFmult then
                ft := poly_mulTerm(ft, fmult)
          >>;
-         if null gt then
+         if null gt then <<
             gt := car gterms;
             if not isOneGmult then
                gt := poly_mulTerm(gt, gmult)
+         >>;
          % Optimization: return -1,0,1 just as C comparator;
          if poly_cmpTerm(gt, ft) then <<   % if term gt < term ft
             push(ft, sterms);
