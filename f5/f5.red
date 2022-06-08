@@ -48,6 +48,8 @@ module f5;
 %
 % f5mod and f5primes are not used at the moment;
 create!-package('(f5 f5core f5lp f5poly f5primes f5mod f5stat), nil);
+% create!-package('(f5 f5core f5lp f5poly f5primes f5mod f5stat f5radical), nil);
+
 
 fluid '(!*backtrace);
 
@@ -156,6 +158,8 @@ load!-package 'rltools;
 
 % The only function in the interface
 put('f5, 'psopfn, 'f5_groebner);
+
+put('elimination, 'psopfn, 'f5_elimination);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% STRUCTS DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

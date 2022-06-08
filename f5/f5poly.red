@@ -62,6 +62,7 @@ asserted procedure poly_extractTorder(): List;
 %  - u is of length 2, then set variables and order in torder to the ones from u.
 asserted procedure poly_initRing(u: List): List;
    begin scalar vars, ord, oldTorder;
+      % prin2t {"Initring", u};
       if null u then <<
          oldTorder := poly_extractTorder()
       >> else if length(u) = 1 then <<
@@ -71,7 +72,10 @@ asserted procedure poly_initRing(u: List): List;
       >> else <<
          vars := pop u;
          ord  := pop u;
-         oldTorder := torder({'list . vars, ord})
+         if null u then
+            oldTorder := torder({'list . vars, ord})
+         else
+            oldTorder := torder({'list . vars, ord, pop u})
       >>;
       return oldTorder
    end;
@@ -251,20 +255,25 @@ procedure ev_2aExp1(u,v);
 % Compares exponent lists e1, e2 w.r.t. lex term order,
 % and returns e1 < e2
 asserted inline procedure poly_cmpExpLex(e1: List, e2: List): Boolean;
-   evlexcomp(cdr e1, cdr e2) #= -1;
+   <<
+      e1 := cdr e1;
+      e2 := cdr e2;
+      while e1 and (car e1 #= car e2) do <<
+         e1 := cdr e1;
+         e2 := cdr e2
+      >>;
+      e1 and (car e1 #< car e2)
+   >>;
 
 % Compares exponent lists e1, e2 w.r.t. graded lex term order,
 % and returns e1 < e2
 asserted inline procedure poly_cmpExpGradLex(e1: List, e2: List): Boolean;
-  evgradlexcomp(e1, e2) #= -1;
+   (car e1 #< car e2) or (car e1 #= car e2 and poly_cmpExpLex(e1, e2));
 
 % Compares exponent lists e1, e2 w.r.t. graded reversed lex term order,
 % and returns e1 < e2
 asserted inline procedure poly_cmpExpRevGradLex(e1: List, e2: List): Boolean;
-   if car e1 #= car e2 then
-      evinvlexcomp(cdr e1, cdr e2) #= -1
-   else
-      car e1 #< car e2;
+   (car e1 #< car e2) or (car e1 #= car e2 and evinvlexcomp(cdr e1, cdr e2));
 
 % Compares exponent lists e1, e2 w.r.t. the current order in torder
 asserted inline procedure poly_cmpExpGeneric(e1: List, e2: List): Boolean;
@@ -495,7 +504,6 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
       % identity check is 1 car and 1 comparison
       isOneFmult := poly_isIdentityTerm!?(fmult);
       isOneGmult := poly_isIdentityTerm!?(gmult);
-
       % Merge two sorted lists: fterms and gterms, multiplied by fmult and gmult, respectively.
       % Merge in the same order two other lists:
       % fcoeffs and gcoeffs, multiplied by gmultcoeff and fmultcoeff, respectively.
@@ -622,10 +630,14 @@ asserted procedure poly_normalizeByContent(poly: Polynomial): Polynomial;
 % with coefficients divided by the leading coeff of `poly`
 asserted procedure poly_normalizeByLead(poly: Polynomial): Polynomial;
    begin scalar newcoeffs, mult1;
-      mult1 := poly_invCoeff(poly_leadCoeff(poly));
-      newcoeffs := for each cf in poly_getCoeffs(poly)
-         collect poly_mulCoeff(cf, mult1);
-      return poly_PolynomialWithSugar(poly_getTerms(poly), newcoeffs, poly_getSugar(poly))
+      return if poly_isoneCoeff!?(poly_leadCoeff(poly)) then
+         poly
+      else <<
+         mult1 := poly_invCoeff(poly_leadCoeff(poly));
+         newcoeffs := for each cf in poly_getCoeffs(poly)
+            collect poly_mulCoeff(cf, mult1);
+         poly_PolynomialWithSugar(poly_getTerms(poly), newcoeffs, poly_getSugar(poly))
+      >>
    end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

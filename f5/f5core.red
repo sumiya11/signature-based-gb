@@ -339,6 +339,47 @@ asserted procedure core_constructModule(inputBasis: List): List;
 asserted procedure core_normalForm(f: Polynomial, Gprev: List,
                                    r: Basistracker,
                                    topReduce: Boolean): DottedPair;
+   begin scalar reducers, updated, reducer, reduced, updatedToreturn, f, g;
+      % while polynomial f gets updated by reduction steps,
+      % scan the list Gprev in search for possible reducers
+      % prin2t {"####################"};
+      % prin2t {"Normal form called with Gprev = ", Gprev};
+      % prin2t {for each g in Gprev collect
+      %         if not poly_iszero!?(lp_eval(core_getPoly(r, g))) then 
+      %            poly_leadTerm(lp_eval(core_getPoly(r, g)))
+      %         else 
+      %            nil
+      %      };
+      updated := t;
+      while updated do <<
+         updated := nil;
+         reducers := Gprev;
+         while reducers and (not poly_iszero!?(f)) do <<
+            g := pop(reducers);
+            reducer := lp_eval(core_getPoly(r, g));
+            reduced . f := poly_tryTopReductionStep(f, reducer);
+            % prin2t {"reducing by ", g, "...", "reduced? ", reduced};
+            if reduced then
+               push(g, reducers);
+            updated := reduced or updated
+         >>
+      >>;
+      return updated . f
+   end;
+
+% Computes the normal form of f w.r.t. polynomials r_i where i in Gprev
+%
+% Two cases are possible:
+%  1. At least one reduction step happened,
+%     then we return the t flag together with the normal form itself;
+%  2. No reductions were performed, then nil flag and f itself are returned.
+%
+% During reductions, the topReduce flag controls the reduction type.
+% If topReduce is set, only top-reductions happen. Otherwise,
+% the polynomial is fully reduced.
+asserted procedure core_normalForm(f: Polynomial, Gprev: List,
+                                   r: Basistracker,
+                                   topReduce: Boolean): DottedPair;
    begin scalar updated, reducer, reduced, updatedToreturn;
       % while polynomial f gets updated by reduction steps,
       % scan the list Gprev in search for possible reducers
@@ -403,27 +444,40 @@ asserted procedure core_getReducers(i: Integer, G: List): List;
 % applies several (possibly, not all) passes of the Autoreduction algorithm
 % until no further top-reductions happen
 asserted procedure core_interreduceInput(input: List): List;
-   begin scalar reducers, updated, reduced, f, newInput;
+   begin scalar reducers, reducer, reduceme, reduced, f, ready;
       updated := t;
+      input := sort(input, 'poly_cmpPolyLead);
+      input := for each f in input collect
+         poly_normalize(f);
       while updated do <<
-      updated := nil;
-      newInput := nil;
-      while input do <<
-         f := pop(input);
-         reducers := append(newInput, input);
-         % Computing only top reductions here. The idea is that the
-         % input polynomials are (usually) relatively simple,
-         % and full interreduction will not be of any help;
-         % Still, top-reductions can help us detect input polynomials
-         % with coprime leading terms
-         reduced . f := core_normalFormReducers(f, reducers, t);
-         updated := updated or reduced;
-         if not poly_iszero!?(f) then
-            push(f, newInput)
+         updated := nil;
+         ready   := nil;
+         while input do <<
+            reduceme := pop(input);
+            reducers := input;
+            while reducers and (not poly_iszero!?(reduceme)) do <<
+               reducer := pop(reducers);
+               reduced . reduceme := poly_tryTopReductionStep(reduceme, reducer);
+               if reduced then <<
+                  push(reducer, reducers);
+                  updated := t
+               >>
+            >>;
+            reducers := ready;
+            while reducers and (not poly_iszero!?(reduceme)) do <<
+               reducer := pop(reducers);
+               reduced . reduceme := poly_tryTopReductionStep(reduceme, reducer);
+               if reduced then <<
+                  push(reducer, reducers);
+                  updated := t
+               >>
+            >>;
+            if not poly_iszero!?(reduceme) then
+               push(poly_normalize(reduceme), ready)
          >>;
-         input := newInput
+         input := ready
       >>;
-      return newInput
+      return ready
    end;
 
 % Same as above, but
@@ -903,7 +957,7 @@ asserted inline procedure core_selectPairs(pairs: List): DottedPair;
 asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
                           r: Basistracker, Rule: Vector): List;
    begin scalar Gcurr, pairs, p, S, selectedPairs, reduced, k, tmp, alGprev;
-         integer i, j, d, currIdx, nCurrentPairs;
+         integer i, j, currIdx, nCurrentPairs;
       % The function is organized in the following way.
       % In the very beginning, some initial critical pairs are constructed
       % and added to the list `pairs`. Pairs are formed using
@@ -928,6 +982,7 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
       % In that way polynomial reductions with less number of terms
       % will happen first
       alGprev := for each i in Gprev collect i . core_getPoly(r, i);
+      alGprev := for each pr in alGprev join if (not poly_iszero!?(cdr pr)) then {pr} else nil;
       alGprev := sort(alGprev, 'core_assocLengthCmp);
       Gprev   := for each pr in alGprev collect car pr;
       if !*f5statistics then
