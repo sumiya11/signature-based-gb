@@ -159,8 +159,6 @@ load!-package 'rltools;
 % The only function in the interface
 put('f5, 'psopfn, 'f5_groebner);
 
-put('elimination, 'psopfn, 'f5_elimination);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% STRUCTS DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

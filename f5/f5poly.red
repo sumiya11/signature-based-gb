@@ -273,7 +273,7 @@ asserted inline procedure poly_cmpExpGradLex(e1: List, e2: List): Boolean;
 % Compares exponent lists e1, e2 w.r.t. graded reversed lex term order,
 % and returns e1 < e2
 asserted inline procedure poly_cmpExpRevGradLex(e1: List, e2: List): Boolean;
-   (car e1 #< car e2) or (car e1 #= car e2 and evinvlexcomp(cdr e1, cdr e2));
+   (car e1 #< car e2) or (car e1 #= car e2 and evinvlexcomp(cdr e1, cdr e2) #= -1);
 
 % Compares exponent lists e1, e2 w.r.t. the current order in torder
 asserted inline procedure poly_cmpExpGeneric(e1: List, e2: List): Boolean;
