@@ -62,7 +62,6 @@ asserted procedure poly_extractTorder(): List;
 %  - u is of length 2, then set variables and order in torder to the ones from u.
 asserted procedure poly_initRing(u: List): List;
    begin scalar vars, ord, oldTorder;
-      % prin2t {"Initring", u};
       if null u then <<
          oldTorder := poly_extractTorder()
       >> else if length(u) = 1 then <<

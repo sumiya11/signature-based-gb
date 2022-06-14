@@ -46,9 +46,9 @@ module f5;
 % The f5stat allows recording and printing useful statistics
 % for each f5 call.
 %
-% f5mod and f5primes are not used at the moment;
+% f5mod and f5primes are not used at the moment; 
 create!-package('(f5 f5core f5lp f5poly f5primes f5mod f5stat), nil);
-% create!-package('(f5 f5core f5lp f5poly f5primes f5mod f5stat f5radical), nil);
+% create!-package('(f5 f5radical f5core f5lp f5poly f5primes f5mod f5stat), nil);
 
 
 fluid '(!*backtrace);
@@ -158,6 +158,9 @@ load!-package 'rltools;
 
 % The only function in the interface
 put('f5, 'psopfn, 'f5_groebner);
+
+% The only function in the interface
+put('elimination, 'psopfn, 'f5_elimination);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% STRUCTS DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -284,6 +287,108 @@ asserted procedure f5_argumentError();
           > torder({x, y, z}, lex);
           > f5({x*y + 1, y*z + 1});
           ";
+
+
+asserted procedure f5_elimination(u: List): List;
+   begin scalar inputBasis, inputBasisSf, properIdeal, f, vars, ord, outputModule,
+                saveTorder, w, presentVars, output;
+      if null u or not (listp u) then
+         f5_argumentError();
+      inputGens := pop u;
+      inputBasis := reval inputGens;
+      if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
+         f5_argumentError();
+      properIdeal := t; while properIdeal and not null inputBasis do <<
+         f := numr simp pop inputBasis;
+         if numberp f and not null f then
+            properIdeal := nil
+         else if not null f then  % This line is for Gleb
+            push(f, inputBasisSf)
+      >>;
+      if not properIdeal then
+         return {'list, 1};
+      inputBasis := reversip inputBasisSf;
+      if null inputBasis then
+         % This is a bit unclear mathematically, but we go with the design decisions of the groebner
+         % package
+         return {'list, 0};
+      saveTorder := <<
+         % variables and sort mode are specified in f5 call
+         vars := reval pop u;
+         if not (listp vars) or not (pop vars eq 'list) then
+            f5_argumentError();
+         for each w in vars do
+           if not sfto_kernelp(w) then
+               f5_argumentError();
+         for each f in inputBasis do
+            presentVars := union(presentVars, kernels f);
+         % make sure `vars` are last
+         presentVars := nconc(setdiff(presentVars, vars), vars);
+         poly_initRing({presentVars, 'gradlexgradlex, length(presentVars) - length(vars)})
+      >>;
+      % w := errorset({'f5_groebner1, mkquote inputBasis}, t, !*backtrace);
+      % torder cdr saveTorder;
+      % if errorp w then
+      %    return nil;
+      % outputModule := car w;
+      outputModule := f5_groebner({inputGens});
+      % outputModule := inputBasis;
+      for each f in outputModule do <<
+         if null setdiff(kernels (numr simp f), setdiff(presentVars, vars)) then
+            push(f, output)
+      >>;
+      return 'list . output
+   end;
+
+asserted procedure f5_intersection(u: List): List;
+   begin scalar inputBasis, inputBasisSf, properIdeal, f, vars, ord, outputModule,
+                saveTorder, w, presentVars, output;
+      if null u or not (listp u) then
+         f5_argumentError();
+      inputGens := pop u;
+      inputBasis := reval inputGens;
+      if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
+         f5_argumentError();
+      properIdeal := t; while properIdeal and not null inputBasis do <<
+         f := numr simp pop inputBasis;
+         if numberp f and not null f then
+            properIdeal := nil
+         else if not null f then  % This line is for Gleb
+            push(f, inputBasisSf)
+      >>;
+      if not properIdeal then
+         return {'list, 1};
+      inputBasis := reversip inputBasisSf;
+      if null inputBasis then
+         % This is a bit unclear mathematically, but we go with the design decisions of the groebner
+         % package
+         return {'list, 0};
+      saveTorder := <<
+         % variables and sort mode are specified in f5 call
+         vars := reval pop u;
+         if not (listp vars) or not (pop vars eq 'list) then
+            f5_argumentError();
+         for each w in vars do
+           if not sfto_kernelp(w) then
+               f5_argumentError();
+         for each f in inputBasis do
+            presentVars := union(presentVars, kernels f);
+         % make sure `vars` are last
+         presentVars := nconc(setdiff(presentVars, vars), vars)
+      >>;
+      % w := errorset({'f5_groebner1, mkquote inputBasis}, t, !*backtrace);
+      % torder cdr saveTorder;
+      % if errorp w then
+      %    return nil;
+      % outputModule := car w;
+      outputModule := f5_groebner({inputGens});
+      % outputModule := inputBasis;
+      for each f in outputModule do <<
+         if null setdiff(kernels (numr simp f), setdiff(presentVars, vars)) then
+            push(f, output)
+      >>;
+      return 'list . output
+   end;
 
 endmodule;  % end of module f5
 

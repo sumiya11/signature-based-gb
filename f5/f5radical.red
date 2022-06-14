@@ -6,7 +6,8 @@ asserted procedure f5_elimination(u: List): List;
                 saveTorder, w, presentVars, output;
       if null u or not (listp u) then
          f5_argumentError();
-      inputBasis := reval pop u;
+      inputGens := pop u;
+      inputBasis := reval inputGens;
       if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
          f5_argumentError();
       properIdeal := t; while properIdeal and not null inputBasis do <<
@@ -38,17 +39,25 @@ asserted procedure f5_elimination(u: List): List;
          prin2t {presentVars, vars};
          poly_initRing({presentVars, 'gradlexgradlex, length(presentVars) - length(vars)})
       >>;
-      w := errorset({'f5_groebner1, mkquote inputBasis}, t, !*backtrace);
-      torder cdr saveTorder;
-      if errorp w then
-         return nil;
-      outputModule := car w;
-      outputModule := for each f in outputModule collect
-         poly_2a lp_eval f;
-      for each w in outputModule <<
-         vars := kernels f;
-         % if vars
+      prin2t {"rr ", saveTorder};
+      % w := errorset({'f5_groebner1, mkquote inputBasis}, t, !*backtrace);
+      % torder cdr saveTorder;
+      % if errorp w then
+      %    return nil;
+      % outputModule := car w;
+      prin2t {"rad0", inputBasis};
+      % outputModule := groebner(inputBasis);
+      outputModule := inputBasis;
+      prin2t {"o ", outputModule};
+      for each f in outputModule do <<
+         prin2t {f, kernels f,  setdiff(presentVars, vars), setdiff(kernels f, setdiff(presentVars, vars))};
+         if null setdiff(kernels f, setdiff(presentVars, vars)) then
+            push(f, output)
       >>;
+      prin2t {"ororo", output};
+      prin2t for each f in output collect lp_eval f;
+      output := for each f in output collect
+         poly_2a lp_eval f;
       return 'list . output
    end;
 
