@@ -3,41 +3,41 @@ module f5univpol;
 % SparseVector - sparsely stored vector
 % 
 % SparseVector object is stored as
-%  {'sv, indices, values} 
+%  {'sv, indices, coeffs} 
 % where `indices` is a list of integers - nonzero vector entries indices, 
-% and `values` is a list of corresponding nonzero coefficients.
+% and `coeffs` is a list of corresponding nonzero coefficients.
 %
-% Values are guaranteed to be nonzero, indices are guaranteed to be sorted.
+% Coeffs are guaranteed to be nonzero, indices are guaranteed to be sorted.
 %
 % Zero SparseVector is represented as {'sv, nil, nil}
 
-% Creates sparse vector with the given indices and values
-asserted procedure univ_SparseVector(indices, values): SparseVector;
-   {'sv, indices, values};
+% Creates sparse vector with the given indices and coeffs
+asserted procedure univ_SparseVector(indices: List, coeffs: List): SparseVector;
+   {'sv, indices, coeffs};
 
-% Return the vector indices
+% Returns the vector indices
 asserted procedure univ_getIndicesVector(vect: SparseVector): List;
    cadr vect; 
 
-% Return the vector values
-asserted procedure univ_getValuesVector(vect: SparseVector): List;
+% Returns the vector coeffs
+asserted procedure univ_getCoeffsVector(vect: SparseVector): List;
    caddr vect; 
 
 % Sets the vector indices
 asserted procedure univ_setIndicesVector(vect: SparseVector, newindices: List): List;
    cadr vect := newindices; 
 
-% Sets the vector values
-asserted procedure univ_setValuesVector(vect: SparseVector, newvals: List): List;
-   caddr vect := newvals; 
+% Sets the vector coeffs
+asserted procedure univ_setCoeffsVector(vect: SparseVector, newcoeffs: List): List;
+   caddr vect := newcoeffs; 
 
-% Return the pivot index - the first indices entry
+% Returns the pivot index - the first indices entry
 asserted procedure univ_pivotIndexVector(vect: SparseVector): Integer;
    car univ_getIndicesVector(vect); 
 
-% Return the pivot value - the first values entry
-asserted procedure univ_pivotValueVector(vect: SparseVector): Coeff;
-   car univ_getValuesVector(vect); 
+% Returns the pivot coeff - the first coeffs entry
+asserted procedure univ_pivotCoeffVector(vect: SparseVector): Coeff;
+   car univ_getCoeffsVector(vect); 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -71,58 +71,61 @@ asserted procedure univ_pivotValueVector(vect: SparseVector): Coeff;
 
 % Creates an empty `MacaulayMatrix`
 asserted procedure univ_MacaulayMatrix(): MacaulayMatrix;
-   {'mm, 0, 0, 0, nil, nil, mkhash(2^4, 'eq, 2), mkvect(0)};
+   {'mm, 0, 0, 0, nil, nil, mkhash(2^4, 'equal, 2), mkvect(0)};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Convert polynomial `left` to a dense row, with the column labels as in the left matrix part
 %  & Convert polynomial `right` to a dense row,  -//-
-asserted procedure univ_convertToDenseRows(matrix: MacaulayMatrix, left: Polynomial, right: Polynomial): DottedPair;
+asserted procedure univ_convertToDenseRows(mmatrix: MacaulayMatrix, 
+                                    left: Polynomial, right: Polynomial): DottedPair;
    begin scalar nrightcols, leftRow, rightRow;
-      nrightcols := cadddr matrix;
+      nrightcols := cadddr mmatrix;
       
       %              1  x  x^2 ...   x^n
       % rightRow is [0, 0, 0, ...,0, 1]
       rightRow := mkvect(nrightcols);
       for i := 0:nrightcols do
-         putv(rightRow, i, 0);
-      putv(rightRow, nrightcols, 1);
-      cadddr matrix := nrightcols + 1;
+         putv(rightRow, i, poly_zeroCoeff());
+      putv(rightRow, nrightcols, poly_oneCoeff());
+      cadddr mmatrix := nrightcols + 1;
 
-      nleftcols := caddr matrix;
-      term2index := caddr cddddr matrix;   % any alternative ?
-      index2term := cadddr cddddr matrix;
-      for term in poly_getTerms(left) do <<
+      nleftcols := caddr mmatrix;
+      term2index := caddr cddddr mmatrix;   % any alternative ?
+      index2term := cadddr cddddr mmatrix;
+      for each term in poly_getTerms(left) do <<
          if not gethash(term, term2index) then <<
             puthash(term, term2index, nleftcols);
             if nleftcols >= length(index2term) then <<
                newindex2term := mkvect(length(index2term) * 2);
-               for i := 0:nleftcols do
+               for i := 0:nleftcols-1 do
                   putv(newindex2term, i, getv(index2term, i));
-               index2term := newindex2term
+                cadddr cddddr mmatrix := newindex2term
             >>;
-            nleftcols := nleftcols + 1;
+            index2term := cadddr cddddr mmatrix;
             putv(index2term, nleftcols, term);
+            nleftcols := nleftcols + 1
          >>
       >>;
-      caddr matrix := nleftcols;
+      caddr mmatrix := nleftcols;
 
       leftRow := mkvect(nleftcols);
       for i := 0:nleftcols do
-         putv(leftRow, i, 0);
+         putv(leftRow, i, poly_zeroCoeff());
       terms   := poly_getTerms(left);
       coeffs  := poly_getCoeffs(left);
       while terms do <<
          term  := pop(terms);
          coeff := pop(coeffs);
          idx := gethash(term, term2index);
+         prin2t {"HASH", idx};
          putv(leftRow, idx, coeff)
       >>;
 
       return leftRow . rightRow
    end;
 
-trst univ_convertToRowDense;
+trst univ_convertToDenseRows;
 
 % Reduce `left` with `leftReducer` and `right` with `rightReducer` inplace.
 %  left  = left  - C*leftReducer
@@ -134,36 +137,36 @@ asserted procedure univ_reduceDenseWithSparse(left: Vector, right: Vector,
                                                 leftReducer: SparseVector, rightReducer: SparseVector);
    begin scalar reducerCols, reducerVals, leftMul, col, newcf;
       reducerCols := univ_getIndicesVector(leftReducer);
-      reducerVals := univ_getValuesVector(leftReducer);
-      leftMul := negsq(getv(left, car reducerVals));
+      reducerVals := univ_getCoeffsVector(leftReducer);
+      leftMul := negsq(getv(left, car reducerCols));
       for each col in reducerCols do <<
-         newcf := addsq(pop(reducerVals), multsq(getv(left, col), leftMul));
-         putv(left, col, newcf);
+         newcf := addsq(multsq(pop(reducerVals), leftMul), getv(left, col));
+         putv(left, col, newcf)
       >>;
       reducerCols := univ_getIndicesVector(rightReducer);
-      reducerVals := univ_getValuesVector(rightReducer);
+      reducerVals := univ_getCoeffsVector(rightReducer);
       for each col in reducerCols do <<
-         newcf := addsq(pop(reducerVals), multsq(getv(right, col), leftMul));  % not a mistake
-         putv(right, col, newcf);
+         newcf := addsq(multsq(pop(reducerVals), leftMul), getv(right, col));
+         putv(right, col, newcf)
       >>
    end;
 
 trst univ_reduceDenseWithSparse;
 
-asserted procedure univ_reduceRows(matrix: MacaulayMatrix, left: Vector, right: Vector): Boolean;
+asserted procedure univ_reduceRows(mmatrix: MacaulayMatrix, left: Vector, right: Vector): Boolean;
    begin scalar leftRows, rightRows, lpivot, lrow, rrow, reduced;
-      leftRows  := cadr cdddr matrix; 
-      rightRows := caddr cdddr matrix;
+      leftRows  := cadr cdddr mmatrix; 
+      rightRows := caddr cdddr mmatrix;
       for each lrow in leftRows do <<
          lpivot := univ_pivotIndexVector(lrow);
-         if not (getv(left, lpivot) = 0) then <<
+         if not poly_iszeroCoeff!?(getv(left, lpivot)) then <<
             rrow := pop(rightRows);
-            univ_reduceDenseWithSparse(left, right, lrow, rrow);
+            univ_reduceDenseWithSparse(left, right, lrow, rrow)
          >>
       >>;
       reduced := t;
-      for i := 0:length(left) do <<
-         if not (getv(left, i) = 0) then
+      for i := 0:length(left)-1 do
+         if not poly_iszeroCoeff!?(getv(left, i)) then
             reduced := nil;
       return reduced
    end;
@@ -177,23 +180,25 @@ trst univ_reduceRows;
 % mutating `left` and `right` inplace
 asserted procedure univ_normalizeRows(left: SparseVector, right: SparseVector);
    begin scalar leftCoeffs, rightCoeffs;
-      leftCoeffs  := univ_getValuesVector(left);
-      rightCoeffs := univ_getValuesVector(right);
+      leftCoeffs  := univ_getCoeffsVector(left);
+      rightCoeffs := univ_getCoeffsVector(right);
       leftMult := denr(car leftCoeffs) ./ numr(car leftCoeffs);
       leftCoeffs  := for each c in leftCoeffs collect 
                         multsq(leftMult, c);
       rightCoeffs := for each c in rightCoeffs collect 
                         multsq(leftMult, c);
-      univ_setIndicesVector(left, leftCoeffs);
-      univ_setIndicesVector(right, rightCoeffs)
+      univ_setCoeffsVector(left, leftCoeffs);
+      univ_setCoeffsVector(right, rightCoeffs)
    end;
 
 trst univ_normalizeRows;
 
-asserted procedure univ_addMatrixRow(matrix: MacaulayMatrix, left: SparseVector, right: SparseVector);
+asserted procedure univ_addMatrixRow(mmatrix: MacaulayMatrix, left: SparseVector, right: SparseVector);
    begin scalar leftRows, rightRows;
-      leftRows  := cadr cdddr matrix; 
-      rightRows := caddr cdddr matrix;
+      cadr mmatrix := cadr mmatrix + 1;
+
+      leftRows  := cadr cdddr mmatrix; 
+      rightRows := caddr cdddr mmatrix;
 
       % of course, this should be done better; but not a problem for now
       leftRows := reversip(leftRows);
@@ -205,8 +210,8 @@ asserted procedure univ_addMatrixRow(matrix: MacaulayMatrix, left: SparseVector,
       leftRows := reversip(leftRows);
       rightRows := reversip(rightRows);
 
-      cadr cdddr matrix := leftRows;
-      caddr cdddr matrix := rightRows;
+      cadr cdddr mmatrix := leftRows;
+      caddr cdddr mmatrix := rightRows;
 
       return leftRow . rightRow
    end;
@@ -217,10 +222,10 @@ trst univ_addMatrixRow;
 % e.g., [1, 0, 0, 2] --> {'sv, {0, 3}, {1, 2}} 
 asserted procedure univ_extractSparseRow(row: Vector): SparseVector;
    begin scalar cols, coeffs;
-      for i := 0:length(row) do << 
-         if not (getv(row, i) = 0) then <<
+      for i := 0:length(row)-1 do << 
+         if not poly_iszeroCoeff!?(getv(row, i)) then <<
             push(i, cols);
-            push(coffs, getv(row, i))
+            push(getv(row, i), coeffs)
          >>
       >>;
       return univ_SparseVector(reversip(cols), reversip(coeffs))
@@ -228,15 +233,16 @@ asserted procedure univ_extractSparseRow(row: Vector): SparseVector;
 
 trst univ_extractSparseRow;
 
-asserted procedure univ_findLinearRelation(matrix: MacaulayMatrix, left: Polynomial, right: Polynomial): DottedPair;
+asserted procedure univ_findLinearRelation(mmatrix: MacaulayMatrix, left: Polynomial, right: Polynomial): DottedPair;
    begin scalar leftRow, rightRow, reduced; 
-      leftRow . rightRow := univ_convertToDenseRows(matrix, left, right);
-      reduced := univ_reduceRows(matrix, leftRow, rightRow);
+      leftRow . rightRow := univ_convertToDenseRows(mmatrix, left, right);
+      reduced := univ_reduceRows(mmatrix, leftRow, rightRow);
+      prin2t {"reduced", reduced, leftRow, rightRow};
       leftRow  := univ_extractSparseRow(leftRow);
       rightRow := univ_extractSparseRow(rightRow);
       if not reduced then <<
          univ_normalizeRows(leftRow, rightRow);
-         univ_addMatrixRow(matrix, leftRow, rightRow)
+         univ_addMatrixRow(mmatrix, leftRow, rightRow)
       >>;
       return reduced . rightRow
    end;
@@ -244,33 +250,61 @@ asserted procedure univ_findLinearRelation(matrix: MacaulayMatrix, left: Polynom
 trst univ_findLinearRelation;
 
 %  
-asserted procedure univ_extractGenerator(relation: SparseVector, idx: Integer): Polynomial;
+asserted procedure univ_extractGenerator(mmatrix: MacaulayMatrix, relation: SparseVector, 
+                                             idx: Integer): Polynomial;
    begin scalar terms, coeffs;
-      coeffs := univ_getValuesVector(relation);
+      coeffs := univ_getCoeffsVector(relation);
       terms := for each x in univ_getIndicesVector(relation) 
-               collect poly_ithVariable(idx, x);
-      return poly_Polynomial(terms, coeffs)
+                  collect poly_ithVariable(idx, x);
+      return poly_Polynomial(reversip(terms), reversip(coeffs))
    end;
+
+trst univ_extractGenerator;
 
 % Computes the univariate polynomial of the ideal generated by G in index i.
 % G - a list of Polynomials, a Groebner basis of zero dimensional ideal in n variables.
 % i - an Integer, a variable index
 asserted procedure univ_univpol1(G: List, i: Integer): Polynomial;
-   begin scalar existsRelation, relation, tobereduced, reduced, matrix;
+   begin scalar existsRelation, relation, tobereduced, reduced, mmatrix, flag;
          integer n;
-      matrix := univ_MacaulayMatrix();
+      mmatrix := univ_MacaulayMatrix();
+      prin2t {"MMatrix ", mmatrix};
       while not existsRelation do <<
+         prin2t {"iteration ", n, poly_ithVariable(i, n)};
          tobereduced := poly_Polynomial({poly_ithVariable(i, n)}, {poly_oneCoeff()});
-         reduced := core_normalFormReducers(tobereduced, G, t);
-         existsRelation . relation := univ_findLinearRelation(matrix, reduced, tobereduced); 
+         flag . reduced := core_normalFormReducers(tobereduced, G, t);
+         prin2t {tobereduced, " --> ", reduced};
+         existsRelation . relation := univ_findLinearRelation(mmatrix, reduced, tobereduced); 
          if existsRelation then
-            relation := univ_extractGenerator(relation, i);
+            relation := univ_extractGenerator(mmatrix, relation, i);
          n := n + 1
       >>;
       return relation
    end;
 
 trst univ_univpol1;
+
+asserted procedure squarefree(f: Polynomial): Polynomial;
+   begin scalar f;
+      f := 1;
+      for each fact in factorize(poly_2a(f)) do
+         f := f * fact;
+      return poly_f2poly(f)
+   end;
+
+
+% Computes the univariate polynomial of the ideal generated by G in index i.
+% G - a list of Polynomials, a Groebner basis of zero dimensional ideal in n variables.
+% i - an Integer, a variable index
+asserted procedure f5_zerodimradical1(G: List): List;
+   begin scalar fi, rad;
+         integer n;
+      for i := 1:length(global!-dipvars!*)-1 do <<
+         fi := univ_univpol1(G, i);
+         push(squarefree(fi), rad)
+      >>;
+      return rad
+   end;
 
 endmodule;  % end of module f5univpol
 
