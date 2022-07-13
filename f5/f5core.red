@@ -339,7 +339,7 @@ asserted procedure core_constructModule(inputBasis: List): List;
 asserted procedure core_normalForm(f: Polynomial, Gprev: List,
                                    r: Basistracker,
                                    topReduce: Boolean): DottedPair;
-   begin scalar reducers, updated, reducer, reduced, updatedToreturn, f, g;
+   begin scalar reducers, updated, reducer, reduced, f, g;
       % while polynomial f gets updated by reduction steps,
       % scan the list Gprev in search for possible reducers
       % prin2t {"####################"};
@@ -350,6 +350,7 @@ asserted procedure core_normalForm(f: Polynomial, Gprev: List,
       %         else 
       %            nil
       %      };
+      topReduce := t; % for now, always true
       updated := t;
       while updated do <<
          updated := nil;
@@ -444,7 +445,7 @@ asserted procedure core_getReducers(i: Integer, G: List): List;
 % applies several (possibly, not all) passes of the Autoreduction algorithm
 % until no further top-reductions happen
 asserted procedure core_interreduceInput(input: List): List;
-   begin scalar reducers, reducer, reduceme, reduced, f, ready;
+   begin scalar reducers, reducer, reduceme, reduced, f, ready, updated;
       updated := t;
       input := sort(input, 'poly_leadTotalDegreeCmp);
       input := for each f in input collect
@@ -952,6 +953,33 @@ asserted inline procedure core_selectPairs(pairs: List): DottedPair;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Interreduces elements in the Groebner basis stored in the list Gprev,
+% while maintaining correct signatures in `r` and correct rewrite rules in `Rule`
+asserted procedure core_setupReducedBasis(Gprev: List, r: Basistracker, 
+                                             Rule: Vector): List;
+   begin scalar f, B, Btmp;
+         integer i;
+      Gprev := core_interreduceBasis(Gprev, r);
+      B := for each f in Gprev collect core_getPoly(r, f);
+      Gprev := for i := 1:length(B) collect i;
+      Btmp := B;
+      for i := 1:length(B) do <<
+         f := pop(Btmp);
+         core_setPoly(r, i, lp_LabeledPolynomial1(f, i))
+      >>;
+      % `Rule` is not used intentionally
+      % for i := 1:length(B) do <<
+      %    % 
+      %    for j := 1:length(B) do <<
+      %       % 
+      %    >>
+      % >>;
+      return Gprev
+   end;
+                                       
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Given that `Gprev` indexes the basis of {f1..fi-1} in `r`,
 % constructs the basis of {f1..fi} and returns the list of new basis indices
 asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
@@ -1059,6 +1087,9 @@ asserted procedure core_groebner1(basis: List): List;
             stat_updateModuleIndex();
          % construct the basis for {f1...fi} using the basis for {f1...fi-1}
          Gprev := core_incrementalBasis(i, Gprev, r, Rule);
+         % Experimantal functionality, use F5C if f5usef5c switch is ON.
+         if !*f5usef5c then
+            Gprev := core_setupReducedBasis(Gprev, r, Rule);
          i := i #+ 1
       >>;
       % filter redundant generators

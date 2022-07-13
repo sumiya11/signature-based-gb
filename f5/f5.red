@@ -46,10 +46,9 @@ module f5;
 % The f5stat allows recording and printing useful statistics
 % for each f5 call.
 %
-% f5mod and f5primes are not used at the moment; 
-create!-package('(f5 f5core f5univpol f5lp f5poly f5primes f5mod f5stat), nil);
-% create!-package('(f5 f5radical f5core f5lp f5poly f5primes f5mod f5stat), nil);
-
+% f5mod, f5primes implement modular arithmetic, which is not used at the moment.
+% Other files in the directory implement experimental algorithms and are not documented
+create!-package('(f5 f5core f5lp f5poly f5primes f5mod f5stat), nil);
 
 fluid '(!*backtrace);
 
@@ -84,6 +83,7 @@ fluid '(vdpsortmode!*);
 switch f5interreduce;
 off1 'f5interreduce;
 
+% Not exported, not documented;
 % f5integers - If this is ON, then coefficients of polynomials
 %              in the output basis have denominator 1, and the numerator
 %              parts have unit gcd within one polynomial.
@@ -108,25 +108,34 @@ off1 'f5interreduce;
 switch f5integers;
 off1 'f5integers;
 
+% f5sugar - If ON, sugar selection strategy is used;
+%           otherwise, uses normal selection strategy.
+%              https://doi.org/10.1145/120694.120701
+%           ON by default.
 switch f5sugar;
 on1 'f5sugar;
 
-switch usef5c;
-off1 'usef5c;
+% Not exported, not documented;
+% f5usef5c - If ON, the F5C algorithm is used in f5:
+%              https://doi.org/10.1016%2Fj.jsc.2010.06.019
+%            Otherwise, does not interreduce intermediate bases.
+%            Default option is OFF.
+switch f5usef5c;
+off1 'f5usef5c;
 
 % f5statistics - If this is ON, collects and prints the following statistics
 %                after each f5 call:
-%                the number of polynomials reduced,
-%                the number of polynomials reduced to zero,
-%                the number of calls to normal form,
-%                the range of produced critical pairs degrees.
+%                 the number of polynomials reduced,
+%                 the number of polynomials reduced to zero,
+%                 the number of calls to normal form,
+%                 the range of produced critical pairs degrees.
 %                All statistics above are differentiated by the signature index.
 %                By default, this is OFF, the information
 %                is neither collected nor printed.
 switch f5statistics;
 off1 'f5statistics;
 
-% NOT exported and should NOT be used directly.
+% Not exported, not documented;
 % Currently, f5modular is not available as an option mainly for two reasons:
 %  1. f5modular is not compatible with f5integers;
 %  2. computation with f5modular can be slower for some examples.
@@ -140,7 +149,7 @@ off1 'f5statistics;
 switch f5modular;
 off1 'f5modular;
 
-% NOT exported and should NOT be used directly.
+% Not exported, not documented;
 % f5certify - If f5 should certify the correctness of result
 %             during modular computation (when f5modular is ON).
 %             Is OFF dy default.
@@ -161,12 +170,6 @@ load!-package 'rltools;
 
 % The only function in the interface
 put('f5, 'psopfn, 'f5_groebner);
-
-% The only function in the interface
-% put('elimination, 'psopfn, 'f5_elimination);
-
-put('univpol, 'psopfn, 'f5_univpol);
-put('zerodimradical, 'psopfn, 'f5_zerodimradical);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% STRUCTS DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -198,7 +201,8 @@ struct Basistracker checked by f5_isBasistracker;
 struct CriticalPair checked by f5_isCriticalPair;
 struct RewriteRule checked by f5_isRewriteRule;
 
-% interface implemented in f5univpol.red
+% interface implemented in f5univpol.red (not used currently)
+
 procedure f5_isMacaulayMatrix(x); eqcar(x, 'mm);
 struct MacaulayMatrix checked by f5_isMacaulayMatrix;
 procedure f5_isSparseVector(x); eqcar(x, 'sv);
@@ -302,51 +306,6 @@ asserted procedure f5_argumentError();
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-asserted procedure f5_univpol(u: List);
-   begin scalar inputBasis, outputPoly, inputBasisSf, varIndex, properIdeal;
-      if null u or not (listp u) then
-         f5_argumentError();
-      inputBasis := reval pop u;
-      if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
-         f5_argumentError();
-      properIdeal := t; while properIdeal and not null inputBasis do <<
-         f := numr simp pop inputBasis;
-         if numberp f and not null f then
-            properIdeal := nil
-         else if not null f then  % This line is for Gleb
-            push(f, inputBasisSf)
-      >>;
-      inputBasis := reversip inputBasisSf;
-      inputBasis := for each f in inputBasis collect poly_f2poly f;
-      varIndex   := reval pop u;
-      outputPoly := univ_univpol1(inputBasis, varIndex);
-      outputPoly := poly_2a outputPoly;
-      return outputPoly
-   end;
-
-asserted procedure f5_zerodimradical(u: List);
-   begin scalar inputBasis, outputBasis, inputBasisSf, varIndex;
-      if null u or not (listp u) then
-         f5_argumentError();
-      inputBasis := reval pop u;
-      if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
-         f5_argumentError();
-      properIdeal := t; while properIdeal and not null inputBasis do <<
-         f := numr simp pop inputBasis;
-         if numberp f and not null f then
-            properIdeal := nil
-         else if not null f then  % This line is for Gleb
-            push(f, inputBasisSf)
-      >>;
-      inputBasis := reversip inputBasisSf;
-      inputBasis := for each f in inputBasis collect poly_f2poly f;
-      outputBasis := univ_zerodimradical1(inputBasis);
-      outputBasis := for each f in outputBasis collect poly_2a f;
-      return 'list . outputPoly
-   end;
-
 endmodule;  % end of module f5
-
-trst f5_univpol;
 
 end;  % of file

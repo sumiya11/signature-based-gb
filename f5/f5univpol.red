@@ -1,5 +1,75 @@
 module f5univpol;
 
+% Migrated from the main f5.red file
+
+% put('elimination, 'psopfn, 'f5_elimination);
+% put('univpol, 'psopfn, 'f5_univpol);
+% put('zerodimradical, 'psopfn, 'f5_zerodimradical);
+
+% asserted procedure f5_univpol(u: List);
+%    begin scalar inputBasis, outputPoly, inputBasisSf, varIndex, properIdeal;
+%       if null u or not (listp u) then
+%          f5_argumentError();
+%       inputBasis := reval pop u;
+%       if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
+%          f5_argumentError();
+%       properIdeal := t; while properIdeal and not null inputBasis do <<
+%          f := numr simp pop inputBasis;
+%          if numberp f and not null f then
+%             properIdeal := nil
+%          else if not null f then  % This line is for Gleb
+%             push(f, inputBasisSf)
+%       >>;
+%       inputBasis := reversip inputBasisSf;
+%       inputBasis := for each f in inputBasis collect poly_f2poly f;
+%       varIndex   := reval pop u;
+%       outputPoly := univ_univpol1(inputBasis, varIndex);
+%       outputPoly := poly_2a outputPoly;
+%       return outputPoly
+%    end;
+
+% asserted procedure f5_zerodimradical(u: List);
+%    begin scalar inputBasis, outputBasis, inputBasisSf, varIndex;
+%       if null u or not (listp u) then
+%          f5_argumentError();
+%       inputBasis := reval pop u;
+%       if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
+%          f5_argumentError();
+%       properIdeal := t; while properIdeal and not null inputBasis do <<
+%          f := numr simp pop inputBasis;
+%          if numberp f and not null f then
+%             properIdeal := nil
+%          else if not null f then  % This line is for Gleb
+%             push(f, inputBasisSf)
+%       >>;
+%       inputBasis := reversip inputBasisSf;
+%       inputBasis := for each f in inputBasis collect poly_f2poly f;
+%       outputBasis := univ_zerodimradical1(inputBasis);
+%       outputBasis := for each f in outputBasis collect poly_2a f;
+%       return 'list . outputBasis
+%    end;
+
+% asserted procedure f5_maxIndependent(u: List);
+%    begin scalar inputBasis, outputBasis, inputBasisSf, varIndex;
+%       if null u or not (listp u) then
+%          f5_argumentError();
+%       inputBasis := reval pop u;
+%       if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
+%          f5_argumentError();
+%       properIdeal := t; while properIdeal and not null inputBasis do <<
+%          f := numr simp pop inputBasis;
+%          if numberp f and not null f then
+%             properIdeal := nil
+%          else if not null f then  % This line is for Gleb
+%             push(f, inputBasisSf)
+%       >>;
+%       inputBasis := reversip inputBasisSf;
+%       inputBasis := for each f in inputBasis collect poly_f2poly f;
+%       independentSet := dim_maxIndependent1(inputBasis);
+%       independentSet := for each f in independentSet collect poly_2a f;
+%       return 'list . independentSet
+%    end;
+
 % SparseVector - sparsely stored vector
 % 
 % SparseVector object is stored as
@@ -76,7 +146,7 @@ asserted procedure univ_MacaulayMatrix(): MacaulayMatrix;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Convert polynomial `left` to a dense row, with the column labels as in the left matrix part
-%  & Convert polynomial `right` to a dense row,  -//-
+%  & Convert polynomial `right` to a dense row,  -%-
 asserted procedure univ_convertToDenseRows(mmatrix: MacaulayMatrix, 
                                     left: Polynomial, right: Polynomial): DottedPair;
    begin scalar nrightcols, leftRow, rightRow;

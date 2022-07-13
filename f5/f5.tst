@@ -1,4 +1,4 @@
-% Correctness tests of f5
+% Simple correctness tests of f5
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Term order checks
@@ -32,13 +32,13 @@ torder({x, y, z}, graded, {1, 1, 2}, lex);
 f5({x + y^4 + z^3});
 % Expected {z^3 + y^4 + x}
 
-% aaand Matrix order
-% Not working
-torder({x, y},matrix, mat(
-    (1,0),
-    (0,1)))$
-f5({x + y + z});
-f5({x + y^2 + z^3});
+% and Matrix order;
+% Not working currently
+% torder({x, y},matrix, mat(
+%     (1,0),
+%     (0,1)))$
+% f5({x + y + z});
+% f5({x + y^2 + z^3});
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sanity checks
@@ -75,11 +75,9 @@ f5(noon3, {x1, x2, x3}, revgradlex);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tests for different combinations of switches
 
-off f5integers;
 f5({5x1 + x2, x1*x2 + 1}, {x1, x2}, lex);
 
 on f5statistics;
-on f5integers;
 f5({5x1 + x2, x1*x2 + 1}, {x1, x2}, lex);
 
 f5(noon3, {x1, x2, x3}, revgradlex);
@@ -94,11 +92,11 @@ off f5statistics;
 f5({x1 + x2, x1*x2 + 4194319}, {x1, x2}, lex);
 f5({x1 + 4194329*x2, x1*x2 + 4194319}, {x1, x2}, lex);
 
-off f5integers;
+off f5sugar;
 f5({x1 + x2, x1*x2 + 1e10}, {x1, x2}, lex);
 f5({x1 + x2, 2347624x1*x2 + 1e100}, {x1, x2}, lex);
 
-on f5integers;
+on f5sugar;
 f5({x1 + x2, x1*x2 + 1e10}, {x1, x2}, lex);
 f5({x1 + x2, 2347624x1*x2 + 1e100}, {x1, x2}, lex);
 
@@ -134,7 +132,7 @@ f5(system, vars, lex);
 % Tests from Groebner.jl Julia package
 %   https://github.com/sumiya11/Groebner.jl
 
-% Cyclic-5
+% Root-5
 system := {
   x1 + x2 + x3 + x4 + x5,
   x1*x2 + x1*x3 + x1*x4 + x1*x5 + x2*x3 + x2*x4 + x2*x5 + x3*x4 + x3*x5 + x4*x5,
@@ -152,11 +150,9 @@ system := {
   x1^2*x2^2*x3^2*x4^2*x5^2 + x1^2 + x1*x2*x3*x4*x5 + x2^2 + 3*x3^2 + x4^2 + x5^2 + 5,
   x1^2*x2^2*x3^2*x4^2*x5^2 + x1^2 + x1*x2*x3*x4*x5 + x2^2 + x3^2 + 3*x4^2 + x5^2 + 5,
   x1^2*x2^2*x3^2*x4^2*x5^2 + x1^2 + x1*x2*x3*x4*x5 + x2^2 + x3^2 + x4^2 + 3*x5^2 + 5
-}
+}$
 vars := {x1, x2, x3, x4, x5}$
 f5(system, vars, revgradlex);
-
-on f5integers;
 
 % Katsura-5
 system := {

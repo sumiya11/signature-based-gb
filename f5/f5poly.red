@@ -381,7 +381,7 @@ asserted inline procedure poly_iszeroCoeff!?(a: Coeff): Boolean;
    else if !*f5integers then
       a = 0
    else
-      not numr(a);
+      numr(a) = 0 or (not numr(a));
 
 asserted inline procedure poly_isoneCoeff!?(a: Coeff): Boolean;
    if !*f5modular then
@@ -390,6 +390,9 @@ asserted inline procedure poly_isoneCoeff!?(a: Coeff): Boolean;
       a = 1
    else
       eqn(numr(a), 1) and eqn(denr(a), 1);
+
+asserted inline procedure poly_zeroCoeff(): Coeff;
+   poly_2Coeff(0);
 
 asserted inline procedure poly_oneCoeff(): Coeff;
    poly_2Coeff(1);
@@ -817,6 +820,13 @@ asserted procedure poly_leadTotalDegreeCmp(poly1: Polynomial,
    end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Auxiliary functions
+
+% returns xi^n
+asserted procedure poly_ithVariable(idx: Integer, deg: Integer): Term;
+   deg . for x := 1:length(global!-dipvars!*)-1
+         collect if x = idx then deg else 0;
 
 endmodule;  % end of module f5poly
 

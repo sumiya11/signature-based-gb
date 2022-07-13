@@ -8,7 +8,7 @@ module f5stat
 fluid '(stat_nCurrentIndex!*    stat_nModuleIndices!*
         stat_nAllReductions!*   stat_nZeroReductions!*
         stat_nNormalFormCalls!* stat_nDegreeRange!*
-        stat_nCriticalPairs!*);
+        stat_nCriticalPairs!*   stat_initialMinDegree!*);
 
 % stat_nCurrentIndex!* - the current index in the module
 % (the mathematical module, namely, the index `i` from the `core_incrementalBasis`)
@@ -212,8 +212,8 @@ asserted procedure stat_print();
     for i := 1:stat_nModuleIndices!* do <<
       totalAllReductions  := getv(stat_nAllReductions!*, i) + totalAllReductions;
       totalZeroReductions := getv(stat_nZeroReductions!*, i) + totalZeroReductions;
-      totalNormalForms    :=  getv(stat_nNormalFormCalls!*, i) + totalNormalForms;
-      totalCriticalPairs  :=  getv(stat_nCriticalPairs!*, i) + totalCriticalPairs
+      totalNormalForms    := getv(stat_nNormalFormCalls!*, i) + totalNormalForms;
+      totalCriticalPairs  := getv(stat_nCriticalPairs!*, i) + totalCriticalPairs
     >>;
     % print last lines of the table
     prin2t footer;
