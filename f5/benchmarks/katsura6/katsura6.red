@@ -2,7 +2,7 @@
 
 load_package f5;
 
-off f5integers;
+off f5fractionfree;
 
 setmod 65537;
 on modular;

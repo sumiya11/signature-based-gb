@@ -154,7 +154,7 @@ asserted procedure mod_groebnerModular1(inputBasis: List): List;
     % the product of all previous ones
     primetracker := primes_Primetracker();
     % scale coefficients to integers
-    % if not !*f5integers then
+    % if not !*f5fractionfree then
     %  integerBasis := mod_scaleDenominators(inputBasis)
     % else
       integerBasis := inputBasis;
@@ -241,7 +241,7 @@ asserted procedure mod_reconstruction(a: Integer, m: Integer): SQ;
 %
 % Here, a and b can be *arbitrary large* integers
 asserted procedure mod_euclid(a: Integer, b: Integer): Integer;
-  if b = 0 then
+  if b = 0 or (null b) then
       a
   else
     mod_euclid(b, a mod b);

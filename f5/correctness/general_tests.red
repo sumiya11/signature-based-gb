@@ -209,7 +209,7 @@ system := {y^4 + x*y^2*z + x^2*h^2 - 2*x*y*h^2 + y^2*h^2 + z^2*h^2,
 
 % liu, regular? yes
 
-off f5integers;
+off f5fractionfree;
 
 vars := {x,y,z,t,a,h}$
 system := {y*z - y*t - x*h + a*h,

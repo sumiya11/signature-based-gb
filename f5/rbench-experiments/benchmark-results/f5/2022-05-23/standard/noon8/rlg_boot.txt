@@ -5,7 +5,7 @@ load_package f5;
 
 % noon-8 system in degrevlex
 
-off f5integers;
+off f5fractionfree;
 
 
 

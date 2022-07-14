@@ -203,8 +203,8 @@ asserted inline procedure core_getRuleTerm(r: RewriteRule): Term;
 % use `core_getBasisIdx`.
 %
 % It safe to assume that polynomials added to the current Basistracker
-% are normalized (either monic if f5integers if OFF,
-%                 or with unit content if f5integers is ON).
+% are normalized (either monic if f5fractionfree if OFF,
+%                 or with unit content if f5fractionfree is ON).
 
 % The initial size of the `polys` vector in the `Basistracker`.
 %
@@ -297,12 +297,12 @@ asserted procedure core_assocLeadCmp(pr1: DottedPair,
 asserted procedure core_constructModule(inputBasis: List): List;
    begin scalar outputModule;
          integer i;
-      % If f5integers is ON, then scale input polynomials, so that
+      % If f5fractionfree is ON, then scale input polynomials, so that
       % coefficients of input polynomials become integers
       % (!! assuming there are no parameters in the input)
-      if !*f5integers or !*f5modular then
-         inputBasis := for each poly in inputBasis
-                        collect poly_scaleDenominators(poly);
+      % if !*f5fractionfree or !*f5modular then
+      %    inputBasis := for each poly in inputBasis
+      %                   collect poly_scaleDenominators(poly);
       % Interreducing input basis is a heuristic. The idea it to produce
       % polynomials with disjoint leading terms after interreduction if possible.
       inputBasis := core_interreduceInput(inputBasis);
@@ -400,6 +400,8 @@ asserted procedure core_normalForm(f: Polynomial, Gprev: List,
       >> until not updated;
       return updatedToreturn . f
    end;
+
+trst core_normalForm;
 
 % Same as the above, but all possible reducers are
 % already stored in the list `reducers` as Polynomial objects.
@@ -589,7 +591,7 @@ asserted procedure core_filterRedundant(Gprev: List, r: Basistracker): List;
    end;
 
 % Normalizes each generator in the given `basis`.
-% If f5integers is OFF, then each polynomial
+% If f5fractionfree is OFF, then each polynomial
 % in the basis is divided by its leading coeff;
 % Otherwise, this divides each polynomial in
 % the basis by the content.
@@ -604,11 +606,11 @@ asserted procedure core_normalizeBasis(basis: List): List;
 asserted procedure core_standardizeOutput(basis: List): List;
    begin scalar normalizedBasis;
       normalizedBasis := core_normalizeBasis(basis);
-      % Our coefficients are integers if f5integers is ON, so
+      % Our coefficients are integers if f5fractionfree is ON, so
       % we transform each coefficient back to a Standard Quotient
-      if !*f5integers then
-         for each poly in normalizedBasis do
-            lp_setEval(poly, poly_int2sqCoeffs(lp_eval(poly)));
+      % if !*f5fractionfree then
+      %    for each poly in normalizedBasis do
+      %       lp_setEval(poly, poly_int2sqCoeffs(lp_eval(poly)));
       return sort(normalizedBasis, 'lp_cmpLPLeadReverse)
    end;
 
@@ -1103,6 +1105,10 @@ asserted procedure core_groebner1(basis: List): List;
    end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+trst core_standardizeOutput;
+trst core_groebner1;
+trst core_constructModule;
 
 endmodule;  % end of module f5core
 

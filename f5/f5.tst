@@ -1,7 +1,21 @@
 % Simple correctness tests of f5
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Term order checks
+% Different ground fields
+
+% Computation in Q[x, y]
+f5({x^2*y - 10x + 5, 3y^2 + 4x + 7});
+
+% Computation in Z/7[x, y]
+setmod 7;
+on modular;
+f5({x^2*y - 10x + 5, 3y^2 + 4x + 6});
+
+% Computation in Q(a,b,c,d,e)[x, y]
+f5({x^2*y - a*x + b, c*y^2 + d*x + e}, {x, y}, lex);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Different term orders
 
 % Without torder:
 
@@ -41,6 +55,59 @@ f5({x + y^4 + z^3});
 % f5({x + y^2 + z^3});
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Different switches combinations: pairwise interactions
+
+% f5interreduce X f5fractionfree
+off f5fractionfree;
+off f5interreduce;
+f5({3x + 5y^2, 2y + 1});
+% expected    
+%       5   2      1
+% {x + ---*y ,y + ---}
+%       3          2
+
+f5({a*x + b*y^2, c*y + a^2*d}, {x, y}, lex);
+% expected
+%                   2
+%       b   2      a *d
+% {x + ---*y ,y + ------}
+%       a           c
+
+on f5interreduce;
+f5({3x + 5y^2, 2y + 1});
+% expected
+%       5        1
+% {x + ----,y + ---}
+%       12       2
+
+f5({a*x + b*y^2, c*y + a^2*d}, {x, y}, lex);
+% expected
+%       3    2        2
+%      a *b*d        a *d
+% {x + ---------,y + ------}
+%          2           c
+%         c
+
+on f5fractionfree;
+f5({3x + 5y^2, 2y + 1});
+% expected
+% {12*x + 5,2*y + 1}
+
+f5({a*x + b*y^2, c*y + a^2*d}, {x, y}, lex);
+
+off f5interreduce;
+f5({3x  + 5y^2, 2y + 1});
+% expected
+%           2
+% {3*x + 5*y ,2*y + 1}
+
+f5({a*x + b*y^2, c*y + a^2*d}, {x, y}, lex);
+
+f5({c*y + d}, {x, y}, lex);
+
+% f5modular X f5certify
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sanity checks
 
 torder({x1}, lex);
@@ -73,7 +140,7 @@ noon3 := {10*x1*x2^2 + 10*x1*x3^2 - 11*x1 + 10,
 f5(noon3, {x1, x2, x3}, revgradlex);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Tests for different combinations of switches
+% More tests for some combinations of switches
 
 f5({5x1 + x2, x1*x2 + 1}, {x1, x2}, lex);
 

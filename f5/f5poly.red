@@ -26,7 +26,7 @@ module f5poly;
 %
 % For example, xy^2 + 3x is stored as
 %   {'p, {{3, 1, 2}, {1, 1, 0}}, {1, 3}, 3}
-% if f5integers is ON. It is stored as
+% if f5fractionfree is ON. It is stored as
 %   {'p, {{3, 1, 2}, {1, 1, 0}}, {1 ./ 1, 3 ./ 1}, 3}
 % otherwise (using SQ).
 %
@@ -125,9 +125,33 @@ asserted procedure poly_f2poly1(u: SF, ev: List, bc: Coeff): Polynomial;
   else
      poly_sumPoly(poly_f2poly2(mvar u,ldeg u,lc u,ev,bc), poly_f2poly1(red u,ev,bc));
 
+asserted procedure poly_isPolyVar(var): Boolean;
+   begin scalar vars;
+      vars := global!-dipvars!*;
+      while vars and not (car vars eq var) do
+         vars := cdr vars;
+      return not null vars
+   end;
+
+% return var^deg in SQ (if f5fractionfree is OFF) or SF (if f5fractionfree is ON) 
+asserted inline procedure poly_groundCoeff(var, deg);
+   if not !*f5fractionfree then
+      ((((var . deg) . 1) . nil) ./ 1)
+   else
+      (((var . deg) . 1) . nil);
+
 % Conversion to Polynomial: multiply leading power either into exponent vector
 asserted procedure poly_f2poly2(var,dg,c,ev,bc): Polynomial;
-   poly_f2poly1(c,poly_insertExp(ev, var, dg, cdr global!-dipvars!*), bc);
+   if poly_isPolyVar(var) then 
+      poly_f2poly1(c,poly_insertExp(ev, var, dg, cdr global!-dipvars!*), bc)
+   else <<
+      prin2t bc;
+      prin2t poly_groundCoeff(var, dg);
+      prin2t poly_mulCoeff(bc, poly_groundCoeff(var, dg));
+      poly_f2poly1(c, ev, poly_mulCoeff(bc, poly_groundCoeff(var, dg))) >>;
+
+trst poly_f2poly1;
+trst poly_f2poly2;
 
 % Returns prefix equivalent to the sum of elements of u
 asserted procedure poly_replus(u: List): List;
@@ -155,6 +179,8 @@ asserted procedure poly_2a1(u: Polynomial): List;
       >>;
       return poly_retimes(poly_2aCoeff x . y) . poly_2a1 poly_tail(u)
    end;
+
+trst poly_2a1;
 
 % Returns prefix equivalent to the Polynomial f.
 asserted procedure poly_2a(f: Polynomial): List;
@@ -378,15 +404,15 @@ asserted inline procedure poly_length(poly: Polynomial): Integer;
 asserted inline procedure poly_iszeroCoeff!?(a: Coeff): Boolean;
    if !*f5modular then
       a #= 0
-   else if !*f5integers then
-      a = 0
+   else if !*f5fractionfree then
+      a = 0 or (not a)
    else
       numr(a) = 0 or (not numr(a));
 
 asserted inline procedure poly_isoneCoeff!?(a: Coeff): Boolean;
    if !*f5modular then
       a #= 1
-   else if !*f5integers then
+   else if !*f5fractionfree then
       a = 1
    else
       eqn(numr(a), 1) and eqn(denr(a), 1);
@@ -394,71 +420,78 @@ asserted inline procedure poly_isoneCoeff!?(a: Coeff): Boolean;
 asserted inline procedure poly_zeroCoeff(): Coeff;
    poly_2Coeff(0);
 
-asserted inline procedure poly_oneCoeff(): Coeff;
+asserted procedure poly_oneCoeff(): Coeff;
    poly_2Coeff(1);
+
+trst poly_oneCoeff;
 
 asserted inline procedure poly_2Coeff(c: Any): Coeff;
    if !*f5modular then
       modular!-number(1)
-   else if !*f5integers then
+   else if !*f5fractionfree then
       c
    else
       c ./ 1;
 
 asserted inline procedure poly_2aCoeff(c: Coeff);
-   prepsq c;
+   if !*f5modular then
+      1
+   else if !*f5fractionfree then
+      prepf c
+   else
+      prepsq c;
 
 asserted inline procedure poly_addCoeff(a: Coeff, b: Coeff): Coeff;
    if !*f5modular then
       modular!-plus(a, b)
-   else if !*f5integers then
-     a + b
+   else if !*f5fractionfree then
+      addf(a, b)
    else
       addsq(a, b);
 
 asserted inline procedure poly_subCoeff(a: Coeff, b: Coeff): Coeff;
    if !*f5modular then
       modular!-sub(a, b)
-   else if !*f5integers then
-      a - b
+   else if !*f5fractionfree then
+      addf(a, negf b)
    else
-      subsq(a, b);
+      subtrsq(a, b);
 
 asserted inline procedure poly_mulCoeff(a: Coeff, b: Coeff): Coeff;
    if !*f5modular then
       modular!-times(a, b)
-   else if !*f5integers then
-      a * b
+   else if !*f5fractionfree then
+      multf(a, b)
    else
       multsq(a, b);
 
 asserted inline procedure poly_negCoeff(a: Coeff): Coeff;
    if !*f5modular then
       modular!-minus(a)
-   else if !*f5integers then
-      - a
+   else if !*f5fractionfree then
+      negf(a)
    else
       negsq(a);
 
 asserted inline procedure poly_isNegCoeff!?(a: Coeff): Boolean;
-   if !*f5integers then
-      a < 0
+   if !*f5fractionfree then
+      minusf(a)
    else
       minusf numr a;
 
 asserted inline procedure poly_divCoeff(a: Coeff, b: Coeff): Coeff;
    if !*f5modular then
       modular!-quotient(a, b)
-   else if !*f5integers then
-      a / b
+   else if !*f5fractionfree then
+      quotfx(a, b)
    else
       quotsq(a, b);
 
 asserted inline procedure poly_invCoeff(a: Coeff): Coeff;
    if !*f5modular then
       modular!-reciprocal(a)
-   else if !*f5integers then
-      rederr "*****  Trying to take an inverse with f5integers ON."
+   else if !*f5fractionfree then
+      rederr "*****  Trying to take an inverse with f5fractionfree ON."
    else <<
       % ASSERT(not null numr a);
       denr(a) ./ numr(a)
@@ -502,10 +535,14 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
       fcoeffs := poly_getCoeffs(f);
       gterms  := poly_getTerms(g);
       gcoeffs := poly_getCoeffs(g);
-      gmultcoeff := poly_negCoeff(fcoeff);
+      gmultcoeff := fcoeff;
+      fmultcoeff := poly_leadCoeff(g);
       % identity check is 1 car and 1 comparison
       isOneFmult := poly_isIdentityTerm!?(fmult);
       isOneGmult := poly_isIdentityTerm!?(gmult);
+      % identity check is 1 comparison
+      isOneFmultCf := poly_isoneCoeff!?(fmultcoeff);
+      isOneGmultCf := poly_isoneCoeff!?(gmultcoeff);
       % Merge two sorted lists: fterms and gterms, multiplied by fmult and gmult, respectively.
       % Merge in the same order two other lists:
       % fcoeffs and gcoeffs, multiplied by gmultcoeff and fmultcoeff, respectively.
@@ -530,14 +567,27 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
          % Optimization: return -1,0,1 just as C comparator;
          if poly_cmpTerm(gt, ft) then <<   % if term gt < term ft
             push(ft, sterms);
-            push(car fcoeffs, scoeffs);
+            if isOneFmultCf then
+               push(car fcoeffs, scoeffs)
+            else
+               push(poly_mulCoeff(fmultcoeff, car fcoeffs), scoeffs);
             pop(fterms); pop(fcoeffs);
             ft := nil
          >> else if poly_eqTerm!?(gt, ft) then <<  % if term gt = term ft
-            fc := car fcoeffs;
-            gc := poly_mulCoeff(car gcoeffs, gmultcoeff);
-            newc := poly_addCoeff(fc, gc);
+            prin2t {"UWU", gt, ft};
+            fc := if isOneFmultCf then
+               car fcoeffs
+            else
+               poly_mulCoeff(car fcoeffs, fmultcoeff);
+            gc := if isOneGmultCf then
+               car gcoeffs
+            else
+               poly_mulCoeff(car gcoeffs, gmultcoeff);
+            prin2t {"owo", fc, gc};
+            newc := poly_subCoeff(fc, gc);
+            prin2t {"rur", newc};
             if not poly_iszeroCoeff!?(newc) then <<
+               prin2t {"zero"};
                push(gt, sterms);
                push(newc, scoeffs)
             >>;
@@ -547,7 +597,10 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
             ft := nil
          >> else <<   % if term gt > term ft
             push(gt, sterms);
-            push(poly_mulCoeff(car gcoeffs, gmultcoeff), scoeffs);
+            if isOneGmultCf then
+               push(poly_negCoeff(car gcoeffs), scoeffs)
+            else
+               push(poly_negCoeff(poly_mulCoeff(car gcoeffs, gmultcoeff)), scoeffs);
             pop(gterms); pop(gcoeffs);
             gt := nil
          >>
@@ -566,8 +619,8 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
             sterms := reversip(sterms)
          >>;
          while gcoeffs do
-            push(poly_mulCoeff(pop(gcoeffs), gmultcoeff), scoeffs);
-         scoeffs := reversip(scoeffs);
+            push(poly_negCoeff(poly_mulCoeff(pop(gcoeffs), gmultcoeff)), scoeffs);
+         scoeffs := reversip(scoeffs)
       >>;
       % Merge what is left from fterms and fcoeffs
       if not null fterms then <<
@@ -578,12 +631,16 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
                push(poly_mulTerm(pop(fterms), fmult), sterms);
             sterms := reversip(sterms)
          >>;
-         scoeffs := nconc(reversip scoeffs, fcoeffs)
+         while fcoeffs do
+            push(poly_mulCoeff(pop(fcoeffs), fmultcoeff), scoeffs);
+         scoeffs := reversip(scoeffs)
       >>;
       sugar := max(poly_getSugar(f) + poly_totalDegTerm(fmult),
                         poly_getSugar(g) + poly_totalDegTerm(gmult));
       return poly_PolynomialWithSugar(sterms, scoeffs, sugar)
    end;
+
+trst poly_paircomb;
 
 % for history
 procedure copyList(l);
@@ -605,12 +662,12 @@ procedure copyList(l);
   end;
 
 % Constructs a new polynomial as a copy of `poly` with normalized coefficients.
-% If !*f5integers is ON, this will divide all coefficients by the content of `poly`
+% If !*f5fractionfree is ON, this will divide all coefficients by the content of `poly`
 % (resulting in a polynomial with unit content).
 % Otherwise, this will divide all coefficient by the leading coefficient of `poly`.
 % (resulting in a monic polynomial).
 asserted procedure poly_normalize(poly: Polynomial): Polynomial;
-   if !*f5integers then
+   if !*f5fractionfree then
       poly_normalizeByContent(poly)
    else
       poly_normalizeByLead(poly);
@@ -621,8 +678,8 @@ asserted procedure poly_normalizeByContent(poly: Polynomial): Polynomial;
    begin scalar newcoeffs, cnt;
       cnt := poly_content(poly);
       % The leading coefficient will be positive after division
-      if poly_leadCoeff(poly) < 0 then
-         cnt := -cnt;
+      if minusf(poly_leadCoeff(poly)) then
+         cnt := negf(cnt);
       newcoeffs := for each cf in poly_getCoeffs(poly)
          collect poly_divCoeff(cf, cnt);
       return poly_PolynomialWithSugar(poly_getTerms(poly), newcoeffs, poly_getSugar(poly))
@@ -646,7 +703,14 @@ asserted procedure poly_normalizeByLead(poly: Polynomial): Polynomial;
 % High level functions: Spolynomial computation and reduction
 
 asserted inline procedure poly_sumPoly(f: Polynomial, g: Polynomial): Polynomial;
-   poly_paircomb(f, poly_identityTerm(), poly_negCoeff(poly_oneCoeff()), g, poly_identityTerm());
+   if poly_iszero!?(f) then
+      g
+   else if poly_iszero!?(g) then
+      f
+   else if !*f5fractionfree then
+      poly_paircomb(f, poly_identityTerm(), poly_negCoeff(poly_leadCoeff(g)), g, poly_identityTerm())
+   else
+      poly_paircomb(f, poly_identityTerm(), poly_negCoeff(poly_leadCoeff(g)), g, poly_identityTerm());
 
 % Computes S-polynomial of f and g
 asserted procedure poly_spoly(f: Polynomial, g: Polynomial): Polynomial;
@@ -754,6 +818,8 @@ asserted procedure poly_scaleDenominators(f: Polynomial): Polynomial;
       return poly_PolynomialWithSugar(poly_getTerms(f), reversip(newcoeffs), poly_getSugar(f))
    end;
 
+trst poly_scaleDenominators;
+
 % Reduces coefficients of `f` by the given `prime`
 asserted procedure poly_reduceCoeffs(f: Polynomial, prime: Integer): Polynomial;
    begin scalar fcoeffs, newcoeffs, c;
@@ -829,5 +895,7 @@ asserted procedure poly_ithVariable(idx: Integer, deg: Integer): Term;
          collect if x = idx then deg else 0;
 
 endmodule;  % end of module f5poly
+
+trst poly_normalize;
 
 end;  % of file

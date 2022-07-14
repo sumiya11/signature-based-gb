@@ -58,7 +58,7 @@ fluid '(vdpsortmode!*);
 
 % Currently, there are three switches available, these are described below
 % . f5interreduce (default is OFF)
-% . f5integers   (default is OFF)
+% . f5fractionfree   (default is OFF)
 % . f5statistics (default is OFF)
 
 % f5interreduce - If the output basis should be fully interreduced.
@@ -83,30 +83,29 @@ fluid '(vdpsortmode!*);
 switch f5interreduce;
 off1 'f5interreduce;
 
-% Not exported, not documented;
-% f5integers - If this is ON, then coefficients of polynomials
+% f5fractionfree - If this is ON, then coefficients of polynomials
 %              in the output basis have denominator 1, and the numerator
 %              parts have unit gcd within one polynomial.
 %              Otherwise, each polynomial in the output is monic.
 %              Is OFF by default.
 %
-%              Currently, f5integers ON assumes there are no parameters
+%              Currently, f5fractionfree ON assumes there are no parameters
 %              in input coefficients.
 %
 % For example,
-%  > off f5integers;
+%  > off f5fractionfree;
 %  > f5({5x + y, 2x + 1}, {x, y}, lex);
 %          1       5
 %    {x + ---,y - ---}
 %          2       2
 %
-%  > on f5integers;
+%  > on f5fractionfree;
 %  > f5({5x + y, 2x + 1}, {x, y}, lex);
 %
 %    {2*x + 1,2*y - 5}
 %
-switch f5integers;
-off1 'f5integers;
+switch f5fractionfree;
+off1 'f5fractionfree;
 
 % f5sugar - If ON, sugar selection strategy is used;
 %           otherwise, uses normal selection strategy.
@@ -137,7 +136,7 @@ off1 'f5statistics;
 
 % Not exported, not documented;
 % Currently, f5modular is not available as an option mainly for two reasons:
-%  1. f5modular is not compatible with f5integers;
+%  1. f5modular is not compatible with f5fractionfree;
 %  2. computation with f5modular can be slower for some examples.
 %
 % f5modular - If f5 should use modular algorithms during computation.
@@ -303,6 +302,9 @@ asserted procedure f5_argumentError();
           > torder({x, y, z}, lex);
           > f5({x*y + 1, y*z + 1});
           ";
+
+trst f5_groebner;
+trst f5_groebner1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

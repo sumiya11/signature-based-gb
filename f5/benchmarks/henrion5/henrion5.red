@@ -3,7 +3,7 @@ load_package f5;
 
 % noon-4 system in degrevlex
 
-off f5integers;
+off f5fractionfree;
 
 system := {
 2*f1*f2*f3*f4*f5-9823275,
