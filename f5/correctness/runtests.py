@@ -70,6 +70,23 @@ def runtests_f5(upd):
 
     return report
 
+def runtests_moref5(upd):
+    p = subprocess.run([REDUCE, ARG2, ARG1.format("moref5_tests")],
+                        capture_output=True,
+                        shell=False)
+
+    output = p.stdout.decode()
+
+    if upd:
+        with open("moref5correct.rlg", 'w') as correctfile:
+            correctfile.write(output)
+
+    with open("moref5correct.rlg", 'r') as correctfile:
+        correct = correctfile.read()
+
+    report = compare_output(output, correct)
+
+    return report
 
 def runtests_mod(upd):
     p = subprocess.run([REDUCE, ARG1.format("modular_tests")],
@@ -108,11 +125,21 @@ def runtests_regression(upd):
 
 def main(argv):
 
+    
     upd = "-upd" in argv
 
-    if "-f5" in argv:
+    if '-h' in argv or '--help' in argv:
+        print("runtests.py usage:\n\t-upd to update results\n\t-moref5 to run more f5 tests\n\t-mod to run modular tests")
+
+    if  "-f5" in argv:
         print("Running F5 tests..")
         report = runtests_f5(upd)
+        print(report)
+        print("------------------------")
+
+    if  "-moref5" in argv:
+        print("Running more F5 tests..")
+        report = runtests_moref5(upd)
         print(report)
         print("------------------------")
 
@@ -125,6 +152,7 @@ def main(argv):
     print("Running regression tests..")
     report = runtests_regression(upd)
     print(report)
+    print("------------------------")
 
 if __name__ == '__main__':
     main(sys.argv)

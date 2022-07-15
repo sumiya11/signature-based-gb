@@ -144,14 +144,8 @@ asserted inline procedure poly_groundCoeff(var, deg);
 asserted procedure poly_f2poly2(var,dg,c,ev,bc): Polynomial;
    if poly_isPolyVar(var) then 
       poly_f2poly1(c,poly_insertExp(ev, var, dg, cdr global!-dipvars!*), bc)
-   else <<
-      prin2t bc;
-      prin2t poly_groundCoeff(var, dg);
-      prin2t poly_mulCoeff(bc, poly_groundCoeff(var, dg));
-      poly_f2poly1(c, ev, poly_mulCoeff(bc, poly_groundCoeff(var, dg))) >>;
-
-trst poly_f2poly1;
-trst poly_f2poly2;
+   else
+      poly_f2poly1(c, ev, poly_mulCoeff(bc, poly_groundCoeff(var, dg)));
 
 % Returns prefix equivalent to the sum of elements of u
 asserted procedure poly_replus(u: List): List;
@@ -179,8 +173,6 @@ asserted procedure poly_2a1(u: Polynomial): List;
       >>;
       return poly_retimes(poly_2aCoeff x . y) . poly_2a1 poly_tail(u)
    end;
-
-trst poly_2a1;
 
 % Returns prefix equivalent to the Polynomial f.
 asserted procedure poly_2a(f: Polynomial): List;
@@ -402,17 +394,13 @@ asserted inline procedure poly_length(poly: Polynomial): Integer;
 %%%%%%%% ADAPTIVE COEFFICIENT ARITHMETIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 asserted inline procedure poly_iszeroCoeff!?(a: Coeff): Boolean;
-   if !*f5modular then
-      a #= 0
-   else if !*f5fractionfree then
+   if !*f5fractionfree then
       a = 0 or (not a)
    else
       numr(a) = 0 or (not numr(a));
 
 asserted inline procedure poly_isoneCoeff!?(a: Coeff): Boolean;
-   if !*f5modular then
-      a #= 1
-   else if !*f5fractionfree then
+   if !*f5fractionfree then
       a = 1
    else
       eqn(numr(a), 1) and eqn(denr(a), 1);
@@ -420,55 +408,41 @@ asserted inline procedure poly_isoneCoeff!?(a: Coeff): Boolean;
 asserted inline procedure poly_zeroCoeff(): Coeff;
    poly_2Coeff(0);
 
-asserted procedure poly_oneCoeff(): Coeff;
+asserted inline procedure poly_oneCoeff(): Coeff;
    poly_2Coeff(1);
 
-trst poly_oneCoeff;
-
 asserted inline procedure poly_2Coeff(c: Any): Coeff;
-   if !*f5modular then
-      modular!-number(1)
-   else if !*f5fractionfree then
+   if !*f5fractionfree then
       c
    else
       c ./ 1;
 
 asserted inline procedure poly_2aCoeff(c: Coeff);
-   if !*f5modular then
-      1
-   else if !*f5fractionfree then
+   if !*f5fractionfree then
       prepf c
    else
       prepsq c;
 
 asserted inline procedure poly_addCoeff(a: Coeff, b: Coeff): Coeff;
-   if !*f5modular then
-      modular!-plus(a, b)
-   else if !*f5fractionfree then
+   if !*f5fractionfree then
       addf(a, b)
    else
       addsq(a, b);
 
 asserted inline procedure poly_subCoeff(a: Coeff, b: Coeff): Coeff;
-   if !*f5modular then
-      modular!-sub(a, b)
-   else if !*f5fractionfree then
+   if !*f5fractionfree then
       addf(a, negf b)
    else
       subtrsq(a, b);
 
 asserted inline procedure poly_mulCoeff(a: Coeff, b: Coeff): Coeff;
-   if !*f5modular then
-      modular!-times(a, b)
-   else if !*f5fractionfree then
+   if !*f5fractionfree then
       multf(a, b)
    else
       multsq(a, b);
 
 asserted inline procedure poly_negCoeff(a: Coeff): Coeff;
-   if !*f5modular then
-      modular!-minus(a)
-   else if !*f5fractionfree then
+   if !*f5fractionfree then
       negf(a)
    else
       negsq(a);
@@ -480,17 +454,13 @@ asserted inline procedure poly_isNegCoeff!?(a: Coeff): Boolean;
       minusf numr a;
 
 asserted inline procedure poly_divCoeff(a: Coeff, b: Coeff): Coeff;
-   if !*f5modular then
-      modular!-quotient(a, b)
-   else if !*f5fractionfree then
+   if !*f5fractionfree then
       quotfx(a, b)
    else
       quotsq(a, b);
 
 asserted inline procedure poly_invCoeff(a: Coeff): Coeff;
-   if !*f5modular then
-      modular!-reciprocal(a)
-   else if !*f5fractionfree then
+   if !*f5fractionfree then
       rederr "*****  Trying to take an inverse with f5fractionfree ON."
    else <<
       % ASSERT(not null numr a);
@@ -519,7 +489,8 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
                                  fcoeff: Coeff, g: Polynomial,
                                  gmult: Term): Polynomial;
    begin scalar fterms, fcoeffs, gterms, gcoeffs, gmultcoeff, isOneFmult,
-                sterms, scoeffs, ft, gt, fc, gc, newc, sugar, isOneGmult;
+                sterms, scoeffs, ft, gt, fc, gc, newc, sugar, isOneGmult,
+                isOneFmultCf, isOneGmultCf, fmultcoeff;
       % We return s, a new polynomial,
       % constructed as s = gcoeff*fmult*f - fcoeff*gmult*g.
       % We form two lists, sterms and scoeffs, which would be the list of
@@ -531,6 +502,8 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
       % by merging the list of coefficients of f each multiplied by fmultcoeff,
       % with the list of coefficients of g each multiplied by gmultcoeff,
       % in the same merge order as for the terms.
+      if poly_iszero!?(g) then
+         return f;
       fterms  := poly_getTerms(f);
       fcoeffs := poly_getCoeffs(f);
       gterms  := poly_getTerms(g);
@@ -639,8 +612,6 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
                         poly_getSugar(g) + poly_totalDegTerm(gmult));
       return poly_PolynomialWithSugar(sterms, scoeffs, sugar)
    end;
-
-trst poly_paircomb;
 
 % for history
 procedure copyList(l);
@@ -800,9 +771,9 @@ asserted procedure poly_content(f: Polynomial): Integer;
       cnt := poly_leadCoeff(f);
       fcoeffs := poly_tailCoeffs(f);
       while fcoeffs do <<
-         cnt := mod_euclid(cnt, pop(fcoeffs))
+         cnt := gcdf(cnt, pop(fcoeffs))
       >>;
-      return abs(cnt)
+      return if minusf(cnt) then negf(cnt) else cnt
    end;
 
 % Constructs a new polynomial in the following way:
@@ -817,8 +788,6 @@ asserted procedure poly_scaleDenominators(f: Polynomial): Polynomial;
       >>;
       return poly_PolynomialWithSugar(poly_getTerms(f), reversip(newcoeffs), poly_getSugar(f))
    end;
-
-trst poly_scaleDenominators;
 
 % Reduces coefficients of `f` by the given `prime`
 asserted procedure poly_reduceCoeffs(f: Polynomial, prime: Integer): Polynomial;
@@ -895,7 +864,5 @@ asserted procedure poly_ithVariable(idx: Integer, deg: Integer): Term;
          collect if x = idx then deg else 0;
 
 endmodule;  % end of module f5poly
-
-trst poly_normalize;
 
 end;  % of file

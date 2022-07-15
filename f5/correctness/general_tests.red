@@ -3,8 +3,6 @@ load_package f5;
 
 on f5interreduce;
 
-load_package dipoly;
-
 procedure errorMessage(system);
   {"Wrong Answer", system};
 

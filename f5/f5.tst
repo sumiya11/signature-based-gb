@@ -10,9 +10,16 @@ f5({x^2*y - 10x + 5, 3y^2 + 4x + 7});
 setmod 7;
 on modular;
 f5({x^2*y - 10x + 5, 3y^2 + 4x + 6});
+off modular;
 
 % Computation in Q(a,b,c,d,e)[x, y]
 f5({x^2*y - a*x + b, c*y^2 + d*x + e}, {x, y}, lex);
+
+% Computation in Z/5(a,b)[x, y]
+setmod 5;
+on modular;
+f5({x^2*y - 4*a*b*x + 8, y^2 + a*x + 1}, {x, y}, lex);
+off modular;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Different term orders
@@ -94,6 +101,9 @@ f5({3x + 5y^2, 2y + 1});
 % {12*x + 5,2*y + 1}
 
 f5({a*x + b*y^2, c*y + a^2*d}, {x, y}, lex);
+% expected
+%   2      3    2        2
+% {c *x + a *b*d ,c*y + a *d}
 
 off f5interreduce;
 f5({3x  + 5y^2, 2y + 1});
@@ -102,10 +112,26 @@ f5({3x  + 5y^2, 2y + 1});
 % {3*x + 5*y ,2*y + 1}
 
 f5({a*x + b*y^2, c*y + a^2*d}, {x, y}, lex);
+% expected
+%           2        2
+% {a*x + b*y ,c*y + a *d}
 
-f5({c*y + d}, {x, y}, lex);
+f5({10*a^5 - 5*a^10*x^2}, {x}, lex);
+% expected 
+%   5  2
+% {a *x  - 2}
 
-% f5modular X f5certify
+% f5fractionfree X on modular
+% works, but output polynomials are not normalized
+setmod 7;
+on modular;
+f5({3x + 3});
+% currently prints {2*x + 2}
+off modular;
+
+f5({a/b*x + c/d}, {x}, lex);
+% expected
+% {(a*d)*x + b*c}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sanity checks

@@ -28,6 +28,27 @@ module f5mod;
 % Using small modular arithmetic backend from smallmod
 load!-package 'smallmod;
 
+% Not exported, not documented;
+% Currently, f5modular is not available as an option mainly for two reasons:
+%  1. f5modular is not compatible with f5fractionfree;
+%  2. computation with f5modular can be slower for some examples.
+%
+% f5modular - If f5 should use modular algorithms during computation.
+%             Is set OFF by default, so all arithmetic operations
+%             take place in the original coefficient domain.
+%
+%             Currently, f5modular ON assumes there are no parameters
+%             in input coefficients.
+switch f5modular;
+off1 'f5modular;
+
+% Not exported, not documented;
+% f5certify - If f5 should certify the correctness of result
+%             during modular computation (when f5modular is ON).
+%             Is OFF dy default.
+switch f5certify;
+off1 'f5certify;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%% MODULAR CORRECTNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -161,6 +182,8 @@ asserted procedure mod_groebnerModular1(inputBasis: List): List;
     % now all denominators are 1 and coefficients are actually "big" integers
     % in a sense that it's not safe to use machine arithmetic.
 
+    prin2t {"Int basis", integerBasis};
+
     % this basis will store accumulated coefficients
     % from all previous CRT calls
     accumBasis := nil;
@@ -184,6 +207,11 @@ asserted procedure mod_groebnerModular1(inputBasis: List): List;
     >>;
     return reconstructedBasis
   end;
+
+trst mod_crtReconstruction;
+trst mod_rationalReconstruction;
+trst mod_correctnessCheck;
+trst mod_groebnerModular1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% RECONSTRUCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

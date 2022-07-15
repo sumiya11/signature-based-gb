@@ -297,12 +297,6 @@ asserted procedure core_assocLeadCmp(pr1: DottedPair,
 asserted procedure core_constructModule(inputBasis: List): List;
    begin scalar outputModule;
          integer i;
-      % If f5fractionfree is ON, then scale input polynomials, so that
-      % coefficients of input polynomials become integers
-      % (!! assuming there are no parameters in the input)
-      % if !*f5fractionfree or !*f5modular then
-      %    inputBasis := for each poly in inputBasis
-      %                   collect poly_scaleDenominators(poly);
       % Interreducing input basis is a heuristic. The idea it to produce
       % polynomials with disjoint leading terms after interreduction if possible.
       inputBasis := core_interreduceInput(inputBasis);
@@ -1105,10 +1099,6 @@ asserted procedure core_groebner1(basis: List): List;
    end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-trst core_standardizeOutput;
-trst core_groebner1;
-trst core_constructModule;
 
 endmodule;  % end of module f5core
 

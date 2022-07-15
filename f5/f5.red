@@ -46,9 +46,8 @@ module f5;
 % The f5stat allows recording and printing useful statistics
 % for each f5 call.
 %
-% f5mod, f5primes implement modular arithmetic, which is not used at the moment.
 % Other files in the directory implement experimental algorithms and are not documented
-create!-package('(f5 f5core f5lp f5poly f5primes f5mod f5stat), nil);
+create!-package('(f5 f5core f5lp f5poly f5stat), nil);
 
 fluid '(!*backtrace);
 
@@ -57,41 +56,16 @@ fluid '(global!-dipvars!*);
 fluid '(vdpsortmode!*);
 
 % Currently, there are three switches available, these are described below
-% . f5interreduce (default is OFF)
-% . f5fractionfree   (default is OFF)
+% . f5fractionfree (default is OFF)
+% . f5interreduce  (default is OFF)
 % . f5statistics (default is OFF)
-
-% f5interreduce - If the output basis should be fully interreduced.
-%                If this is ON, each generator in the output basis is
-%                in the normal form with respect to other generators.
-%                Otherwise, only head terms of polynomials in the basis
-%                are reduced (and the size of the basis is minimal).
-%                Is OFF by default.
-%                Generally, f5 with f5interreduce ON is considerably slower.
-%
-%  For example,
-%  > off f5interreduce;
-%  > f5({x^2 + x + y, x*y + y, x^3 + x}, {x, y}, lex);
-%
-%    {x + y,y}
-%
-%  > on f5interreduce;
-%  > f5({x^2 + x + y, x*y + y, x^3 + x}, {x, y}, lex);
-%
-%    {x,y}
-%
-switch f5interreduce;
-off1 'f5interreduce;
+% . f5sugar (default is ON)
+% . f5usef5c (default is OFF)
 
 % f5fractionfree - If this is ON, then coefficients of polynomials
-%              in the output basis have denominator 1, and the numerator
-%              parts have unit gcd within one polynomial.
+%              in the output basis do not contain fractions.
 %              Otherwise, each polynomial in the output is monic.
 %              Is OFF by default.
-%
-%              Currently, f5fractionfree ON assumes there are no parameters
-%              in input coefficients.
-%
 % For example,
 %  > off f5fractionfree;
 %  > f5({5x + y, 2x + 1}, {x, y}, lex);
@@ -107,23 +81,29 @@ off1 'f5interreduce;
 switch f5fractionfree;
 off1 'f5fractionfree;
 
-% f5sugar - If ON, sugar selection strategy is used;
-%           otherwise, uses normal selection strategy.
-%              https://doi.org/10.1145/120694.120701
-%           ON by default.
-switch f5sugar;
-on1 'f5sugar;
-
-% Not exported, not documented;
-% f5usef5c - If ON, the F5C algorithm is used in f5:
-%              https://doi.org/10.1016%2Fj.jsc.2010.06.019
-%            Otherwise, does not interreduce intermediate bases.
-%            Default option is OFF.
-switch f5usef5c;
-off1 'f5usef5c;
+% f5interreduce - If the output basis should be fully interreduced.
+%                If this is ON, each generator in the output basis is
+%                in the normal form with respect to other generators.
+%                Otherwise, only head terms of polynomials in the basis
+%                are reduced (and the size of the basis is minimal).
+%                Is OFF by default.
+%                Generally, f5 with f5interreduce ON is considerably slower.
+%  For example,
+%  > off f5interreduce;
+%  > f5({x^2 + x + y, x*y + y, x^3 + x}, {x, y}, lex);
+%
+%    {x + y,y}
+%
+%  > on f5interreduce;
+%  > f5({x^2 + x + y, x*y + y, x^3 + x}, {x, y}, lex);
+%
+%    {x,y}
+%
+switch f5interreduce;
+off1 'f5interreduce;
 
 % f5statistics - If this is ON, collects and prints the following statistics
-%                after each f5 call:
+%                with each call to f5:
 %                 the number of polynomials reduced,
 %                 the number of polynomials reduced to zero,
 %                 the number of calls to normal form,
@@ -134,26 +114,19 @@ off1 'f5usef5c;
 switch f5statistics;
 off1 'f5statistics;
 
-% Not exported, not documented;
-% Currently, f5modular is not available as an option mainly for two reasons:
-%  1. f5modular is not compatible with f5fractionfree;
-%  2. computation with f5modular can be slower for some examples.
-%
-% f5modular - If f5 should use modular algorithms during computation.
-%             Is set OFF by default, so all arithmetic operations
-%             take place in the original coefficient domain.
-%
-%             Currently, f5modular ON assumes there are no parameters
-%             in input coefficients.
-switch f5modular;
-off1 'f5modular;
+% f5sugar - If ON, sugar selection strategy is used;
+%           otherwise, uses normal selection strategy.
+%              https://doi.org/10.1145/120694.120701
+%           Is ON by default.
+switch f5sugar;
+on1 'f5sugar;
 
-% Not exported, not documented;
-% f5certify - If f5 should certify the correctness of result
-%             during modular computation (when f5modular is ON).
-%             Is OFF dy default.
-switch f5certify;
-off1 'f5certify;
+% f5usef5c - If OFF, the F5C algorithm is used in f5:
+%              https://doi.org/10.1016%2Fj.jsc.2010.06.019
+%            Otherwise, does not interreduce intermediate bases.
+%            Default option is OFF.
+switch f5usef5c;
+off1 'f5usef5c;
 
 % Assertions should be OFF in production.
 load!-package 'assert;
@@ -188,7 +161,7 @@ procedure f5_isSignature(x); eqcar(x, 'sgn);
 struct LabeledPolynomial checked by f5_isLabeledPolynomial;
 struct Signature checked by f5_isSignature;
 
-% interface implemented in f5primes.red
+% interface implemented in f5primes.red (not used currently)
 procedure f5_isPrimetracker(x); eqcar(x, 'pt);
 struct Primetracker checked by f5_isPrimetracker;
 
@@ -201,7 +174,6 @@ struct CriticalPair checked by f5_isCriticalPair;
 struct RewriteRule checked by f5_isRewriteRule;
 
 % interface implemented in f5univpol.red (not used currently)
-
 procedure f5_isMacaulayMatrix(x); eqcar(x, 'mm);
 struct MacaulayMatrix checked by f5_isMacaulayMatrix;
 procedure f5_isSparseVector(x); eqcar(x, 'sv);
@@ -216,8 +188,7 @@ struct SparseVector checked by f5_isSparseVector;
 %   These Polynomials are then passed to the `core_constructModule` function.
 % The `core_constructModule` cleans these polynomials a bit, converts each of
 % them to a `LabeledPolynomial` object, and outputs the list of LabeledPolynomials.
-%   These LabeledPolynomials are then passed to `core_groebner1` (if f5modular is OFF, default)
-% or to `mod_groebnerModular1` (if f5modular is ON). Both of those functions
+%   These LabeledPolynomials are then passed to `core_groebner1`. Both of those functions
 % return a list that contains a Groebner basis, and each generator in the basis
 % is represented as a `LabeledPolynomial`.
 %   Finally, each item in the Groebner basis list is converted to a Standard Form,
@@ -281,10 +252,7 @@ asserted procedure f5_groebner1(inputBasis: List): List;
       % elements of inputModule are `LabeledPolynomial`s
       inputModule := core_constructModule(inputBasis);
       % call the main groebner routine
-      if !*f5modular then
-         outputModule := mod_groebnerModular1(inputModule)
-      else
-         outputModule := core_groebner1(inputModule);
+      outputModule := core_groebner1(inputModule);
       % convert `LabeledPolynomial`s back to expressions
       outputModule := for each f in outputModule collect
          poly_2a lp_eval f;
@@ -302,9 +270,6 @@ asserted procedure f5_argumentError();
           > torder({x, y, z}, lex);
           > f5({x*y + 1, y*z + 1});
           ";
-
-trst f5_groebner;
-trst f5_groebner1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
