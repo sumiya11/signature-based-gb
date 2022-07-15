@@ -395,8 +395,6 @@ asserted procedure core_normalForm(f: Polynomial, Gprev: List,
       return updatedToreturn . f
    end;
 
-trst core_normalForm;
-
 % Same as the above, but all possible reducers are
 % already stored in the list `reducers` as Polynomial objects.
 asserted procedure core_normalFormReducers(f: Polynomial, reducers: List,

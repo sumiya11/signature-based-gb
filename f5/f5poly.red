@@ -470,8 +470,6 @@ asserted inline procedure poly_invCoeff(a: Coeff): Coeff;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% POLYNOMIAL LOW LEVEL OPERATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% This is the only section where polynomial coefficient arithmetic happens
-
 % Returns s = fmult*f - fcoeff*gmult*g
 %
 % !! Assuming the leading terms of `fmult*f` and `fcoeff*gmult*g`
@@ -492,7 +490,7 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
                 sterms, scoeffs, ft, gt, fc, gc, newc, sugar, isOneGmult,
                 isOneFmultCf, isOneGmultCf, fmultcoeff;
       % We return s, a new polynomial,
-      % constructed as s = gcoeff*fmult*f - fcoeff*gmult*g.
+      % constructed as s = fmultcoeff*fmult*f - gmultcoeff*gmult*g.
       % We form two lists, sterms and scoeffs, which would be the list of
       % terms and the list of coefficients of s.
       % The sterms list is formed by merging two sorted lists:
@@ -547,7 +545,6 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
             pop(fterms); pop(fcoeffs);
             ft := nil
          >> else if poly_eqTerm!?(gt, ft) then <<  % if term gt = term ft
-            prin2t {"UWU", gt, ft};
             fc := if isOneFmultCf then
                car fcoeffs
             else
@@ -556,11 +553,8 @@ asserted procedure poly_paircomb(f: Polynomial,  fmult: Term,
                car gcoeffs
             else
                poly_mulCoeff(car gcoeffs, gmultcoeff);
-            prin2t {"owo", fc, gc};
             newc := poly_subCoeff(fc, gc);
-            prin2t {"rur", newc};
             if not poly_iszeroCoeff!?(newc) then <<
-               prin2t {"zero"};
                push(gt, sterms);
                push(newc, scoeffs)
             >>;

@@ -181,6 +181,8 @@ struct SparseVector checked by f5_isSparseVector;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% {0} vs. {}
+
 % The main function that parses input arguments and calls the f5 routine
 %
 % First, if the format of the input is correct (see the format in the header of this file),
@@ -194,27 +196,29 @@ struct SparseVector checked by f5_isSparseVector;
 %   Finally, each item in the Groebner basis list is converted to a Standard Form,
 % and the resulting list is returned.
 asserted procedure f5_groebner(u: List): List;
-   begin scalar inputBasis, inputBasisSf, properIdeal, f, vars, ord, outputModule,
+   begin scalar inputBasis, properIdeal, f, vars, ord, outputModule,
                 saveTorder, w;
+      % handle errors in the input
       if null u or not (listp u) then
          f5_argumentError();
       inputBasis := reval pop u;
       if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
          f5_argumentError();
-      properIdeal := t; while properIdeal and not null inputBasis do <<
-         f := numr simp pop inputBasis;
-         if numberp f and not null f then
+      % convert basis elements to SFs, drop zeros
+      inputBasis := f5_inputToSf(inputBasis);
+      % special cases handling
+      w := inputBasis;
+      properIdeal := t; while properIdeal and w do <<
+         if domainp(pop w) then
             properIdeal := nil
-         else if not null f then  % This line is for Gleb
-            push(f, inputBasisSf)
       >>;
       if not properIdeal then
          return {'list, 1};
-      inputBasis := reversip inputBasisSf;
       if null inputBasis then
          % This is a bit unclear mathematically, but we go with the design decisions of the groebner
          % package
          return {'list, 0};
+      % set the term order
       saveTorder := if not null u then <<
          % variables and sort mode are specified in f5 call
          vars := reval pop u;
@@ -241,6 +245,24 @@ asserted procedure f5_groebner(u: List): List;
          return nil;
       outputModule := car w;
       return 'list . outputModule
+   end;
+
+% f5_groebnerf({xf, zf}, {'x, 'y}, 'lex);
+%
+asserted procedure f5_groebnerf(basis: List, vars: List, ord: Any): List;
+   begin scalar x;
+      poly_initRing({vars, ord});
+      return f5_groebner1(basis)
+   end;
+
+asserted procedure f5_inputToSf(inputBasis: List): List;
+   begin scalar f, inputBasisSf;
+      while inputBasis do <<
+         f := numr simp pop inputBasis;
+         if not null f then  % This line is for Gleb
+            push(f, inputBasisSf)
+      >>;
+      return reversip(inputBasisSf)
    end;
 
 asserted procedure f5_groebner1(inputBasis: List): List;
