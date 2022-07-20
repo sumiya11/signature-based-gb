@@ -1059,6 +1059,7 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
 asserted procedure core_groebner1(basis: List): List;
    begin scalar f1, r, Gprev, Rule, fi;
          integer m, i;
+      prin2t {"uwuw", basis};
       m  := length(basis);
       % f1 - first polynomial added to the basis
       f1 := pop(basis);
@@ -1096,7 +1097,13 @@ asserted procedure core_groebner1(basis: List): List;
       return core_standardizeOutput(basis)
    end;
 
+trst core_groebner1;
+trst core_standardizeOutput;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+trst core_groebner1;
+trst core_constructModule;
 
 endmodule;  % end of module f5core
 

@@ -47,7 +47,7 @@ module f5;
 % for each f5 call.
 %
 % Other files in the directory implement experimental algorithms and are not documented
-create!-package('(f5 f5core f5lp f5poly f5stat), nil);
+create!-package('(f5 f5core f5lp f5poly f5stat f5mod f5primes), nil);
 
 fluid '(!*backtrace);
 
@@ -79,7 +79,7 @@ fluid '(vdpsortmode!*);
 %    {2*x + 1,2*y - 5}
 %
 switch f5fractionfree;
-off1 'f5fractionfree;
+on1 'f5fractionfree;
 
 % f5interreduce - If the output basis should be fully interreduced.
 %                If this is ON, each generator in the output basis is
@@ -127,6 +127,18 @@ on1 'f5sugar;
 %            Default option is OFF.
 switch f5usef5c;
 off1 'f5usef5c;
+
+switch f5modular;
+off1 'f5modular;
+
+switch f5modular_internal;
+off1 'f5modular_internal;
+
+switch f5certify;
+off1 'f5certify;
+
+switch f5putin;
+on1 'f5putin;
 
 % Assertions should be OFF in production.
 load!-package 'assert;
@@ -181,8 +193,6 @@ struct SparseVector checked by f5_isSparseVector;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% {0} vs. {}
-
 % The main function that parses input arguments and calls the f5 routine
 %
 % First, if the format of the input is correct (see the format in the header of this file),
@@ -205,19 +215,7 @@ asserted procedure f5_groebner(u: List): List;
       if not (listp inputBasis) or not (pop inputBasis eq 'list) or null inputBasis then
          f5_argumentError();
       % convert basis elements to SFs, drop zeros
-      inputBasis := f5_inputToSf(inputBasis);
-      % special cases handling
-      w := inputBasis;
-      properIdeal := t; while properIdeal and w do <<
-         if domainp(pop w) then
-            properIdeal := nil
-      >>;
-      if not properIdeal then
-         return {'list, 1};
-      if null inputBasis then
-         % This is a bit unclear mathematically, but we go with the design decisions of the groebner
-         % package
-         return {'list, 0};
+      % inputBasis := f5_inputToSf(inputBasis);
       % set the term order
       saveTorder := if not null u then <<
          % variables and sort mode are specified in f5 call
@@ -235,11 +233,11 @@ asserted procedure f5_groebner(u: List): List;
       >> else <<
          % variables = {} and sort mode are specified using torder. Take variables from inputBasis.
          for each f in inputBasis do
-            vars := union(vars, kernels f);
+            vars := union(vars, kernels numr simp f);
          vars := sort(vars, 'ordp);
          poly_initRing({vars})
       >>;
-      w := errorset({'f5_groebner1, mkquote inputBasis}, t, !*backtrace);
+      w := errorset({'f5_groebner_lp2lp, mkquote inputBasis}, t, !*backtrace);
       torder cdr saveTorder;
       if errorp w then
          return nil;
@@ -247,39 +245,72 @@ asserted procedure f5_groebner(u: List): List;
       return 'list . outputModule
    end;
 
-% f5_groebnerf({xf, zf}, {'x, 'y}, 'lex);
-%
-asserted procedure f5_groebnerf(basis: List, vars: List, ord: Any): List;
-   begin scalar x;
-      poly_initRing({vars, ord});
-      return f5_groebner1(basis)
+trst f5_groebner;
+
+% poly_sq2poly
+% poly_poly2lp
+asserted procedure f5_groebner_lp2lp(inputBasisLp: List): List;
+   begin scalar inputBasisSq, outputBasisPoly, inputBasisPoly;
+      inputBasisSq := for each f in inputBasisLp collect simp f;
+      inputBasisPoly := for each f in inputBasisSq collect poly_sq2poly f;
+      outputBasisPoly := f5_groebner_poly2poly(inputBasisPoly);
+      return (for each f in outputBasisPoly collect poly_poly2lp f);
    end;
 
-asserted procedure f5_inputToSf(inputBasis: List): List;
-   begin scalar f, inputBasisSf;
-      while inputBasis do <<
-         f := numr simp pop inputBasis;
-         if not null f then  % This line is for Gleb
-            push(f, inputBasisSf)
+% poly_sf2poly
+% poly_poly2sf
+asserted procedure f5_groebner_sf2sf(inputBasisSf: List): List;
+   begin scalar inputBasisPoly, outputBasisPoly;
+      inputBasisPoly := for each f in inputBasisSf collect poly_sf2poly f;
+      outputBasisPoly := f5_groebner_poly2poly(inputBasisPoly);
+      % return (for each f in outputBasisPoly collect poly_poly2sf f);
+      return (for each f in outputBasisPoly collect numr simp poly_poly2lp f);
+   end;
+
+% poly_poly2sq
+% poly_sq2poly
+asserted procedure f5_groebner_sq2sq(inputBasisSq: List): List;
+   begin scalar inputBasisPoly, outputBasisPoly;
+      inputBasisPoly := for each f in inputBasisSq collect poly_sq2poly f;
+      outputBasisPoly := f5_groebner_poly2poly(inputBasisPoly);
+      % return (for each f in outputBasisPoly collect poly_poly2sq f);
+      return (for each f in outputBasisPoly collect simp poly_poly2lp f);
+   end;
+
+trst f5_groebner_sq2sq;
+
+asserted procedure f5_groebner_poly2poly(inputBasis: List): List;
+   begin scalar inputModule, outputModule, properIdeal, w, p;
+      w := inputBasis; inputBasis := nil;
+      properIdeal := t; while properIdeal and w do <<
+         p := pop w;
+         prin2t p;
+         if not poly_iszero!?(p) then <<  % get rid of zeros in input 
+            push(p, inputBasis); 
+            if poly_isConst!?(p) then
+               properIdeal := nil
+         >>
       >>;
-      return reversip(inputBasisSf)
+      if not properIdeal then
+         return {poly_one()};
+      if null inputBasis then
+         % This is a bit unclear mathematically, 
+         % but we go with the design decisions of the groebner package
+         return {poly_zero()};
+      inputModule := core_constructModule(inputBasis);
+      if !*f5modular then <<
+         % if params in coefficients
+         for each p in inputModule do 
+            for each cf in poly_getCoeffs(lp_eval(p)) do
+               if kernels cf then   % works for both sq and sf
+                  rederr {"Parameters in coefficients with f5modular ON are not supported, sorry:", kernels cf};
+         outputModule := mod_groebnerModular1(inputModule)
+      >> else
+         outputModule := core_groebner1(inputModule);
+      return (for each p in outputModule collect lp_eval p)
    end;
 
-asserted procedure f5_groebner1(inputBasis: List): List;
-   begin scalar inputModule, outputModule;
-      % convert input expressions to `Polynomial`s
-      inputBasis := for each f in inputBasis collect
-         poly_f2poly f;
-      % construct the basis of the module,
-      % elements of inputModule are `LabeledPolynomial`s
-      inputModule := core_constructModule(inputBasis);
-      % call the main groebner routine
-      outputModule := core_groebner1(inputModule);
-      % convert `LabeledPolynomial`s back to expressions
-      outputModule := for each f in outputModule collect
-         poly_2a lp_eval f;
-      return outputModule
-   end;
+trst f5_groebner_poly2poly;
 
 % Argument error
 asserted procedure f5_argumentError();
@@ -294,6 +325,11 @@ asserted procedure f5_argumentError();
           ";
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+trst f5_groebner_lp2lp;
+trst f5_groebner_sq2sq;
+trst f5_groebner_sf2sf;
+trst core_groebner1;
 
 endmodule;  % end of module f5
 

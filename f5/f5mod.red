@@ -39,15 +39,15 @@ load!-package 'smallmod;
 %
 %             Currently, f5modular ON assumes there are no parameters
 %             in input coefficients.
-switch f5modular;
-off1 'f5modular;
+% switch f5modular;
+% off1 'f5modular;
 
 % Not exported, not documented;
 % f5certify - If f5 should certify the correctness of result
 %             during modular computation (when f5modular is ON).
 %             Is OFF dy default.
-switch f5certify;
-off1 'f5certify;
+% switch f5certify;
+% off1 'f5certify;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%% MODULAR CORRECTNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,6 +88,7 @@ asserted procedure mod_randomizedCorrectnessCheck(pt: Primetracker, intBasis: Li
     recBasisScaled := mod_scaleDenominators(recBasis);
     recBasisReduced := mod_modularReduction(recBasisScaled, reliablePrime);
     % all S-polys reduce to zero ?
+    on1 'f5modular_internal;
     return if core_isGroebner1(recBasisReduced) then
       % ideal inclusion ?
       core_checkIdealInclusion1(recBasisReduced, intBasisReduced)
@@ -158,6 +159,14 @@ asserted procedure mod_crtReconstruction(
     return ans
   end;
 
+% asserted procedure mod_standardizeInput(inputBasis: List): List;
+%    begin scalar f, newcoeffs;
+%       if not !*f5fractionfree then
+%          for each f in inputBasis do <<
+%             newcoeffs := for each cf in lp_setCoeffs
+%          >>;
+%    end;
+
 % Given the set of generators `inputBasis` with SQ
 % as coefficients, multiplies each generator by the common denominator
 % of its coefficients to obtain integer coefficients.
@@ -175,12 +184,14 @@ asserted procedure mod_groebnerModular1(inputBasis: List): List;
     % the product of all previous ones
     primetracker := primes_Primetracker();
     % scale coefficients to integers
-    % if not !*f5fractionfree then
-    %  integerBasis := mod_scaleDenominators(inputBasis)
-    % else
+    if not !*f5fractionfree then
+      integerBasis := mod_scaleDenominators(inputBasis)
+    else
       integerBasis := inputBasis;
     % now all denominators are 1 and coefficients are actually "big" integers
     % in a sense that it's not safe to use machine arithmetic.
+
+    on1 'f5modular_internal;
 
     prin2t {"Int basis", integerBasis};
 
@@ -201,10 +212,18 @@ asserted procedure mod_groebnerModular1(inputBasis: List): List;
       accumBasis := mod_crtReconstruction(accumBasis, computedBasis, primetracker);
       % reconstruct modulo modulo
       reconstructedBasis := mod_rationalReconstruction(accumBasis, primetracker);
+      off1 'f5modular_internal;
       correctness := mod_correctnessCheck(primetracker,
                                             integerBasis,
-                                            reconstructedBasis)
+                                            reconstructedBasis);
+      on1 'f5modular_internal
+      % correctness := t
     >>;
+    off1 'f5modular_internal;
+    if !*f5fractionfree then <<
+      reconstructedBasis := mod_scaleDenominators(reconstructedBasis);
+      reconstructedBasis := for each p in reconstructedBasis collect lp_normalize(p)
+   >>;
     return reconstructedBasis
   end;
 

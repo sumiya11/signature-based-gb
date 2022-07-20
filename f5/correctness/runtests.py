@@ -70,6 +70,24 @@ def runtests_f5(upd):
 
     return report
 
+def runtests_io(upd):
+    p = subprocess.run([REDUCE, ARG2, ARG1.format("io_tests")],
+                        capture_output=True,
+                        shell=False)
+
+    output = p.stdout.decode()
+
+    if upd:
+        with open("iocorrect.rlg", 'w') as correctfile:
+            correctfile.write(output)
+
+    with open("iocorrect.rlg", 'r') as correctfile:
+        correct = correctfile.read()
+
+    report = compare_output(output, correct)
+
+    return report
+
 def runtests_moref5(upd):
     p = subprocess.run([REDUCE, ARG2, ARG1.format("moref5_tests")],
                         capture_output=True,
@@ -129,7 +147,13 @@ def main(argv):
     upd = "-upd" in argv
 
     if '-h' in argv or '--help' in argv:
-        print("runtests.py usage:\n\t-upd to update results\n\t-moref5 to run more f5 tests\n\t-mod to run modular tests")
+        print("runtests.py usage:\n\t-upd to update results\n\t-f5 to run f5 tests\n\t-moref5 to run more f5 tests\n\t-mod to run modular tests\n\t-io to run input-output tests")
+
+    if  "-io" in argv:
+        print("Running IO tests..")
+        report = runtests_io(upd)
+        print(report)
+        print("------------------------")
 
     if  "-f5" in argv:
         print("Running F5 tests..")
