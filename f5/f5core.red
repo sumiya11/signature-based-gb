@@ -934,8 +934,7 @@ asserted procedure core_setupReducedBasis(Gprev: List, r: Basistracker,
       %    >>
       % >>;
       return Gprev
-   end;
-                                       
+   end;                              
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

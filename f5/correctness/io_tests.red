@@ -119,6 +119,21 @@ if not (gb = {a*x + 2*a^2, a^3*y + a^2/4}) then
    errorMessage("fractionfree,params");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% f5 over Zp
+
+% off f5parametric;
+% off f5fractionfree;
+
+% setmod 7;
+% on modular;
+
+% gb := f5({x + y}, {x, y}, lex);
+% if not (gb = {x + y}) then
+%    errorMessage("on modular");
+
+% off modular;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Symbolic mode interface
 
 f1 := x*y - 1; f2 := y^2 - x;
