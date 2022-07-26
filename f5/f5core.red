@@ -297,6 +297,10 @@ asserted procedure core_assocLeadCmp(pr1: DottedPair,
 asserted procedure core_constructModule(inputBasis: List): List;
    begin scalar outputModule;
          integer i;
+      % Add assumptions when f5parametricNormalize
+      if !*fractionfree then
+         inputBasis := for each f in inputBasis collect
+                           poly_scaleDenominators(f);
       % Interreducing input basis is a heuristic. The idea it to produce
       % polynomials with disjoint leading terms after interreduction if possible.
       inputBasis := core_interreduceInput(inputBasis);
@@ -319,48 +323,6 @@ asserted procedure core_constructModule(inputBasis: List): List;
    end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Computes the normal form of f w.r.t. polynomials r_i where i in Gprev
-%
-% Two cases are possible:
-%  1. At least one reduction step happened,
-%     then we return the t flag together with the normal form itself;
-%  2. No reductions were performed, then nil flag and f itself are returned.
-%
-% During reductions, the topReduce flag controls the reduction type.
-% If topReduce is set, only top-reductions happen. Otherwise,
-% the polynomial is fully reduced.
-asserted procedure core_normalForm(f: Polynomial, Gprev: List,
-                                   r: Basistracker,
-                                   topReduce: Boolean): DottedPair;
-   begin scalar reducers, updated, reducer, reduced, f, g;
-      % while polynomial f gets updated by reduction steps,
-      % scan the list Gprev in search for possible reducers
-      % prin2t {"####################"};
-      % prin2t {"Normal form called with Gprev = ", Gprev};
-      % prin2t {for each g in Gprev collect
-      %         if not poly_iszero!?(lp_eval(core_getPoly(r, g))) then 
-      %            poly_leadTerm(lp_eval(core_getPoly(r, g)))
-      %         else 
-      %            nil
-      %      };
-      topReduce := t; % for now, always true
-      updated := t;
-      while updated do <<
-         updated := nil;
-         reducers := Gprev;
-         while reducers and (not poly_iszero!?(f)) do <<
-            g := pop(reducers);
-            reducer := lp_eval(core_getPoly(r, g));
-            reduced . f := poly_tryTopReductionStep(f, reducer);
-            % prin2t {"reducing by ", g, "...", "reduced? ", reduced};
-            if reduced then
-               push(g, reducers);
-            updated := reduced or updated
-         >>
-      >>;
-      return updated . f
-   end;
 
 % Computes the normal form of f w.r.t. polynomials r_i where i in Gprev
 %
@@ -598,11 +560,6 @@ asserted procedure core_normalizeBasis(basis: List): List;
 asserted procedure core_standardizeOutput(basis: List): List;
    begin scalar normalizedBasis;
       normalizedBasis := core_normalizeBasis(basis);
-      % Our coefficients are integers if f5fractionfree is ON, so
-      % we transform each coefficient back to a Standard Quotient
-      % if !*f5fractionfree then
-      %    for each poly in normalizedBasis do
-      %       lp_setEval(poly, poly_int2sqCoeffs(lp_eval(poly)));
       return sort(normalizedBasis, 'lp_cmpLPLeadReverse)
    end;
 
@@ -850,8 +807,15 @@ asserted procedure core_computeSpolys(pairs: List, r: Basistracker,
          l . v := core_getPairSecond(p);
          % Rewritten criterion
          if (not core_isRewritable(u, k, r, Rule)) and (not core_isRewritable(v, l, r, Rule)) then <<
+            % Here, an assumption happens: 
+            % in S-polynomial t1*lpk - t2*lpl 
+            % leading coefficients leadcoeff(lpk) and leadcoeff(lpl) do not vanish
             lpk := core_getPoly(r, k);
             lpl := core_getPoly(r, l);
+            if !*f5parametric then <<
+               param_addAssumptionSpol(poly_leadCoeff(lp_eval(lpk)));
+               param_addAssumptionSpol(poly_leadCoeff(lp_eval(lpl)))
+            >>;
             seval := poly_spoly(lp_eval(lpk), lp_eval(lpl));
             ssgn  := lp_mulSgn(lp_sgn(lpk), u);
             if not poly_iszero!?(seval) then
@@ -859,7 +823,7 @@ asserted procedure core_computeSpolys(pairs: List, r: Basistracker,
             core_addPoly(r, lp_LabeledPolynomial2(seval, ssgn));
             core_addRule(Rule, ssgn, core_getBasisIdx(r));
             if not poly_iszero!?(seval) then
-            push(core_getBasisIdx(r), S)
+               push(core_getBasisIdx(r), S)
          >>
       >>;
       % Sort indices S w.r.t. signatures of polynomials stored in r
@@ -1097,13 +1061,7 @@ asserted procedure core_groebner1(basis: List): List;
       return core_standardizeOutput(basis)
    end;
 
-trst core_groebner1;
-trst core_standardizeOutput;
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-trst core_groebner1;
-trst core_constructModule;
 
 endmodule;  % end of module f5core
 

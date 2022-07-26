@@ -2,6 +2,12 @@ module f5univpol;
 
 % Migrated from the main f5.red file
 
+% interface implemented in f5univpol.red (not used currently)
+procedure f5_isMacaulayMatrix(x); eqcar(x, 'mm);
+struct MacaulayMatrix checked by f5_isMacaulayMatrix;
+procedure f5_isSparseVector(x); eqcar(x, 'sv);
+struct SparseVector checked by f5_isSparseVector;
+
 % put('elimination, 'psopfn, 'f5_elimination);
 % put('univpol, 'psopfn, 'f5_univpol);
 % put('zerodimradical, 'psopfn, 'f5_zerodimradical);

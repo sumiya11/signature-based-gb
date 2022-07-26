@@ -5,6 +5,11 @@ module f5mod;
 % and Chinese reminder theorem implementations
 % together with main modular GB procedure `mod_groebnerModular1`.
 
+% added
+% The f5mod and f5primes files provide rational reconstruction
+% and lucky prime numbers manipulations, which extends existing
+% F5 to a modular setting.
+
 % The files f5mod.red and f5primes.red extend the existing f5
 % with the modular Groebner basis computation.
 % ("extend" in a sense that they can be removed and main f5 still works)
@@ -325,6 +330,48 @@ asserted procedure mod_crt(a1: Integer, m1: Integer,
   end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Reduces coefficients of `f` by the given `prime`
+asserted procedure poly_reduceCoeffs(f: Polynomial, prime: Integer): Polynomial;
+   begin scalar fcoeffs, newcoeffs, c;
+      % note that prime is not used here, since `modular!-number` works globally,
+      % to omit warning
+      prime := prime;
+      fcoeffs := poly_getCoeffs(f);
+      while fcoeffs do <<
+         c  := pop(fcoeffs);
+         % ASSERT(denr(c) = 1);
+         c := modular!-number(c);
+         push(c, newcoeffs)
+      >>;
+      return poly_PolynomialWithSugar(poly_getTerms(f), reversip(newcoeffs), poly_getSugar(f))
+   end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Additional modular polynomial coefficient manipulation
+
+% Reconstructs each coefficient of `poly` modulo the given prime
+asserted procedure poly_reconstructCoeffs(poly: Polynomial,
+                                          prime: Integer): Polynomial;
+   begin scalar newcoeffs;
+      newcoeffs := for each cf in poly_getCoeffs(poly)
+         collect mod_reconstruction(cf, prime);
+      return poly_PolynomialWithSugar(poly_getTerms(poly), newcoeffs, poly_getSugar(poly))
+   end;
+
+% Applis CRT to coefficients of (polyaccum mod modulo) and (polycomp mod prime)
+% to obtain new polynomial over modulo*prime
+asserted procedure poly_crtCoeffs(polyaccum: Polynomial, modulo: Integer,
+                          polycomp: Polynomial, prime: Integer): Polynomial;
+   begin scalar coeffsaccum, coeffscomp, newcoeffs, c;
+      coeffsaccum := poly_getCoeffs(polyaccum);
+      coeffscomp  := poly_getCoeffs(polycomp);
+      while coeffsaccum do <<
+         c := mod_crt(pop(coeffsaccum), modulo, pop(coeffscomp), prime);
+         push(c, newcoeffs)
+      >>;
+      return poly_PolynomialWithSugar(poly_getTerms(polyaccum), reversip(newcoeffs), poly_getSugar(polyaccum))
+   end;
 
 endmodule;  % end of module f5mod
 

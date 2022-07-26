@@ -23,60 +23,60 @@ gb := f5({0, x, 0});
 if (gb = {1}) then
    errorMessage("special cases problem");
 
-on f5putin;
+off f5parametric;
 on f5fractionfree;
 
 gb := f5({x});
 if not (gb = {x}) then
-   errorMessage("putin,fractionfree");
+   errorMessage("fractionfree");
 
 gb := f5({x^2 + x, y});
 if not (gb = {x^2 + x, y}) then
-   errorMessage("putin,fractionfree");
+   errorMessage("fractionfree");
 
 gb := f5({x^2 + x, y});
 if not (gb = {x^2 + x, y}) then
-  errorMessage("putin,fractionfree");
+  errorMessage("fractionfree");
 
 gb := f5({(a + 1)*x + 1, a*y}, {x, y}, lex);
 if not (gb = {(a + 1)*x + 1, y}) then
-  errorMessage("putin,fractionfree,params");
+  errorMessage("fractionfree,params");
 
 gb := f5({a*x^2 + a^2*x, a*y}, {x, y}, lex);
 if not (gb = {x^2 + a*x, y}) then
-  errorMessage("putin,fractionfree,params");
+  errorMessage("fractionfree,params");
 
 gb := f5({a*x^2 + x/(b^3 - 8), y/a}, {x, y}, lex);
 if not (gb = {a*b^3*x^2 - 8*a*x^2 + x, y}) then
-  errorMessage("putin,fractionfree,params");
+  errorMessage("fractionfree,params");
 
 gb := f5({x/a});
 if not (gb = {x}) then
-  errorMessage("putin,fractionfree,params");
+  errorMessage("fractionfree,params");
 
 gb := f5({a*x - 1, -a*y - 1, -a*z + 1, a*w + 1}, {x,y,z,w}, lex);
 if not (gb = {a*x - 1, a*y + 1, a*z - 1, a*w + 1}) then
-  errorMessage("putin,fractionfree,params");
+  errorMessage("fractionfree,params");
 
 off f5fractionfree;
 
 gb := f5({12*x - 11, 13*y + 14, -5*z - 5});
 if not (gb = {x - 11/12, y + 14/13, z + 1}) then
-  errorMessage("putin");
+  errorMessage("");
 
 gb := f5({x/a});
 if not (gb = {x}) then
-  errorMessage("putin,params");
+  errorMessage("params");
 
 gb := f5({a*x - 1, -a*y - 1, -a*z + 1, a*w + 1}, {x,y,z,w}, lex);
 if not (gb = {x - 1/a, y + 1/a, z - 1/a, w + 1/a}) then
-  errorMessage("putin,params");
+  errorMessage("params");
 
 gb := f5({a*x + 1/(b + 1)*y, x*y - c}, {x, y}, lex);
 if not (gb = {x + 1/(a*b + a)*y, y^2 + a*b*c + a*c}) then
-  errorMessage("putin,params");
+  errorMessage("params");
 
-off f5putin;
+on f5parametric;
 on f5fractionfree;
 
 gb := f5({2*x + 3, -2*y + 3, 2*z - 3, -2*w - 3}, {x,y,z,w}, lex);
@@ -111,12 +111,12 @@ gb := f5({a*x*y - a, a*x + a^2}, {x,y}, lex);
 if not (gb = {a*x + a^2, a^3*y + a^2}) then
   errorMessage("fractionfree,params");
 
-off f5putin;
+on f5parametric;
 off f5fractionfree;
 
-gb := f5({a*x*y - a, a*x + a^2}, {x,y}, lex);
-% if not (gb = {a*x + a^2, a^3*y + a^2}) then
-%   errorMessage("fractionfree,params");
+gb := f5({2*a*x*y - a, 3*a*x + 6*a^2}, {x,y}, lex);
+if not (gb = {a*x + 2*a^2, a^3*y + a^2/4}) then
+   errorMessage("fractionfree,params");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Symbolic mode interface
@@ -133,27 +133,27 @@ procedure errorMessageSym(system);
 
 torder({{'list, w,z,y,x}, 'lex});
 
-gb := f5_groebner_sq2sq({simp x, simp 0, simp y, simp z, simp 0, simp w});
+gb := f5_groebnerq({simp x, simp 0, simp y, simp z, simp 0, simp w});
 if not (gb = {simp w, simp z, simp y, simp x}) then
   errorMessageSym("symmode,sq");
 
-gb := f5_groebner_sf2sf({numr simp x, numr simp y, numr simp z, numr simp w});
+gb := f5_groebnerf({numr simp x, numr simp y, numr simp z, numr simp w});
 if not (gb = {numr simp w, numr simp z, numr simp y, numr simp x}) then
   errorMessageSym("symmode,sf");
 
 torder({{'list, x,y,z,w}, 'gradlex});
 
-gb := f5_groebner_sq2sq({simp f1, simp f2});
+gb := f5_groebnerq({simp f1, simp f2});
 if not (gb = {simp g1, simp g2, simp g3}) then
   errorMessageSym("symmode,sq");
 
-gb := f5_groebner_lp2lp({'w, 'x, 'z, 'y});
+gb := f5_groebnerp({'w, 'x, 'z, 'y});
 if not (gb = {'x,'y,'z,'w}) then
   errorMessageSym("symmode,lp");
 
 torder({{'list, x,y,z,w}, 'lex});
 
-gb := f5_groebner_lp2lp({'(plus (expt x 2) (times 2 z) (expt w 3) (expt y 4))});
+gb := f5_groebnerp({'(plus (expt x 2) (times 2 z) (expt w 3) (expt y 4))});
 if not (gb = {'(plus (expt x 2) (expt y 4) (times 2 z) (expt w 3))}) then
   errorMessageSym("symmode,lp");
 
