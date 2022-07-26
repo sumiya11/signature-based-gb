@@ -20,7 +20,7 @@ fluid '(param_assumptionsSpol!* param_assumptionsRed!*
 
 % Returns true if the given assumption `poly <> 0` is "interesting", 
 % e.g., the following holds
-%  1) `poly` is not a literal constant 
+%  1. `poly` is not a literal constant 
 asserted procedure param_isAssumptionInteresting(poly: SQ): Boolean;
    if domainp poly then
       nil
@@ -69,23 +69,25 @@ asserted procedure param_clearAssumptions();
 %  > f5dumpAssumptions();
 %
 %  Out:
-%                            3               4  8      5  2    3  
-%  {input={1},reductions={2*a ,a},spolys={2*a ,a *b,2*a ,a ,2*a ,a},normalize={}}
+%                        3             4  8  5  2  3
+% {input={},reductions={a ,a},spolys={a ,a ,a ,a ,a ,a},normalize={}}
 %
 asserted procedure param_dumpAssumptions(u: List);
-<< 
-   l1 := 'list . for each f in param_assumptionsInput!* collect prepf f;
-   l2 := 'list . for each f in param_assumptionsRed!* collect prepf f;
-   l3 := 'list . for each f in param_assumptionsSpol!* collect prepf f;
-   l4 := 'list . for each f in param_assumptionsNormalize!* collect prepf f;
-   {
-      'list,
-      '(equal Input (reval l1)),
-      '(equal Reductions (reval l2)),
-      '(equal Spolys (reval l3)),
-      '(equal Normalize (reval l4))
-   }
->>;
+   begin scalar l1, l2, l3, l4;
+      if u then
+         lprim {"arguments ignored: ", u};
+      l1 := 'list . for each f in param_assumptionsInput!* collect prepf f;
+      l2 := 'list . for each f in param_assumptionsRed!* collect prepf f;
+      l3 := 'list . for each f in param_assumptionsSpol!* collect prepf f;
+      l4 := 'list . for each f in param_assumptionsNormalize!* collect prepf f;
+      return {
+         'list,
+         '(equal Input (reval l1)),
+         '(equal Reductions (reval l2)),
+         '(equal Spolys (reval l3)),
+         '(equal Normalize (reval l4))
+      }
+   end;
 
 endmodule;  % end of module f5param
 

@@ -173,12 +173,13 @@ put('f5dumpAssumptions, 'psopfn, 'param_dumpAssumptions);
 
 % interface implemented in f5poly.red
 procedure f5_isPolynomial(x); eqcar(x, 'p);
+procedure f5_isCoeff(x); sqp(x) or integerp(x);
 struct Polynomial checked by f5_isPolynomial;
 struct Terms checked by listp;
 struct Term checked by listp;
 struct Coeffs checked by listp;
 % Coeff can be either an Integer or a Standard Quotient.
-struct Coeff;
+struct Coeff checked by f5_isCoeff;
 
 % interface implemented in f5lp.red
 procedure f5_isLabeledPolynomial(x); eqcar(x, 'lp);
@@ -221,7 +222,7 @@ struct RewriteRule checked by f5_isRewriteRule;
 % is represented as a `LabeledPolynomial`. Finally, each item in the Groebner basis list
 % is converted to a Lisp Prefix, and the resulting list is returned.
 asserted procedure f5_groebner(u: List): List;
-   begin scalar inputBasis, properIdeal, f, vars, ord, outputModule,
+   begin scalar inputBasis, f, vars, ord, fsq,
                 varsNum, varsDen, saveTorder, w;
       % handle errors in the input
       if null u or not (listp u) then

@@ -298,7 +298,7 @@ asserted procedure core_constructModule(inputBasis: List): List;
    begin scalar outputModule;
          integer i;
       % Add assumptions when f5parametricNormalize
-      if !*fractionfree then
+      if !*f5fractionfree then
          inputBasis := for each f in inputBasis collect
                            poly_scaleDenominators(f);
       % Interreducing input basis is a heuristic. The idea it to produce
@@ -917,6 +917,7 @@ asserted procedure core_setupReducedBasis(Gprev: List, r: Basistracker,
                                              Rule: Vector): List;
    begin scalar f, B, Btmp;
          integer i;
+      % `Rule` is not used intentionally
       Gprev := core_interreduceBasis(Gprev, r);
       B := for each f in Gprev collect core_getPoly(r, f);
       Gprev := for i := 1:length(B) collect i;
@@ -1023,7 +1024,6 @@ asserted procedure core_incrementalBasis(i: Integer, Gprev: List,
 asserted procedure core_groebner1(basis: List): List;
    begin scalar f1, r, Gprev, Rule, fi;
          integer m, i;
-      prin2t {"uwuw", basis};
       m  := length(basis);
       % f1 - first polynomial added to the basis
       f1 := pop(basis);

@@ -25,17 +25,14 @@ module f5poly;
 %  and `Coeffs` are ordered respectively.
 %
 % For example, xy^2 + 3x is stored as
-%   {'p, {{3, 1, 2}, {1, 1, 0}}, {1, 3}, 3}
-% if f5fractionfree is ON. It is stored as
-%   {'p, {{3, 1, 2}, {1, 1, 0}}, {1 ./ 1, 3 ./ 1}, 3}
-% otherwise (using SQ).
+%  {'p, {{3, 1, 2}, {1, 1, 0}}, {1 ./ 1, 3 ./ 1}, 3}
 %
 % Zero polynomial is represented as
 %   {'p, nil, nil, anything}
 %
 % The global polynomial ring should be initialized before constructing polynomials.
-% To initialize the ring in variables `vars` and term order `ord`
-% `poly_initRing(vars, ord)` should be used.
+% To initialize the ring in variables `vars` and sort mode `ord`
+% the function `poly_initRing(vars, ord)` should be used.
 
 off1 'allfac;
 
@@ -104,7 +101,7 @@ asserted inline procedure poly_getSugar(poly: Polynomial): Integer;
 asserted inline procedure poly_zero(): Polynomial;
    poly_Polynomial(nil, nil);
 
-% Returns polynomial "1"
+% Returns polynomial one
 asserted inline procedure poly_one(): Polynomial;
    poly_Polynomial({poly_zeroExp()}, {poly_oneCoeff()});
 
@@ -141,7 +138,7 @@ asserted procedure poly_isPolyVar(var: Any): Boolean;
       return not null vars
    end;
 
-% returns var^deg in SQ (if f5fractionfree is OFF) or SF (if f5fractionfree is ON) 
+% returns var^deg as a Standard Quotient
 asserted inline procedure poly_groundCoeff(var, deg);
    ((((var . deg) . 1) . nil) ./ 1);
 
@@ -160,8 +157,8 @@ asserted inline procedure poly_sq2poly(u: SQ): Polynomial;
    poly_sq2poly1(u, poly_zeroExp(), poly_oneCoeff());
 
 % Recusrively converts a Standard Quotient X/Y to a Polynomial.
-% Polynomial variables are encoded in exponent vector ev, 
-% and parameters are encoded in coefficient bc.
+% Polynomial variables are encoded in exponent vector `ev`, 
+% and parameters are encoded in coefficient `bc`.
 % If polynomial variable is encountered in denominator Y, an error is raised.
 asserted procedure poly_sq2poly1(u: SQ, ev: List, bc: Coeff): Polynomial;
    begin scalar numpoly;
@@ -175,7 +172,7 @@ asserted procedure poly_sq2poly1(u: SQ, ev: List, bc: Coeff): Polynomial;
 
 % SQ --> Poly
 
-% Convert a cf*tm where cf is a Coeff and tm is a Term
+% Converts cf*tm where cf is a Coeff and tm is a Term
 % to a Standard Quotient
 asserted procedure poly_lead2sq(cf: Coeff, tm: Term): SQ;
    begin scalar vs;
@@ -185,7 +182,7 @@ asserted procedure poly_lead2sq(cf: Coeff, tm: Term): SQ;
       return cf
    end;
 
-% Converts a Polynomial to a Standard Quotient.
+% Converts a Polynomial to a Standard Quotient
 asserted procedure poly_poly2sq(p: Polynomial): SQ;
    addsq(
       poly_lead2sq(poly_leadCoeff(p), poly_leadTerm(p)), 
@@ -888,10 +885,12 @@ asserted procedure poly_leadTotalDegreeCmp(poly1: Polynomial,
 
 % Auxiliary functions
 
-% returns xi^n
+% Returns xi^n as a Term struct
 asserted procedure poly_ithVariable(idx: Integer, deg: Integer): Term;
    deg . for x := 1:length(global!-dipvars!*)-1
          collect if x = idx then deg else 0;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 endmodule;  % end of module f5poly
 
