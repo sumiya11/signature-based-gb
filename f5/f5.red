@@ -166,7 +166,10 @@ load!-package 'rltools;
 
 % Two functions in the interface: f5 and f5dumpAssumptions
 put('f5, 'psopfn, 'f5_groebner);
-put('f5dumpAssumptions, 'psopfn, 'param_dumpAssumptions);
+
+operator f5dumpAssumptions; 
+asserted procedure f5dumpAssumptions();
+   'list . param_dumpAssumptions();
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% STRUCTS DEFINITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
