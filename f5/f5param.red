@@ -32,10 +32,22 @@ asserted procedure param_isAssumptionInteresting(poly: SQ): Boolean;
 asserted procedure param_standardize(poly: SQ): SQ;
    quotfx(numr poly, lc numr poly);
 
+asserted procedure param_prepareIneq...
+
+%  (a/b)*x + 1
+%
 % Add `poly <> 0` to S-polynomial assumptions 
-asserted procedure param_addAssumptionSpol(poly: SQ): List;
-   if param_isAssumptionInteresting(poly) then
-      param_assumptionsSpol!* := lto_insert(param_standardize(poly), param_assumptionsSpol!*);
+asserted procedure param_addAssumptionSpol(poly: SQ): Void;
+   begin scalar num;
+      num := numr poly;
+      if domainp num then
+         return;
+      % num := quotf(num, sfto_dcontentf num);
+      % if minusf num then
+      %    num := negf num;
+      num := sfto_sqfpartf num;
+      param_assumptionsSpol!* := lto_insert({'neq, prepf num, nil}, param_assumptionsSpol!*)
+   end;
 
 % Adds `poly <> 0` to Reduction assumptions 
 asserted procedure param_addAssumptionRed(poly: SQ): List;
