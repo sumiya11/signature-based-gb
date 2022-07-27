@@ -75,17 +75,17 @@ asserted procedure param_clearAssumptions();
 asserted procedure param_dumpAssumptions(u: List);
    begin scalar l1, l2, l3, l4;
       if u then
-         lprim {"arguments ignored: ", u};
+         lprim {"arguments ignored", u};
       l1 := 'list . for each f in param_assumptionsInput!* collect prepf f;
       l2 := 'list . for each f in param_assumptionsRed!* collect prepf f;
       l3 := 'list . for each f in param_assumptionsSpol!* collect prepf f;
       l4 := 'list . for each f in param_assumptionsNormalize!* collect prepf f;
       return {
          'list,
-         '(equal Input (reval l1)),
-         '(equal Reductions (reval l2)),
-         '(equal Spolys (reval l3)),
-         '(equal Normalize (reval l4))
+         '(equal Input l1),
+         '(equal Reductions l2),
+         '(equal Spolys l3),
+         '(equal Normalize l4)
       }
    end;
 
