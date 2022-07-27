@@ -32,12 +32,7 @@ asserted procedure param_isAssumptionInteresting(poly: SQ): Boolean;
 asserted procedure param_standardize(poly: SQ): SQ;
    quotfx(numr poly, lc numr poly);
 
-asserted procedure param_prepareIneq...
-
-%  (a/b)*x + 1
-%
-% Add `poly <> 0` to S-polynomial assumptions 
-asserted procedure param_addAssumptionSpol(poly: SQ): Void;
+asserted procedure param_prepareIneq(poly: SQ): SF; 
    begin scalar num;
       num := numr poly;
       if domainp num then
@@ -46,23 +41,24 @@ asserted procedure param_addAssumptionSpol(poly: SQ): Void;
       % if minusf num then
       %    num := negf num;
       num := sfto_sqfpartf num;
-      param_assumptionsSpol!* := lto_insert({'neq, prepf num, nil}, param_assumptionsSpol!*)
+      return num
    end;
+
+% Add `poly <> 0` to S-polynomial assumptions 
+asserted procedure param_addAssumptionSpol(poly: SQ): Void;
+   param_assumptionsSpol!* := lto_insert({'neq, prepf param_prepareIneq(poly), nil}, param_assumptionsSpol!*)
 
 % Adds `poly <> 0` to Reduction assumptions 
 asserted procedure param_addAssumptionRed(poly: SQ): List;
-   if param_isAssumptionInteresting(poly) then
-      param_assumptionsRed!*  := lto_insert(param_standardize(poly), param_assumptionsRed!*);
+   param_assumptionsRed!* := lto_insert({'neq, prepf param_prepareIneq(poly), nil}, param_assumptionsRed!*)
 
 % Adds `poly <> 0` to Input assumptions 
 asserted procedure param_addAssumptionInput(poly: SQ): List;
-   if param_isAssumptionInteresting(poly) then
-      param_assumptionsInput!*  := lto_insert(param_standardize(poly), param_assumptionsInput!*);
+   param_assumptionsInput!* := lto_insert({'neq, prepf param_prepareIneq(poly), nil}, param_assumptionsInput!*)
 
 % Adds `poly <> 0` to Normalize assumptions 
 asserted procedure param_addAssumptionNormalize(poly: SQ): List;
-   if param_isAssumptionInteresting(poly) then
-      param_assumptionsNormalize!*  := lto_insert(param_standardize(poly), param_assumptionsNormalize!*);
+   param_assumptionsNormalize!* := lto_insert({'neq, prepf param_prepareIneq(poly), nil}, param_assumptionsNormalize!*)
 
 % Clears all assumptions
 asserted procedure param_clearAssumptions();
@@ -84,22 +80,9 @@ asserted procedure param_clearAssumptions();
 %                        3             4  8  5  2  3
 % {input={},reductions={a ,a},spolys={a ,a ,a ,a ,a ,a},normalize={}}
 %
-asserted procedure param_dumpAssumptions(u: List);
-   begin scalar l1, l2, l3, l4;
-      if u then
-         lprim {"arguments ignored", u};
-      l1 := 'list . for each f in param_assumptionsInput!* collect prepf f;
-      l2 := 'list . for each f in param_assumptionsRed!* collect prepf f;
-      l3 := 'list . for each f in param_assumptionsSpol!* collect prepf f;
-      l4 := 'list . for each f in param_assumptionsNormalize!* collect prepf f;
-      return {
-         'list,
-         '(equal Input l1),
-         '(equal Reductions l2),
-         '(equal Spolys l3),
-         '(equal Normalize l4)
-      }
-   end;
+asserted procedure param_dumpAssumptions();
+   lto_unionn({param_assumptionsSpol!*, param_assumptionsRed!*,
+               param_assumptionsNormalize!*, param_assumptionsInput!*});
 
 endmodule;  % end of module f5param
 
