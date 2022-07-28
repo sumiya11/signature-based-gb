@@ -6,20 +6,8 @@
 % Computation in Q[x, y]
 f5({x^2*y - 10x + 5, 3y^2 + 4x + 7});
 
-% Computation in Z/7[x, y]
-setmod 7;
-on modular;
-f5({x^2*y - 10x + 5, 3y^2 + 4x + 6});
-off modular;
-
 % Computation in Q(a,b,c,d,e)[x, y]
 f5({x^2*y - a*x + b, c*y^2 + d*x + e}, {x, y}, lex);
-
-% Computation in Z/5(a,b)[x, y]
-setmod 5;
-on modular;
-f5({x^2*y - 4*a*b*x + 8, y^2 + a*x + 1}, {x, y}, lex);
-off modular;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Different term orders
@@ -121,17 +109,21 @@ f5({10*a^5 - 5*a^10*x^2}, {x}, lex);
 %   5  2
 % {a *x  - 2}
 
-% f5fractionfree X on modular
-% works, but output polynomials are not normalized
-setmod 7;
-on modular;
-f5({3x + 3});
-% currently prints {2*x + 2}
-off modular;
-
 f5({a/b*x + c/d}, {x}, lex);
 % expected
 % {(a*d)*x + b*c}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Parameters & Assumptions
+
+on f5parametric;
+on f5fractionfree;
+off f5interreduce;
+
+f5({a*x*y^2 - b*x, (b-1)*x^2*y - a^2*x}, {x, y}, lex);
+
+f5dumpAssumptions();
+% expected {b - 1 <> 0, b^2 - b <> 0, a <> 0}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sanity checks
@@ -179,11 +171,6 @@ f5({x1 + x2, x1*x2 + 100}, {x1, x2}, lex);
 f5({4x1 + x2, 1234x1*x2 + 1e5}, {x1, x2}, lex);
 
 off f5statistics;
-
-% the number 4194319 is special because it is the default prime
-% number used in modular reduction
-f5({x1 + x2, x1*x2 + 4194319}, {x1, x2}, lex);
-f5({x1 + 4194329*x2, x1*x2 + 4194319}, {x1, x2}, lex);
 
 off f5sugar;
 f5({x1 + x2, x1*x2 + 1e10}, {x1, x2}, lex);

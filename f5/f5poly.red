@@ -1,6 +1,35 @@
 module f5poly;
-% Polynomial interface module to be used in f5.
-% The module provides procedures for basic operations with the `Polynomial` type.
+% f5 polynomials. Polynomial interface to be used in f5. Implements a
+% `Polynomial` data type.
+
+revision('f5poly, "$Id$");
+
+copyright('f5poly, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
+
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions
+% are met:
+%
+%    * Redistributions of source code must retain the relevant
+%      copyright notice, this list of conditions and the following
+%      disclaimer.
+%    * Redistributions in binary form must reproduce the above
+%      copyright notice, this list of conditions and the following
+%      disclaimer in the documentation and/or other materials provided
+%      with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+% A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+% OWNERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+% SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+% LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+% DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+% THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+% (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+% OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+%
 
 % Polynomial `p` is stored as a list of 4 items:
 %     {'p, Terms, Coeffs, Sugar}
@@ -848,8 +877,10 @@ asserted procedure poly_scaleDenominators(f: Polynomial): Polynomial;
    begin scalar fcoeffs, newcoeffs, den;
       den := poly_commonDenominator(f);
       if !*f5parametric then <<
-         lprim {prepsq den, "assumed to be non-vanishing"};
-         param_addAssumptionInput(den)
+         if not param_isConstAssumption(den) then <<
+            lprim {prepsq den, "assumed to be non-vanishing"};
+            param_addAssumptionInput(den)
+         >>
       >>;
       fcoeffs := poly_getCoeffs(f);
       while fcoeffs do <<

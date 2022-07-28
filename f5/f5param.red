@@ -1,5 +1,35 @@
 module f5param;
-% The module provides parametric assumptions manipulating interface
+% f5 parametric. Support collection and output of sufficient conditions
+% on parametric coefficients during Groebner basis computation.
+
+revision('f5param, "$Id$");
+
+copyright('f5param, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
+
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions
+% are met:
+%
+%    * Redistributions of source code must retain the relevant
+%      copyright notice, this list of conditions and the following
+%      disclaimer.
+%    * Redistributions in binary form must reproduce the above
+%      copyright notice, this list of conditions and the following
+%      disclaimer in the documentation and/or other materials provided
+%      with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+% A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+% OWNERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+% SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+% LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+% DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+% THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+% (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+% OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+%
 
 % The helper module to keep track of assumptions made in parametric F5 computations.
 % Provides functions `param_add*` for recording different kinds of assumptions 
@@ -18,69 +48,55 @@ module f5param;
 fluid '(param_assumptionsSpol!* param_assumptionsRed!*
         param_assumptionsInput!* param_assumptionsNormalize!*);
 
-% Returns true if the given assumption `poly <> 0` is "interesting", 
-% e.g., the following holds
-%  1. `poly` is not a literal constant 
-asserted procedure param_isAssumptionInteresting(poly: SQ): Boolean;
-   if domainp poly then
-      nil
-   else
-      t;
+algebraic infix neq;
+newtok '((!< !>) neq);
+flag('(neq),'spaced);
 
-% Tries to "standardize" the given assumption `poly <> 0`
-% and returns a standardized variant
-asserted procedure param_standardize(poly: SQ): SQ;
-   quotfx(numr poly, lc numr poly);
+asserted procedure param_isConstAssumption(poly: SQ): Boolean;
+   domainp numr poly;  
 
-asserted procedure param_prepareIneq(poly: SQ): SF; 
+asserted procedure param_prepareIneq(poly: SQ): List; 
    begin scalar num;
       num := numr poly;
-      if domainp num then
-         return;
       % num := quotf(num, sfto_dcontentf num);
-      % if minusf num then
-      %    num := negf num;
+      if minusf num then
+         num := negf num;
       num := sfto_sqfpartf num;
-      return num
+      return {'neq, prepf num, 0}
    end;
 
 % Add `poly <> 0` to S-polynomial assumptions 
-asserted procedure param_addAssumptionSpol(poly: SQ): Void;
-   param_assumptionsSpol!* := lto_insert({'neq, prepf param_prepareIneq(poly), nil}, param_assumptionsSpol!*)
+asserted procedure param_addAssumptionSpol(poly: SQ): List;
+   if not param_isConstAssumption(poly) then
+      param_assumptionsSpol!* := lto_insert(param_prepareIneq(poly), param_assumptionsSpol!*);
 
 % Adds `poly <> 0` to Reduction assumptions 
 asserted procedure param_addAssumptionRed(poly: SQ): List;
-   param_assumptionsRed!* := lto_insert({'neq, prepf param_prepareIneq(poly), nil}, param_assumptionsRed!*)
+   if not param_isConstAssumption(poly) then
+      param_assumptionsRed!* := lto_insert(param_prepareIneq(poly), param_assumptionsRed!*);
 
 % Adds `poly <> 0` to Input assumptions 
 asserted procedure param_addAssumptionInput(poly: SQ): List;
-   param_assumptionsInput!* := lto_insert({'neq, prepf param_prepareIneq(poly), nil}, param_assumptionsInput!*)
+   if not param_isConstAssumption(poly) then
+      param_assumptionsInput!* := lto_insert(param_prepareIneq(poly), param_assumptionsInput!*);
 
 % Adds `poly <> 0` to Normalize assumptions 
 asserted procedure param_addAssumptionNormalize(poly: SQ): List;
-   param_assumptionsNormalize!* := lto_insert({'neq, prepf param_prepareIneq(poly), nil}, param_assumptionsNormalize!*)
+   if not param_isConstAssumption(poly) then
+      param_assumptionsNormalize!* := lto_insert(param_prepareIneq(poly), param_assumptionsNormalize!*);
 
 % Clears all assumptions
 asserted procedure param_clearAssumptions();
 <<
    param_assumptionsSpol!* := nil;
-   param_assumptionsRed!*  := nil;
+   param_assumptionsRed!* := nil;
    param_assumptionsNormalize!* := nil;
    param_assumptionsInput!* := nil
 >>;
 
-% Dumps (returns) all recorded assumptions.
-% `param_dumpAssumptions` is a symbolic counterpart of the algebraic function `f5dumpAssumptions`;
-% For example,
-%  
-%  > f5({a*x1*x2^2 + a*x1*x3^2 - b*x1 + a, a*x1^2*x2 + a*x2*x3^2 - b*x2 + a, a*x1^2*x3 + a*x2^2*x3 - b*x3 + a}, {x1,x2,x3}, revgradlex);
-%  > f5dumpAssumptions();
-%
-%  Out:
-%                        3             4  8  5  2  3
-% {input={},reductions={a ,a},spolys={a ,a ,a ,a ,a ,a},normalize={}}
-%
-asserted procedure param_dumpAssumptions();
+% Dumps (returns) all recorded assumptions as a list
+% of inequalities
+asserted procedure param_dumpAssumptions(): List;
    lto_unionn({param_assumptionsSpol!*, param_assumptionsRed!*,
                param_assumptionsNormalize!*, param_assumptionsInput!*});
 

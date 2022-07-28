@@ -174,4 +174,24 @@ if not (gb = {'(plus (expt x 2) (expt y 4) (times 2 z) (expt w 3))}) then
 
 algebraic;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Symbolic interface
+
+% share x,y,z,w,f1,f2,g1,g2,g3;
+
+% lisp;
+
+% torder({{'list, w,z,y,x}, 'lex});
+
+% gb of {x, 0, y, z, 0, w} in Standard Quotient
+% f5_groebnerq({simp x, simp 0, simp y, simp z, simp 0, simp w});
+
+% gb of {x, y, z, w} in Standard Form
+% f5_groebnerf({numr simp x, numr simp y, numr simp z, numr simp w});
+
+% gb of {w, x, z, y} as in Lisp Prefix
+% f5_groebnerp({'w, 'x, 'z, 'y});
+% algebraic;
+
+
 end; % eof
