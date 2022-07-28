@@ -422,7 +422,7 @@ asserted procedure core_getReducers(i: Integer, G: List): List;
          if not (j #= i) then
             push(poly, reducers)
       >>;
-      j := j #+ 1
+      j := j #+ 1;
       return reducers
    end;
 

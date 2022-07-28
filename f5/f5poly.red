@@ -306,7 +306,7 @@ asserted procedure poly_disjExp!?(e1: List, e2: List): Boolean;
    begin scalar ok;
       e1 := cdr e1;
       e2 := cdr e2;
-      ok = t;
+      ok := t;
       while ok and e1 do
          ok := pop e1 #= 0 or pop e2 #= 0;
       return ok
@@ -344,7 +344,7 @@ procedure ev_2aExp1(u,v);
 
 % Compares exponent lists e1, e2 w.r.t. lex term order,
 % and returns e1 < e2
-asserted inline procedure poly_cmpExpLex(e1: List, e2: List): Boolean;
+asserted procedure poly_cmpExpLex(e1: List, e2: List): Boolean;
    <<
       e1 := cdr e1;
       e2 := cdr e2;
