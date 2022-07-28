@@ -113,8 +113,7 @@ fluid '(vdpsortmode!*);
 %
 %    {2*x + 1,2*y - 5}
 %
-switch f5fractionfree;
-off1 'f5fractionfree;
+switch f5fractionfree=off;
 
 % f5interreduce - If the output basis should be fully interreduced.
 %                If this is ON, each generator in the output basis is
@@ -134,8 +133,7 @@ off1 'f5fractionfree;
 %
 %    {x,y}
 %
-switch f5interreduce;
-off1 'f5interreduce;
+switch f5interreduce=off;
 
 % f5statistics - If this is ON, collects and prints the following statistics
 %                with each call to f5:
@@ -146,22 +144,19 @@ off1 'f5interreduce;
 %                All statistics above are differentiated by the signature index.
 %                By default, this is OFF, the information
 %                is neither collected nor printed.
-switch f5statistics;
-off1 'f5statistics;
+switch f5statistics=off;
 
 % f5sugar - If ON, sugar selection strategy is used;
 %           otherwise, uses normal selection strategy.
 %              https://doi.org/10.1145/120694.120701
 %           Is ON by default.
-switch f5sugar;
-on1 'f5sugar;
+switch f5sugar=on;
 
 % f5usef5c - If OFF, the F5C algorithm is used in f5:
 %              https://doi.org/10.1016%2Fj.jsc.2010.06.019
 %            Otherwise, does not interreduce intermediate bases.
 %            Default option is OFF.
-switch f5usef5c;
-off1 'f5usef5c;
+switch f5usef5c=off;
 
 % f5parametric - If set on, parametric coefficients are 
 %                not considered as rational functions but
@@ -169,8 +164,7 @@ off1 'f5usef5c;
 %                on the non-vanishing of such parametric expressions
 %                are made during computation.
 %                Default option if OFF.
-switch f5parametric;
-off1 'f5parametric;
+switch f5parametric=off;
 
 % f5parametricNormalize - This switch is considered only with f5paramettic ON. 
 %                         Its default is OFF. "Normalize" refers to the conversion
@@ -179,8 +173,7 @@ off1 'f5parametric;
 %                         If set ON, normalization factors are computed over the polynomial
 %                         ring in the parameters, and necessary assumptions on their
 %                         non-vanishing are made.
-switch f5parametricNormalize;
-off1 'f5parametricNormalize;
+switch f5parametricNormalize=off;
 
 % Assertions should be OFF in production.
 load!-package 'assert;
