@@ -31,7 +31,7 @@ copyright('f5, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %
 
-% The f5 module provides the implementation of the Faugère's F5 algorithm
+% The f5 module provides the implementation of the Faugere's F5 algorithm
 %     https://www-polsys.lip6.fr/~jcf/Papers/F02a.pdf
 %
 % The interface contains the operator `f5` with the following signature
