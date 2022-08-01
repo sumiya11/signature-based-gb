@@ -1,1 +1,0 @@
-find f5 groebner -name "*.red" -exec ./patch.sh {} \;
