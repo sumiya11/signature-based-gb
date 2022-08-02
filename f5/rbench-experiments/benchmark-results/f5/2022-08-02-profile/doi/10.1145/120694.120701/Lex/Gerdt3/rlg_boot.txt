@@ -1,0 +1,79 @@
+% Giovini, A., Mora, T., Niesi, G., Robbiano, L. and Traverso, C., "One sugar cube, please" or
+% Selection strategies in the Buchberger algorithm, J. of the ACM 1991, pp. 49-54,
+% https://doi.org/10.1145/120694.120701
+%
+% 3.1 Gerdt examples, example 3
+
+load_package f5;
+
+Usage: profile p_1, ..., p_n;           profile expr procedures p_1, ..., p_n
+       unprofile p_1, ..., p_n;         stop profiling p_1, ..., p_n
+       proprint([p_1,..., p_n | all]);  print collected data in tables
+       proall();                        list all profiled procedures
+       pronested();                     list procedures with nested calls
+       proreset();                      delete all collected data
+       prousage();                      this information
++++ core_normalform compiled, 21 + 24 bytes
++++ core_topreductionf5 compiled, 22 + 24 bytes
+
+
+system := {6*x*y**2*t - x**2*z*t - 6*x*y*z*t + 3*x*z**2*t - 2*z**3*t - 6*x*y**2 + 6*x*y*z - 2*x*z**2,
+   -63*x*y**2*t**2 + 9*x**2*z*t**2 + 63*x*y*z*t**2 + 18*y**2*z*t**2 - 27*x*z**2*t**2 - 18*y*z**2*t**2 + 18*z**3*t**2 + 78*x*y**2*t - 78*x*y*z*t - 18*y**2*z*t + 24*x*z**2*t + 18*y*z**2*t - 9*z**3*t - 15*x*y**2 + 15*x*y*z - 5*x*z**2,
+   18*x**2*y**2*t - 3*x**3*z*t - 18*x**2*y*z*t + 12*x*y**2*z*t + 5*x**2*z**2*t - 12*x*y*z**2*t + 6*x*z**3*t - 8*z**4*t - 18*x**2*y**2 +18*x**2*y*z - 12*x*y**2*z - 4*x**2*z**2 + 12*x*y*z**2 - 6*x*z**3,
+   -x**2*y*t + 3*x*y**2*t + 10*y**3*t - 15*y**2*z*t + 3*y*z**2*t - 3*x*y**2 - 10*y**3 + x*y*z + 15*y**2*z - 5*y*z**2}$
+
+
+
+vars := {t, z, y, x}$
+
+
+torder(reverse vars, lex)$
+
+
+
+gb := f5(system)$
+
+
+in "~/signature-based-gb/f5/sed.red";
+
+dir := lisp lastcar lto_stringsplit(get!-current!-directory(), {'!/});
+
+
+dir := Gerdt3
+
+num1 := lisp caddr assoc ('(core_normalform), profile_alist!*);
+
+
+num1 := 230
+
+num2 := lisp caddr assoc ('(core_topReductionF5), profile_alist!*);
+
+
+num2 := 110
+
+total := lisp (time() - profile_time!*);
+
+
+total := 900
+
+share dir, num1, num2, total;
+
+
+str := lisp lto_sconcat({"echo '", dir, ",", num1, ",", num2, ",",total , "' >> ~/signature-based-gb/f5/putin.csv"});
+
+
+str := echo 'Gerdt3,230,110,900' >> ~/signature-based-gb/f5/putin.csv
+
+share str;
+
+
+lisp system str;
+
+
+0
+
+end;
+
+
+end;
+

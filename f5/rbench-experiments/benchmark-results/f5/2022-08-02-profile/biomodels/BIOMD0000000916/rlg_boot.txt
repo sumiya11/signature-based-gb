@@ -1,0 +1,121 @@
+load_package f5$
+
+Usage: profile p_1, ..., p_n;           profile expr procedures p_1, ..., p_n
+       unprofile p_1, ..., p_n;         stop profiling p_1, ..., p_n
+       proprint([p_1,..., p_n | all]);  print collected data in tables
+       proall();                        list all profiled procedures
+       pronested();                     list procedures with nested calls
+       proreset();                      delete all collected data
+       prousage();                      this information
++++ core_normalform compiled, 21 + 24 bytes
++++ core_topreductionf5 compiled, 22 + 24 bytes
+
+torder({}, revgradlex)$
+
+
+
+k1 := 18/5;
+
+
+       18
+k1 := ----
+       5
+
+k2 := 6/5;
+
+
+       6
+k2 := ---
+       5
+
+k3 := 133/5;
+
+
+       133
+k3 := -----
+        5
+
+k4 := 6/5;
+
+
+       6
+k4 := ---
+       5
+
+k5 := 6/5;
+
+
+       6
+k5 := ---
+       5
+
+k6 := 1;
+
+
+k6 := 1
+
+k7 := 1;
+
+
+k7 := 1
+
+operator diff$
+
+
+odes := { diff(x1, t) = (-1)*k6*k3*x1/k6,
+  diff(x2, t) = (1*k6*k3*x1 + (-1)*k6*(k4*x2 - k5*x4) + (-1)*k6*k1*x2)/k6,
+  diff(x3, t) = 1*k6*k2*x4/k6,
+  diff(x4, t) = (1*k6*(k4*x2 - k5*x4) + (-1)*k6*k2*x4)/k6,
+  diff(x5, t) = 1*k6*k1*x2/k6 }$
+
+
+odes := for each o in odes collect part(o, 2)$
+
+
+
+gb := f5(odes)$
+
+
+in "~/signature-based-gb/f5/sed.red";
+
+dir := lisp lastcar lto_stringsplit(get!-current!-directory(), {'!/});
+
+
+dir := BIOMD0000000916
+
+num1 := lisp caddr assoc ('(core_normalform), profile_alist!*);
+
+
+num1 := 0
+
+num2 := lisp caddr assoc ('(core_topReductionF5), profile_alist!*);
+
+
+num2 := 0
+
+total := lisp (time() - profile_time!*);
+
+
+total := 0
+
+share dir, num1, num2, total;
+
+
+str := lisp lto_sconcat({"echo '", dir, ",", num1, ",", num2, ",",total , "' >> ~/signature-based-gb/f5/putin.csv"});
+
+
+str := echo 'BIOMD0000000916,0,0,0' >> ~/signature-based-gb/f5/putin.csv
+
+share str;
+
+
+lisp system str;
+
+
+0
+
+end;
+
+
+end;
+

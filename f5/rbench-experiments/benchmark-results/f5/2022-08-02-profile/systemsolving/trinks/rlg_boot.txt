@@ -1,0 +1,122 @@
+% trinks system in lex
+% characteristic 0
+
+load_package f5;
+
+Usage: profile p_1, ..., p_n;           profile expr procedures p_1, ..., p_n
+       unprofile p_1, ..., p_n;         stop profiling p_1, ..., p_n
+       proprint([p_1,..., p_n | all]);  print collected data in tables
+       proall();                        list all profiled procedures
+       pronested();                     list procedures with nested calls
+       proreset();                      delete all collected data
+       prousage();                      this information
++++ core_normalform compiled, 21 + 24 bytes
++++ core_topreductionf5 compiled, 22 + 24 bytes
+
+
+system := {35*p + 40*z + 25*t - 27*s,
+          45*p + 35*s - 165*b - 36*h,
+          -11*s*b + 3b^2 + 99*w*h,
+          25*p*s - 165*b^2 + 15*w*h + 30*z*h - 18*t*h,
+          15*p*t + 20*z*s - 9*w*h,
+          -11*b^3 + w*p*h + 2*z*t*h}$
+
+
+
+vars := {w,p,z,t,s,b,h}$
+
+
+
+gb := f5(system, vars, 'revgradlex)$
+
+
+in "~/signature-based-gb/f5/sed.red";
+
+dir := lisp lastcar lto_stringsplit(get!-current!-directory(), {'!/});
+
+
+dir := trinks
+
+num1 := lisp caddr assoc ('(core_normalform), profile_alist!*);
+
+
+num1 := 20
+
+num2 := lisp caddr assoc ('(core_topReductionF5), profile_alist!*);
+
+
+num2 := 0
+
+total := lisp (time() - profile_time!*);
+
+
+total := 20
+
+share dir, num1, num2, total;
+
+
+str := lisp lto_sconcat({"echo '", dir, ",", num1, ",", num2, ",",total , "' >> ~/signature-based-gb/f5/putin.csv"});
+
+
+str := echo 'trinks,20,0,20' >> ~/signature-based-gb/f5/putin.csv
+
+share str;
+
+
+lisp system str;
+
+
+0
+
+end;
+
+torder(vars, lex)$
+
+
+
+gb := f5(system)$
+
+
+in "~/signature-based-gb/f5/sed.red";
+
+dir := lisp lastcar lto_stringsplit(get!-current!-directory(), {'!/});
+
+
+dir := trinks
+
+num1 := lisp caddr assoc ('(core_normalform), profile_alist!*);
+
+
+num1 := 20
+
+num2 := lisp caddr assoc ('(core_topReductionF5), profile_alist!*);
+
+
+num2 := 0
+
+total := lisp (time() - profile_time!*);
+
+
+total := 40
+
+share dir, num1, num2, total;
+
+
+str := lisp lto_sconcat({"echo '", dir, ",", num1, ",", num2, ",",total , "' >> ~/signature-based-gb/f5/putin.csv"});
+
+
+str := echo 'trinks,20,0,40' >> ~/signature-based-gb/f5/putin.csv
+
+share str;
+
+
+lisp system str;
+
+
+0
+
+end;
+
+
+end;
+

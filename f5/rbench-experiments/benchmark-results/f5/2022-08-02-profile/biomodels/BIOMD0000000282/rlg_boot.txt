@@ -1,0 +1,123 @@
+load_package f5$
+
+Usage: profile p_1, ..., p_n;           profile expr procedures p_1, ..., p_n
+       unprofile p_1, ..., p_n;         stop profiling p_1, ..., p_n
+       proprint([p_1,..., p_n | all]);  print collected data in tables
+       proall();                        list all profiled procedures
+       pronested();                     list procedures with nested calls
+       proreset();                      delete all collected data
+       prousage();                      this information
++++ core_normalform compiled, 21 + 24 bytes
++++ core_topreductionf5 compiled, 22 + 24 bytes
+
+torder({}, revgradlex)$
+
+
+
+k1 := 11;
+
+
+k1 := 11
+
+k2 := 0;
+
+
+k2 := 0
+
+k3 := 83/5;
+
+
+       83
+k3 := ----
+       5
+
+k4 := 18/25;
+
+
+       18
+k4 := ----
+       25
+
+k5 := 1;
+
+
+k5 := 1
+
+k6 := 0;
+
+
+k6 := 0
+
+k7 := 34/25;
+
+
+       34
+k7 := ----
+       25
+
+k8 := 2;
+
+
+k8 := 2
+
+operator diff$
+
+
+odes := { diff(x1, t) = ((-1)*k5*(k1*x1*x2 - k2*x3) + 1*k5*k3*x3*x2 + 1*k5*k4*x3*k6)/k5,
+  diff(x2, t) = ((-1)*k5*(k1*x1*x2 - k2*x3) + (-1)*k5*k3*x3*x2)/k5,
+  diff(x3, t) = (1*k5*(k1*x1*x2 - k2*x3) + (-1)*k5*k3*x3*x2 + (-1)*k5*k4*x3*k6)/k5,
+  diff(x4, t) = 1*k5*k3*x3*x2/k5,
+  diff(x5, t) = 0,
+  diff(x6, t) = 1*k5*k4*x3*k6/k5 }$
+
+
+odes := for each o in odes collect part(o, 2)$
+
+
+
+gb := f5(odes)$
+
+
+in "~/signature-based-gb/f5/sed.red";
+
+dir := lisp lastcar lto_stringsplit(get!-current!-directory(), {'!/});
+
+
+dir := BIOMD0000000282
+
+num1 := lisp caddr assoc ('(core_normalform), profile_alist!*);
+
+
+num1 := 0
+
+num2 := lisp caddr assoc ('(core_topReductionF5), profile_alist!*);
+
+
+num2 := 0
+
+total := lisp (time() - profile_time!*);
+
+
+total := 0
+
+share dir, num1, num2, total;
+
+
+str := lisp lto_sconcat({"echo '", dir, ",", num1, ",", num2, ",",total , "' >> ~/signature-based-gb/f5/putin.csv"});
+
+
+str := echo 'BIOMD0000000282,0,0,0' >> ~/signature-based-gb/f5/putin.csv
+
+share str;
+
+
+lisp system str;
+
+
+0
+
+end;
+
+
+end;
+

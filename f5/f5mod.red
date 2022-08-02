@@ -245,7 +245,7 @@ trst mod_groebnerModular1;
 % modified a bit to suit the 'Modern Computer Algebra, Edition 3' definitions
 %   https://doi.org/10.1017/CBO9781139856065
 % Returns a rational r // h in canonical form such that
-%   r // h ≡ a (mod m)
+%   r // h = a (mod m)
 %
 % Here, a and m can be *arbitrary large* integers
 asserted procedure mod_reconstruction(a: Integer, m: Integer): SQ;
@@ -316,8 +316,8 @@ asserted procedure mod_extendedEuclid(a: Integer, b: Integer): DottedPair;
 
 % Chinese reminder theorem reconstruction implementation.
 % Returns integer x such that
-%   x ≡ a1 (mod m1)
-%   x ≡ a2 (mod m2)
+%   x = a1 (mod m1)
+%   x = a2 (mod m2)
 %
 % Here, a1, a2, m1, m2 can be *arbitrary large* integers
 asserted procedure mod_crt(a1: Integer, m1: Integer,

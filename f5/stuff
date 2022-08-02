@@ -1,0 +1,11 @@
+lastcar lto_stringsplit(get!-current!-directory(), {'!/});
+"ademin"
+
+caddr assoc ('(core_normalform), profile_alist!*)
+
+a function in "sed.red", which is read by appending the sed 
+
+       | normal form | hard reduction | f5 or groebner ? |
+system |
+...    |
+...    |

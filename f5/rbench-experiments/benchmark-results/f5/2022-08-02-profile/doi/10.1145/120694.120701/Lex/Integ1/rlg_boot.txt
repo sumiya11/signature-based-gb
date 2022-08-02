@@ -1,0 +1,79 @@
+% Giovini, A., Mora, T., Niesi, G., Robbiano, L. and Traverso, C., "One sugar cube, please" or
+% Selection strategies in the Buchberger algorithm, J. of the ACM 1991, pp. 49-54,
+% https://doi.org/10.1145/120694.120701
+%
+% 3.6 An example from integer programming
+
+load_package f5;
+
+Usage: profile p_1, ..., p_n;           profile expr procedures p_1, ..., p_n
+       unprofile p_1, ..., p_n;         stop profiling p_1, ..., p_n
+       proprint([p_1,..., p_n | all]);  print collected data in tables
+       proall();                        list all profiled procedures
+       pronested();                     list procedures with nested calls
+       proreset();                      delete all collected data
+       prousage();                      this information
++++ core_normalform compiled, 21 + 24 bytes
++++ core_topreductionf5 compiled, 22 + 24 bytes
+
+
+system := {x**2*y*z**4 - t,
+   x**5*y**7 - z**2*u,
+   -x**3*z*v + y**2,
+   -z**5*w + x*y**3}$
+
+
+
+vars := {w, v, u, t, z, y, x}$
+
+
+torder(reverse vars, lex)$
+
+
+
+gb := f5(system)$
+
+
+in "~/signature-based-gb/f5/sed.red";
+
+dir := lisp lastcar lto_stringsplit(get!-current!-directory(), {'!/});
+
+
+dir := Integ1
+
+num1 := lisp caddr assoc ('(core_normalform), profile_alist!*);
+
+
+num1 := 20
+
+num2 := lisp caddr assoc ('(core_topReductionF5), profile_alist!*);
+
+
+num2 := 40
+
+total := lisp (time() - profile_time!*);
+
+
+total := 890
+
+share dir, num1, num2, total;
+
+
+str := lisp lto_sconcat({"echo '", dir, ",", num1, ",", num2, ",",total , "' >> ~/signature-based-gb/f5/putin.csv"});
+
+
+str := echo 'Integ1,20,40,890' >> ~/signature-based-gb/f5/putin.csv
+
+share str;
+
+
+lisp system str;
+
+
+0
+
+end;
+
+
+end;
+
