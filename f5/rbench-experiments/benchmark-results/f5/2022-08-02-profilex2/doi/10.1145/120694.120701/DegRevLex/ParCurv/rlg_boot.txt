@@ -1,0 +1,83 @@
+% Giovini, A., Mora, T., Niesi, G., Robbiano, L. and Traverso, C., "One sugar cube, please" or
+% Selection strategies in the Buchberger algorithm, J. of the ACM 1991, pp. 49-54,
+% https://doi.org/10.1145/120694.120701
+%
+% 3.4 A parametric curve
+
+load_package f5;
+
+Usage: profile p_1, ..., p_n;           profile expr procedures p_1, ..., p_n
+       unprofile p_1, ..., p_n;         stop profiling p_1, ..., p_n
+       proprint([p_1,..., p_n | all]);  print collected data in tables
+       proall();                        list all profiled procedures
+       pronested();                     list procedures with nested calls
+       proreset();                      delete all collected data
+       prousage();                      this information
++++ core_interreduceinput compiled, 11 + 16 bytes
++++ core_normalform compiled, 21 + 24 bytes
++++ core_topreductionf5 compiled, 22 + 24 bytes
+
+
+system := {x**31 - x**6 - x - y,
+   x**8 - z, x**10 - t}$
+
+
+
+vars := {t, z, y, x}$
+
+
+torder(reverse vars, revgradlex)$
+
+
+
+gb := f5(system)$
+
+
+in "~/signature-based-gb/f5/sed.red";
+
+dir := lisp lastcar lto_stringsplit(get!-current!-directory(), {'!/});
+
+
+dir := ParCurv
+
+num1 := lisp caddr assoc ('(core_normalform), profile_alist!*);
+
+
+num1 := 10
+
+num2 := lisp caddr assoc ('(core_topReductionF5), profile_alist!*);
+
+
+num2 := 0
+
+num3 := lisp caddr assoc ('(core_interreduceInput), profile_alist!*);
+
+
+num3 := 0
+
+total := lisp (time() - profile_time!*);
+
+
+total := 10
+
+share dir, num1, num2, num3, total;
+
+
+str := lisp lto_sconcat({"echo '", dir, ",", num1, ",", num2, ",", num3, ",",total , "' >> ~/signature-based-gb/f5/putin2.csv"});
+
+
+str := echo 'ParCurv,10,0,0,10' >> ~/signature-based-gb/f5/putin2.csv
+
+share str;
+
+
+lisp system str;
+
+
+0
+
+end;
+
+
+end;
+
