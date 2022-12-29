@@ -1,7 +1,7 @@
 module f5lp;
 % f5 labeled polynomial. Implement `LabeledPolynomial` data type.
 
-revision('f5lp, "$Id$");
+revision('f5lp, "$Id: f5lp.red 6359 2022-07-29 06:13:09Z thomas-sturm $");
 
 copyright('f5lp, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 

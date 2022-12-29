@@ -1,7 +1,7 @@
 module f5core;
 % f5 core. Main procedures of the F5 algorithm.
 
-revision('f5core, "$Id$");
+revision('f5core, "$Id: f5core.red 6359 2022-07-29 06:13:09Z thomas-sturm $");
 
 copyright('f5core, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 
@@ -63,7 +63,7 @@ copyright('f5core, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 % iterates the following steps, which follow the general outline of
 % Bucherger's algorithm:
 %   - Generate a list of critical pairs by iterating `core_makeCriticalPair` on
-%     all of the pairs of {currIdx} x Gprev, where {currIdx} is Gcurr \ Gprev.
+%     all of the pairs of {currIdx} × Gprev, where {currIdx} is Gcurr \ Gprev.
 %   - Identify critical pairs of the smallest degree, and compute the
 %     necessary S-polynomials of smallest degree using `core_computeSpolys`.
 %   - Reduce polynomials by passing the output of `core_computeSpolys`
@@ -78,7 +78,7 @@ copyright('f5core, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 %   `core_reduction`
 %
 %   We higlight the major differences between the above three functions and
-% their counterparts in Buchberger's algorithm. The `core_makeCriticalPair`
+% their counterparts in Buchberger’s algorithm. The `core_makeCriticalPair`
 % constructs a critical pair for the given pair of indices of polynomials
 % in `r`, discarding, however, any pair whose corresponding S-polynomial
 % has a component that satisfies the F5 criterion or the Rewritten Criterion.

@@ -2,7 +2,7 @@ module f5stat;
 % f5 statistics. Collect and print statistics about Groebner basis computation
 % with each call to f5.
 
-revision('f5stat, "$Id$");
+revision('f5stat, "$Id: f5stat.red 6359 2022-07-29 06:13:09Z thomas-sturm $");
 
 copyright('f5stat, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 
