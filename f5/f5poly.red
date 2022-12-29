@@ -2,7 +2,7 @@ module f5poly;
 % f5 polynomials. Polynomial interface to be used in f5. Implements a
 % `Polynomial` data type.
 
-revision('f5poly, "$Id$");
+revision('f5poly, "$Id: f5poly.red 6359 2022-07-29 06:13:09Z thomas-sturm $");
 
 copyright('f5poly, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 

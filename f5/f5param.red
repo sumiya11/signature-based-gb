@@ -2,7 +2,7 @@ module f5param;
 % f5 parametric. Support collection and output of sufficient conditions
 % on parametric coefficients during Groebner basis computation.
 
-revision('f5param, "$Id$");
+revision('f5param, "$Id: f5param.red 6359 2022-07-29 06:13:09Z thomas-sturm $");
 
 copyright('f5param, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 

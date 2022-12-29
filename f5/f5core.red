@@ -1,7 +1,7 @@
 module f5core;
 % f5 core. Main procedures of the F5 algorithm.
 
-revision('f5core, "$Id$");
+revision('f5core, "$Id: f5core.red 6359 2022-07-29 06:13:09Z thomas-sturm $");
 
 copyright('f5core, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 

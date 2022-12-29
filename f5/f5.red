@@ -2,7 +2,7 @@ module f5;
 % f5. Main module. The F5 Algorithm for computing Groebner bases.
 % Contains the AM and SM entry points.
 
-revision('f5, "$Id$");
+revision('f5, "$Id: f5.red 6359 2022-07-29 06:13:09Z thomas-sturm $");
 
 copyright('f5, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 
