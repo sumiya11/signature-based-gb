@@ -13,16 +13,16 @@
 \begin{document}
 \title{F5: Computing Gröbner Bases Using F5}
 
-\author{Alexander Demin, Hamid Rahkooy\\
+\author{Alexander Demin\footnote{Corresponding author, email: \texttt{asdemin\_2@edu.hse.ru}}, Hamid Rahkooy\\
   MPI Informatics, Saarland Informatics Campus, Germany\\
-  \texttt{\{ademin,hrahkooy\}@mpi-inf.mpg.de}
+  \texttt{hrahkooy@mpi-inf.mpg.de}
   \and
   Thomas Sturm\\
   CNRS, Inria, and the University of Lorraine, France\\
   \texttt{thomas.sturm@cnrs.fr}
 }
 
-\date{July 2022}
+\date{July 2022\footnote{Revisited on December 2022}}
 
 \maketitle
 
@@ -62,7 +62,7 @@ The principal function in the interface is
 It computes a \grobner{} basis of the polynomials \code {expr\_1}, \dots,~\code{expr\_m} in the variables \code{var\_1}, \dots,~\code{var\_n} using a
 term order constructed from the given variables and the sort mode \code{ord}. As usual, all REDUCE
 kernels can play the role of variables of the polynomial ring under consideration. F5 supports all sort modes
-available through the torder command, including the basic orders \code{lex}, 
+available through the \code{torder} command, including the basic orders \code{lex}, 
 \code{gradlex}, and \code{revgradlex}, as well as block, weighted, graded, and matrix orders. 
 Recall that the list of variables
 specifies their relative order from largest to smallest, like $\code{var\_1} \succ \dots \succ
