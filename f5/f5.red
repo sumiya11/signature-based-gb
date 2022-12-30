@@ -31,7 +31,7 @@ copyright('f5, "(c) 2022 A. Demin, T. Sturm, MPI Informatics, Germany");
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %
 
-% The f5 module provides the implementation of the Faugère's F5 algorithm
+% The f5 module provides the implementation of the Faugere's F5 algorithm
 %     https://www-polsys.lip6.fr/~jcf/Papers/F02a.pdf
 %
 % The interface contains the operator `f5` with the following signature
@@ -82,11 +82,8 @@ create!-package('(f5 f5core f5lp f5poly f5param f5stat), nil);
 fluid '(!*backtrace);
 
 % Needed for compatibility with torder.
-% global!-dipvars!* is a list of kernels, 
-% which currently serve as variables in polynomial ring.
-% vdpsortmode!* is a "sort mode" identifier (e.g., lex, revgradlex)  
-fluid '(global!-dipvars!*);
-fluid '(vdpsortmode!*);
+fluid '(compiled!-orders!* dipsortmode!* dipsortevcomp!*);
+fluid '(dipvars!* global!-dipvars!* vdplastvar!* vdpsortmode!*);
 
 % Currently, there are several switches available, these are described below
 % . f5fractionfree (default is OFF)
