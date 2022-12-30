@@ -85,7 +85,7 @@ fluid '(!*backtrace);
 % global!-dipvars!* is a list of kernels, 
 % which currently serve as variables in polynomial ring.
 % vdpsortmode!* is a "sort mode" identifier (e.g., lex, revgradlex)  
-fluid '(global!-dipvars!*);
+fluid '(dipvars!* global!-dipvars!* compiled!-orders!* dipsortevcomp!* dipsortevcomp!*);
 fluid '(vdpsortmode!*);
 
 % Currently, there are several switches available, these are described below

@@ -70,12 +70,34 @@ load!-package 'dipoly;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Returns the current torder
+% Returns the current torder.
 asserted procedure poly_extractTorder(): List;
    begin scalar oldTorder;
+      % In case a non-compiled matrix order is specified, 
+      % we call the matrix initialization manually.
+      % Otherwise, we just set comparator to an already compiled one.
       oldTorder := torder('(list));
       torder(cdr oldTorder);
-      dipsortingmode(vdpsortmode!*);
+      % If not compiled matrix is given, compile it
+      if vdpsortmode!* eq 'matrix then <<
+         dipvars!* := cdr global!-dipvars!*;
+         evmatrixinit()
+      >>;
+      % if compiled matrix is given
+      if compiled!-orders!* and (cdar compiled!-orders!* eq vdpsortmode!*) then <<
+         dipvars!* := cdr global!-dipvars!*;
+         dipsortmode!* := vdpsortmode!*;
+         dipsortevcomp!* := get(vdpsortmode!*,'evcomp);
+         vdplastvar!* := length dipvars!*
+      >> else
+         dipsortingmode(vdpsortmode!*);
+      % if compiled matrix (or, not a matrix at all) is given
+      % if not (vdpsortmode!* eq 'matrix) then <<
+      %   dipsortingmode(vdpsortmode!*)
+         % dipsortmode!* := vdpsortmode!*;
+         % dipsortevcomp!* := get(vdpsortmode!*,'evcomp);
+         % vdplastvar!* := length dipvars!*
+      % >>;
       return oldTorder
    end;
 
@@ -102,7 +124,7 @@ asserted procedure poly_initRing(u: List): List;
          else
             oldTorder := torder({'list . vars, ord, pop u})
       >>;
-      return oldTorder
+      return oldTorder 
    end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -378,7 +400,7 @@ asserted procedure poly_cmpExp(e1: List, e2: List): Boolean;
       poly_cmpExpGradLex(e1, e2)
    else if vdpsortmode!* eq 'revgradlex then
       poly_cmpExpRevGradLex(e1, e2)
-   else  % Trouble with vdpmatrix!*
+   else
       poly_cmpExpGeneric(e1, e2)
    >>;
 

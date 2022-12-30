@@ -10,7 +10,11 @@ f5({x^2*y - 10x + 5, 3y^2 + 4x + 7});
 f5({x^2*y - a*x + b, c*y^2 + d*x + e}, {x, y}, lex);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Different term orders
+% Different term orders.
+
+% For the detailed description of all supported term orders we refer 
+% to the groebner package documentation, subsection "Term Ordering Mode".
+% Here, we demonstrate basic use-cases.
 
 % Without torder:
 
@@ -42,12 +46,25 @@ f5({x + y^4 + z^3});
 % Expected {z^3 + y^4 + x}
 
 % and Matrix order;
-% Not working currently
-% torder({x, y},matrix, mat(
-%     (1,0),
-%     (0,1)))$
-% f5({x + y + z});
-% f5({x + y^2 + z^3});
+% 
+torder({x, y, z},matrix, mat(
+    (0,3,1),
+    (2,0,0),
+    (0,0,1)));
+f5({x + y + z});
+% Expected {y + z + x}
+f5({x^2 + y + z^6});
+% Expected {z^6 + y + x^2}
+
+% ..or compile the matrix for greater efficiency
+torder_compile(m, mat(
+  (1,1,1),
+  (0,0,1),
+  (0,1,0)
+));
+torder({x,y,z}, m);
+f5({x + y^2 + z^2});
+% Expected {z^2 + y^2 + x}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Different switches combinations: pairwise interactions
@@ -245,5 +262,41 @@ system := {
 }$
 vars := {x0,x1,x2,x3,x4,x5}$
 f5(system, vars, revgradlex);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Ad-hoc, test that consecutive torder's change the order correctly 
+
+torder({x, y, z},matrix, mat(
+    (0,3,1),
+    (2,0,0),
+    (0,0,1)));
+f5({x + y + z});
+% Expected y + z + x
+
+torder({x,y,z},weighted,{3, 5, 4});
+f5({x + y + z});
+% Expected {y + z + x}
+
+torder_compile(m, mat(
+  (1,1,1),
+  (0,0,1),
+  (0,1,0)
+));
+torder({x,y,z}, m);
+f5({x + y^2 + z^2});
+% Expected {z^2 + y^2 + x}
+
+% Graded order
+torder({x, y, z}, graded, {1, 1, 2}, lex);
+f5({x + y^4 + z^3});
+% Expected {z^3 + y^4 + x}
+
+% Block order
+torder({x, y, z}, lexgradlex, 1);
+f5({x + y + z^2});
+% Expected {x + z^2 + y}
+
+f5({x + z + y^2}, {z, y, x}, revgradlex);
+% Expected {y^2 + z + x}
 
 end;  % of file

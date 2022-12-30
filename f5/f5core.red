@@ -1091,9 +1091,6 @@ asserted procedure core_groebner1(basis: List): List;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-load!-package 'profile;
-profile core_interreduceInput, core_normalForm, core_topReductionF5;
-
 endmodule;  % end of module f5core
 
 end;  % of file
