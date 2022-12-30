@@ -71,7 +71,7 @@ f5({x + y^2 + z^2});
 % f5interreduce X f5fractionfree
 off f5fractionfree;
 off f5interreduce;
-f5({3x + 5y^2, 2y + 1});
+f5({3x + 5y^2, 2y + 1}, {x, y}, lex);
 % expected    
 %       5   2      1
 % {x + ---*y ,y + ---}
@@ -85,7 +85,7 @@ f5({a*x + b*y^2, c*y + a^2*d}, {x, y}, lex);
 %       a           c
 
 on f5interreduce;
-f5({3x + 5y^2, 2y + 1});
+f5({3x + 5y^2, 2y + 1}, {x, y}, lex);
 % expected
 %       5        1
 % {x + ----,y + ---}
@@ -100,7 +100,7 @@ f5({a*x + b*y^2, c*y + a^2*d}, {x, y}, lex);
 %         c
 
 on f5fractionfree;
-f5({3x + 5y^2, 2y + 1});
+f5({3x + 5y^2, 2y + 1}, {x, y}, lex);
 % expected
 % {12*x + 5,2*y + 1}
 
@@ -110,7 +110,7 @@ f5({a*x + b*y^2, c*y + a^2*d}, {x, y}, lex);
 % {c *x + a *b*d ,c*y + a *d}
 
 off f5interreduce;
-f5({3x  + 5y^2, 2y + 1});
+f5({3x  + 5y^2, 2y + 1}, {x, y}, lex);
 % expected
 %           2
 % {3*x + 5*y ,2*y + 1}
